@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Zeiterfassung Logo">
+  <rect width="512" height="512" rx="96" fill="#0d9488"/>
+  <g fill="none" stroke="#ffffff" stroke-width="32" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="256" cy="280" r="144"/>
+    <path d="M256 280v-72"/>
+    <path d="M256 280l56 32"/>
+    <path d="M216 96h80"/>
+    <path d="M256 96v40"/>
+    <path d="M376 152l24-24"/>
+  </g>
+</svg>
