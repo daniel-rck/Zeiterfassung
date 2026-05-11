@@ -66,7 +66,7 @@ export function AppShell() {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `inline-flex flex-shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors no-min-tap ${
+                  `inline-flex flex-shrink-0 items-center gap-1.5 rounded-md px-3 py-2 transition-colors ${
                     isActive
                       ? 'bg-brand-100 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
                       : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'

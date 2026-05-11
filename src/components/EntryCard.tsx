@@ -21,7 +21,10 @@ export function EntryCard({
   const isRunning = entry.endedAt == null
 
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-zinc-200 hover:ring-zinc-300 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-zinc-700">
+    <div
+      className="flex items-start gap-3 rounded-lg bg-white p-3 ring-1 ring-zinc-200 hover:ring-zinc-300 dark:bg-zinc-900 dark:ring-zinc-800 dark:hover:ring-zinc-700"
+      aria-current={isRunning ? 'true' : undefined}
+    >
       <div
         className="mt-1 h-3 w-3 flex-shrink-0 rounded-full"
         style={{ backgroundColor: project?.color ?? '#9ca3af' }}
@@ -30,7 +33,9 @@ export function EntryCard({
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
           <div className="min-w-0 flex-1 truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-            {entry.description || <span className="italic text-zinc-400">Ohne Beschreibung</span>}
+            {entry.description || (
+              <span className="italic text-zinc-500 dark:text-zinc-400">Ohne Beschreibung</span>
+            )}
           </div>
           <div
             className={`flex-shrink-0 font-mono text-sm tabular-nums ${

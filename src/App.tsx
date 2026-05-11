@@ -6,6 +6,7 @@ import { AppShell } from './components/AppShell'
 import { Onboarding } from './components/Onboarding'
 import { GlobalShortcuts } from './components/GlobalShortcuts'
 import { ErrorBoundary } from './components/ErrorBoundary'
+import { SwUpdateNotifier } from './components/SwUpdateNotifier'
 import { TodayPage } from './pages/Today'
 import { EntriesPage } from './pages/Entries'
 import { EntryEditPage } from './pages/EntryEdit'
@@ -22,6 +23,7 @@ export function App() {
       <ThemeProvider>
         <ToastProvider>
           <ConfirmProvider>
+            <SwUpdateNotifier />
             <BrowserRouter>
               <GlobalShortcuts />
               <Onboarding />
