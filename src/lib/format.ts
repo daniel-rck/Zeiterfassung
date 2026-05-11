@@ -4,6 +4,7 @@ export function formatDuration(seconds: number, mode: 'short' | 'long' = 'short'
   const m = Math.floor((total % 3600) / 60)
   const s = total % 60
   if (mode === 'long') {
+    if (h === 0 && m === 0 && s === 0) return '0 min'
     if (h === 0 && m === 0) return `${s}s`
     if (h === 0) return `${m}min`
     if (m === 0) return `${h}h`
@@ -15,8 +16,25 @@ export function formatDuration(seconds: number, mode: 'short' | 'long' = 'short'
   return `${hh}:${mm}:${ss}`
 }
 
-export function formatDecimalHours(seconds: number, fractionDigits = 2): string {
-  return (seconds / 3600).toFixed(fractionDigits)
+// Locale-aware decimal hours (e.g. "1,50" in de-DE, "1.50" in en-US).
+// Defaults to en-US so backwards-compatible call sites without a locale
+// continue to receive a dot separator.
+export function formatDecimalHours(
+  seconds: number,
+  localeOrDigits?: string | number,
+  fractionDigits = 2,
+): string {
+  const locale = typeof localeOrDigits === 'string' ? localeOrDigits : 'en-US'
+  const digits = typeof localeOrDigits === 'number' ? localeOrDigits : fractionDigits
+  const hours = seconds / 3600
+  try {
+    return new Intl.NumberFormat(locale, {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    }).format(hours)
+  } catch {
+    return hours.toFixed(digits)
+  }
 }
 
 export function formatMoney(amount: number, currency: string, locale: string): string {

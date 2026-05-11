@@ -49,6 +49,22 @@ body {
   border-radius: 0.25rem;
 }
 
+.dark :where(button, a, [role='button'], [role='menuitem'], input, select, textarea):focus-visible {
+  outline-color: var(--color-brand-300);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;

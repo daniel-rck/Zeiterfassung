@@ -112,7 +112,7 @@ export function ReportsPage() {
         <StatCard
           label="Erfasste Zeit"
           value={formatDuration(totalSec, 'long')}
-          hint={`${formatDecimalHours(totalSec)} Stunden`}
+          hint={`${formatDecimalHours(totalSec, settings.locale)} Stunden`}
         />
         <StatCard label="Einträge" value={String(entries.length)} />
         {atLeast('pro') && (
@@ -151,7 +151,7 @@ export function ReportsPage() {
                   {bucket.projectName}
                 </span>
                 <span className="flex items-center gap-3 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
-                  <span>{formatDecimalHours(bucket.durationSec)}h</span>
+                  <span>{formatDecimalHours(bucket.durationSec, settings.locale)}h</span>
                   {atLeast('pro') && bucket.amount > 0 && bucket.currency && (
                     <span className="text-emerald-600 dark:text-emerald-400">
                       {formatMoney(bucket.amount, bucket.currency, settings.locale)}
@@ -184,7 +184,7 @@ export function ReportsPage() {
                       {tag.name}
                     </span>
                     <span className="font-mono tabular-nums">
-                      {formatDecimalHours(bucket.durationSec)}h
+                      {formatDecimalHours(bucket.durationSec, settings.locale)}h
                     </span>
                   </li>
                 )
