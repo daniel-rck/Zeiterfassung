@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Clock, ListChecks, FolderKanban, Tags, BarChart3, FileText, Settings as SettingsIcon } from 'lucide-react'
+import { Clock, ListChecks, FolderKanban, Tags, BarChart3, FileText, Archive as ArchiveIcon, Settings as SettingsIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
   { to: '/tags', label: 'Tags', icon: Tags, level: 'pro' },
   { to: '/reports', label: 'Reports', icon: BarChart3, level: 'standard' },
   { to: '/invoice', label: 'Rechnung', icon: FileText, level: 'proplus' },
+  { to: '/invoices', label: 'Archiv', icon: ArchiveIcon, level: 'proplus' },
   { to: '/settings', label: 'Einstellungen', icon: SettingsIcon },
 ]
 

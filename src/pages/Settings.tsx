@@ -95,10 +95,14 @@ export function SettingsPage() {
     })
     if (!ok) return
     const db = await getDB()
-    const tx = db.transaction(['projects', 'tags', 'time_entries'], 'readwrite')
+    const tx = db.transaction(
+      ['projects', 'tags', 'time_entries', 'invoices'],
+      'readwrite',
+    )
     await tx.objectStore('projects').clear()
     await tx.objectStore('tags').clear()
     await tx.objectStore('time_entries').clear()
+    await tx.objectStore('invoices').clear()
     await tx.done
     window.localStorage.removeItem('zeiterfassung:settings')
     broadcast({ type: 'db-cleared' })
@@ -259,6 +263,34 @@ export function SettingsPage() {
                 <Textarea
                   value={settings.invoiceProfile?.issuerAddress ?? ''}
                   onChange={(e) => updateInvoiceProfile({ issuerAddress: e.target.value })}
+                />
+              </Field>
+            </div>
+            <Field label="IBAN">
+              <Input
+                value={settings.invoiceProfile?.iban ?? ''}
+                onChange={(e) => updateInvoiceProfile({ iban: e.target.value })}
+                placeholder="DE…"
+              />
+            </Field>
+            <Field label="BIC">
+              <Input
+                value={settings.invoiceProfile?.bic ?? ''}
+                onChange={(e) => updateInvoiceProfile({ bic: e.target.value })}
+              />
+            </Field>
+            <Field label="Bank">
+              <Input
+                value={settings.invoiceProfile?.bankName ?? ''}
+                onChange={(e) => updateInvoiceProfile({ bankName: e.target.value })}
+              />
+            </Field>
+            <div className="sm:col-span-2">
+              <Field label="Zahlungs-Hinweis" hint="Optional, erscheint unter dem Zahlungsblock.">
+                <Textarea
+                  value={settings.invoiceProfile?.paymentNote ?? ''}
+                  onChange={(e) => updateInvoiceProfile({ paymentNote: e.target.value })}
+                  placeholder="z. B. Zahlbar innerhalb von 14 Tagen ohne Abzug."
                 />
               </Field>
             </div>

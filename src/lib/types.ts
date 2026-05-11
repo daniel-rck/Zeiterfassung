@@ -51,6 +51,10 @@ export interface InvoiceProfile {
   taxRate?: number
   taxId?: string
   nextInvoiceNumber?: number
+  iban?: string
+  bic?: string
+  bankName?: string
+  paymentNote?: string
 }
 
 export interface Settings {
@@ -67,6 +71,32 @@ export interface Settings {
   lastBackupAt?: number
 }
 
+export interface StoredInvoiceLineItem {
+  description: string
+  date?: string
+  hours: number
+  rate: number
+  amount: number
+}
+
+export interface StoredInvoice {
+  id: string
+  number?: string
+  date: number
+  recipient: { name: string; address?: string }
+  issuer: InvoiceProfile
+  projectId?: string
+  projectName?: string
+  range: { from: number; to: number }
+  currency: string
+  lineItems: StoredInvoiceLineItem[]
+  subtotal: number
+  taxRate?: number
+  taxAmount: number
+  total: number
+  createdAt: number
+}
+
 export interface DBSnapshot {
   schemaVersion: number
   exportedAt: number
@@ -75,4 +105,5 @@ export interface DBSnapshot {
   tags: Tag[]
   timeEntries: TimeEntry[]
   settings: Settings
+  invoices?: StoredInvoice[]
 }

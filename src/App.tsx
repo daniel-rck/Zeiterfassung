@@ -13,6 +13,7 @@ import { ProjectsPage } from './pages/Projects'
 import { TagsPage } from './pages/Tags'
 import { ReportsPage } from './pages/Reports'
 import { InvoicePage } from './pages/Invoice'
+import { InvoicesPage } from './pages/Invoices'
 import { SettingsPage } from './pages/Settings'
 
 export function App() {
@@ -34,6 +35,7 @@ export function App() {
                   <Route path="tags" element={<TagsPage />} />
                   <Route path="reports" element={<ReportsPage />} />
                   <Route path="invoice" element={<InvoicePage />} />
+                  <Route path="invoices" element={<InvoicesPage />} />
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>
               </Routes>

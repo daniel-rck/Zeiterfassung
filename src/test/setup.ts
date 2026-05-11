@@ -23,10 +23,14 @@ afterEach(async () => {
   cleanup()
   try {
     const db = await getDB()
-    const tx = db.transaction(['projects', 'tags', 'time_entries'], 'readwrite')
+    const tx = db.transaction(
+      ['projects', 'tags', 'time_entries', 'invoices'],
+      'readwrite',
+    )
     await tx.objectStore('projects').clear()
     await tx.objectStore('tags').clear()
     await tx.objectStore('time_entries').clear()
+    await tx.objectStore('invoices').clear()
     await tx.done
   } catch {
     // ignore — DB may not exist yet

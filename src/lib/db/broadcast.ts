@@ -9,6 +9,8 @@ export type BroadcastMessage =
   | { type: 'entry-deleted'; id: string }
   | { type: 'timer-started'; id: string }
   | { type: 'timer-stopped'; id: string }
+  | { type: 'invoice-changed'; id: string }
+  | { type: 'invoice-deleted'; id: string }
   | { type: 'settings-changed' }
   | { type: 'db-cleared' }
 

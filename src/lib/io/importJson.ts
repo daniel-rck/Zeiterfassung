@@ -74,13 +74,19 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
   findDuplicateIds(parsed.tags, 'Tags')
   findDuplicateIds(parsed.timeEntries, 'Einträge')
   parsed.timeEntries.forEach(validateEntry)
+  const invoiceList = parsed.invoices ?? []
+  findDuplicateIds(invoiceList, 'Rechnungen')
 
   const db = await getDB()
-  const tx = db.transaction(['projects', 'tags', 'time_entries'], 'readwrite')
+  const tx = db.transaction(
+    ['projects', 'tags', 'time_entries', 'invoices'],
+    'readwrite',
+  )
   try {
     await tx.objectStore('projects').clear()
     await tx.objectStore('tags').clear()
     await tx.objectStore('time_entries').clear()
+    await tx.objectStore('invoices').clear()
     for (const project of parsed.projects) {
       await tx.objectStore('projects').put(project)
     }
@@ -93,6 +99,9 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
         startedAtDay: dayKey(entry.startedAt),
         running: entry.endedAt == null ? 1 : 0,
       })
+    }
+    for (const invoice of invoiceList) {
+      await tx.objectStore('invoices').put(invoice)
     }
     await tx.done
   } catch (err) {
