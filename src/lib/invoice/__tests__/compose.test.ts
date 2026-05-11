@@ -18,9 +18,13 @@ function entry(over: Partial<TimeEntry>): TimeEntry {
 }
 
 describe('composeInvoice', () => {
-  it('rounds line amounts to cents and keeps the subtotal exact', () => {
-    // Three 20-minute entries at 100 €/h each → 1/3 hour × 100 = 33.33…
-    // Sum of unrounded amounts is 99.999999... → must round to 100.00.
+  it('rounds line amounts to cents and derives subtotal/tax/total from those', () => {
+    // Three 20-minute entries at 100 €/h each → 1/3 h × 100 = 33.33… per line.
+    // We round each line to cents first (33.33) and then sum, so the
+    // line-items always add up exactly to the displayed subtotal — at the
+    // cost of a 1-cent rounding remainder vs. the unrounded sum.
+    // Unrounded: 99.999…  → subtotal as sum of rounded lines: 99.99.
+    // Tax 19 %: round(99.99 * 0.19) = 19.00 → total 118.99.
     const entries = [
       entry({ id: 'a', durationSec: 1200, hourlyRateSnapshot: 100 }),
       entry({ id: 'b', durationSec: 1200, hourlyRateSnapshot: 100 }),
@@ -34,12 +38,13 @@ describe('composeInvoice', () => {
       issuer: { taxRate: 19 },
       currency: 'EUR',
     })
-    // Each line rounded to 33.33 €
     expect(invoice.lineItems.every((l) => l.amount === 33.33)).toBe(true)
-    // 33.33 * 3 = 99.99 (sum of cent-rounded line items)
     expect(invoice.subtotal).toBe(99.99)
     expect(invoice.taxAmount).toBe(19)
     expect(invoice.total).toBe(118.99)
+    // Invariant: line items always sum to subtotal exactly.
+    const lineSum = invoice.lineItems.reduce((s, l) => s + l.amount, 0)
+    expect(Math.round(lineSum * 100) / 100).toBe(invoice.subtotal)
   })
 
   it('rounds tax cleanly without floating-point drift', () => {

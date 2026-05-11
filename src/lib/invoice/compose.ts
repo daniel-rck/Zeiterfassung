@@ -3,7 +3,10 @@ import { dayKey } from '../db'
 import { roundDurationSec } from '../duration'
 
 // Round to the smallest unit of the currency (cents).
-// Avoids floating-point drift in subtotal / tax / total.
+// Rounding policy: every line amount is rounded to cents up front, then
+// subtotal/tax/total are derived from the already-rounded numbers. This
+// trades a possible 1-cent remainder vs. the unrounded sum for the
+// invoice invariant "line items add up to the displayed subtotal".
 function roundCents(value: number): number {
   return Math.round(value * 100) / 100
 }

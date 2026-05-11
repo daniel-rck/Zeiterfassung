@@ -29,7 +29,7 @@ function findDuplicateIds(items: Array<{ id?: string }>, label: string): void {
       throw new Error(`${label}: Eintrag ohne ID gefunden.`)
     }
     if (seen.has(item.id)) {
-      throw new Error(`${label}: doppelte ID „${item.id}".`)
+      throw new Error(`${label}: doppelte ID „${item.id}“.`)
     }
     seen.add(item.id)
   }
@@ -105,7 +105,14 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
     }
     await tx.done
   } catch (err) {
-    tx.abort()
+    // Best-effort abort: if a request already failed, the transaction may
+    // already be inactive and calling abort() would throw a second error
+    // that masks the real cause.
+    try {
+      tx.abort()
+    } catch {
+      // ignore
+    }
     throw new Error(`Import fehlgeschlagen: ${(err as Error).message}`)
   }
   writeSettings(parsed.settings)
