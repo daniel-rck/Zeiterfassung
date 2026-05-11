@@ -2,6 +2,12 @@ import type { Project, TimeEntry, InvoiceProfile } from '../types'
 import { dayKey } from '../db'
 import { roundDurationSec } from '../duration'
 
+// Round to the smallest unit of the currency (cents).
+// Avoids floating-point drift in subtotal / tax / total.
+function roundCents(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
 export interface InvoiceLineItem {
   description: string
   date?: string
@@ -75,7 +81,7 @@ export function composeInvoice(
         date: day,
         hours,
         rate,
-        amount: hours * rate,
+        amount: roundCents(hours * rate),
       })
     }
   } else {
@@ -89,14 +95,14 @@ export function composeInvoice(
         date: dayKey(e.startedAt),
         hours,
         rate,
-        amount: hours * rate,
+        amount: roundCents(hours * rate),
       })
     }
   }
-  const subtotal = lineItems.reduce((s, l) => s + l.amount, 0)
+  const subtotal = roundCents(lineItems.reduce((s, l) => s + l.amount, 0))
   const taxRate = options.issuer.taxRate
-  const taxAmount = taxRate ? subtotal * (taxRate / 100) : 0
-  const total = subtotal + taxAmount
+  const taxAmount = taxRate ? roundCents(subtotal * (taxRate / 100)) : 0
+  const total = roundCents(subtotal + taxAmount)
   return {
     number: options.invoiceNumber,
     date: options.invoiceDate ?? Date.now(),

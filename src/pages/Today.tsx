@@ -17,7 +17,7 @@ import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 
 export function TodayPage() {
   const { settings } = useSettings()
-  const { entries } = useEntries()
+  const { entries } = useEntries({ includeRunning: true })
   const { projects } = useProjects()
   const { tags } = useTags()
   const { atLeast } = useDetailLevel()

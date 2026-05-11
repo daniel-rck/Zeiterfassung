@@ -15,7 +15,7 @@ import { useToast } from '../components/ui/Toast'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 
 export function EntriesPage() {
-  const { entries } = useEntries()
+  const { entries } = useEntries({ includeRunning: true })
   const { projects } = useProjects()
   const { tags } = useTags()
   const { settings } = useSettings()

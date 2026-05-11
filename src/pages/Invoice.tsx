@@ -8,7 +8,7 @@ import { Field, Input, Select, Textarea } from '../components/ui/Input'
 import { useToast } from '../components/ui/Toast'
 import { composeInvoice, type ComposedInvoice } from '../lib/invoice/compose'
 import { downloadInvoicePdf } from '../lib/invoice/pdf'
-import { patchSettings } from '../lib/db/settings'
+import { bumpInvoiceNumberTo } from '../lib/db/settings'
 import { formatDate, formatMoney } from '../lib/format'
 import { getRange } from '../lib/reports/range'
 
@@ -94,10 +94,11 @@ export function InvoicePage() {
     try {
       await downloadInvoicePdf(invoice, settings.locale, filename)
       if (invoice.number && settings.invoiceProfile) {
-        const next = (settings.invoiceProfile.nextInvoiceNumber ?? 0) + 1
-        patchSettings({
-          invoiceProfile: { ...settings.invoiceProfile, nextInvoiceNumber: next },
-        })
+        const parsed = parseInt(invoice.number, 10)
+        if (Number.isFinite(parsed)) {
+          bumpInvoiceNumberTo(parsed + 1)
+          setInvoiceNumber(String(parsed + 1).padStart(4, '0'))
+        }
       }
       toast.success('PDF erstellt')
     } catch (err) {

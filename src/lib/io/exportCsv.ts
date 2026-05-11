@@ -1,9 +1,18 @@
 import type { Project, Tag, TimeEntry } from '../types'
 import { dayKey } from '../db'
 
+// Cells that start with these characters are interpreted as formulas by
+// Excel / LibreOffice / Google Sheets and can execute commands when opened.
+// We prefix with an apostrophe so the cell is read literally. Pure numeric
+// values are left untouched.
+const FORMULA_TRIGGERS = /^[=+\-@\t\r]/
+
 function escape(value: string | number | undefined): string {
   if (value == null) return ''
-  const str = String(value)
+  let str = String(value)
+  if (typeof value === 'string' && FORMULA_TRIGGERS.test(str)) {
+    str = `'${str}`
+  }
   if (/[",\n;]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`
   }

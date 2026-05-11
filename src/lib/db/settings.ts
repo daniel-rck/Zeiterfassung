@@ -56,3 +56,15 @@ export function setDetailLevel(level: DetailLevel): Settings {
 export function setInvoiceProfile(profile: InvoiceProfile | undefined): Settings {
   return patchSettings({ invoiceProfile: profile })
 }
+
+// Idempotent counter bump that re-reads the latest state before writing.
+// Two tabs that both used the same suggested number end up with the same
+// `nextInvoiceNumber` afterwards, never lower — protecting against rolling
+// the counter backwards in race conditions.
+export function bumpInvoiceNumberTo(atLeast: number): Settings {
+  const current = readSettings()
+  const profile = current.invoiceProfile ?? {}
+  const currentNext = profile.nextInvoiceNumber ?? 0
+  if (atLeast <= currentNext) return current
+  return patchSettings({ invoiceProfile: { ...profile, nextInvoiceNumber: atLeast } })
+}
