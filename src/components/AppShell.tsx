@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Clock, ListChecks, FolderKanban, Tags, BarChart3, FileText, Settings as SettingsIcon } from 'lucide-react'
+import { Clock, ListChecks, FolderKanban, Tags, BarChart3, FileText, Archive as ArchiveIcon, Settings as SettingsIcon } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
@@ -21,6 +21,7 @@ const NAV: NavItem[] = [
   { to: '/tags', label: 'Tags', icon: Tags, level: 'pro' },
   { to: '/reports', label: 'Reports', icon: BarChart3, level: 'standard' },
   { to: '/invoice', label: 'Rechnung', icon: FileText, level: 'proplus' },
+  { to: '/invoices', label: 'Archiv', icon: ArchiveIcon, level: 'proplus' },
   { to: '/settings', label: 'Einstellungen', icon: SettingsIcon },
 ]
 
@@ -65,7 +66,7 @@ export function AppShell() {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  `inline-flex flex-shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors no-min-tap ${
+                  `inline-flex flex-shrink-0 items-center gap-1.5 rounded-md px-3 py-2 transition-colors ${
                     isActive
                       ? 'bg-brand-100 text-brand-700 dark:bg-brand-950/50 dark:text-brand-300'
                       : 'text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'

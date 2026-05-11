@@ -8,7 +8,8 @@ import { Field, Input, Select, Textarea } from '../components/ui/Input'
 import { useToast } from '../components/ui/Toast'
 import { composeInvoice, type ComposedInvoice } from '../lib/invoice/compose'
 import { downloadInvoicePdf } from '../lib/invoice/pdf'
-import { patchSettings } from '../lib/db/settings'
+import { bumpInvoiceNumberTo } from '../lib/db/settings'
+import { saveInvoice } from '../lib/db/invoices'
 import { formatDate, formatMoney } from '../lib/format'
 import { getRange } from '../lib/reports/range'
 
@@ -93,13 +94,15 @@ export function InvoicePage() {
       : `Rechnung-${formatDateInput(invoice.date)}.pdf`
     try {
       await downloadInvoicePdf(invoice, settings.locale, filename)
+      await saveInvoice(invoice, { projectName: selectedProject?.name })
       if (invoice.number && settings.invoiceProfile) {
-        const next = (settings.invoiceProfile.nextInvoiceNumber ?? 0) + 1
-        patchSettings({
-          invoiceProfile: { ...settings.invoiceProfile, nextInvoiceNumber: next },
-        })
+        const parsed = parseInt(invoice.number, 10)
+        if (Number.isFinite(parsed)) {
+          bumpInvoiceNumberTo(parsed + 1)
+          setInvoiceNumber(String(parsed + 1).padStart(4, '0'))
+        }
       }
-      toast.success('PDF erstellt')
+      toast.success('PDF erstellt und im Archiv gespeichert')
     } catch (err) {
       toast.error((err as Error).message)
     }
@@ -301,6 +304,22 @@ function InvoicePreview({
           </tr>
         </tfoot>
       </table>
+
+      {(invoice.issuer.iban ||
+        invoice.issuer.bic ||
+        invoice.issuer.bankName ||
+        invoice.issuer.paymentNote) && (
+        <section className="mt-8 text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
+          <p className="text-xs uppercase tracking-wide text-zinc-500 print:text-black">
+            Zahlung
+          </p>
+          {invoice.issuer.bankName && <p>{invoice.issuer.bankName}</p>}
+          {invoice.issuer.iban && <p>IBAN: {invoice.issuer.iban}</p>}
+          {invoice.issuer.bic && <p>BIC: {invoice.issuer.bic}</p>}
+          {invoice.issuer.paymentNote &&
+            invoice.issuer.paymentNote.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+        </section>
+      )}
     </article>
   )
 }

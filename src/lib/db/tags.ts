@@ -52,8 +52,43 @@ export async function listTags(options?: {
   return filtered.sort((a, b) => a.name.localeCompare(b.name, 'de'))
 }
 
-export async function deleteTag(id: string): Promise<void> {
+export async function countEntriesForTag(id: string): Promise<number> {
   const db = await getDB()
-  await db.delete('tags', id)
+  const all = await db.getAll('time_entries')
+  return all.filter((e) => e.tagIds.includes(id)).length
+}
+
+export interface DeleteTagResult {
+  cleaned: number
+}
+
+// Delete a tag and strip its id from every referencing entry in one
+// transaction. The user-facing copy already promises this — without the
+// cleanup, entries would point at a phantom tag.
+export async function deleteTag(id: string): Promise<DeleteTagResult> {
+  const db = await getDB()
+  const tx = db.transaction(['tags', 'time_entries'], 'readwrite')
+  await tx.objectStore('tags').delete(id)
+  const all = await tx.objectStore('time_entries').getAll()
+  const linked = all.filter((e) => e.tagIds.includes(id))
+  for (const entry of linked) {
+    await tx.objectStore('time_entries').put({
+      ...entry,
+      tagIds: entry.tagIds.filter((tid) => tid !== id),
+    })
+  }
+  await tx.done
   broadcast({ type: 'tag-deleted', id })
+  for (const entry of linked) {
+    broadcast({ type: 'entry-changed', id: entry.id })
+  }
+  return { cleaned: linked.length }
+}
+
+export async function archiveTag(id: string): Promise<void> {
+  await updateTag(id, { archived: true })
+}
+
+export async function restoreTag(id: string): Promise<void> {
+  await updateTag(id, { archived: false })
 }

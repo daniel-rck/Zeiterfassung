@@ -120,6 +120,36 @@ export async function generateInvoicePdf(
   doc.text(formatMoney(invoice.total, invoice.currency, locale), margin + 175, y, {
     align: 'right',
   })
+  y += 10
+
+  // Optional payment block: IBAN / BIC / Bank / free-form note.
+  const profile = invoice.issuer
+  const hasPayment =
+    profile.iban || profile.bic || profile.bankName || profile.paymentNote
+  if (hasPayment) {
+    doc.setFont('helvetica', 'bold')
+    doc.text('Zahlung', margin, y)
+    doc.setFont('helvetica', 'normal')
+    y += 5
+    if (profile.bankName) {
+      doc.text(profile.bankName, margin, y)
+      y += 5
+    }
+    if (profile.iban) {
+      doc.text(`IBAN: ${profile.iban}`, margin, y)
+      y += 5
+    }
+    if (profile.bic) {
+      doc.text(`BIC: ${profile.bic}`, margin, y)
+      y += 5
+    }
+    if (profile.paymentNote) {
+      for (const line of doc.splitTextToSize(profile.paymentNote, 175) as string[]) {
+        doc.text(line, margin, y)
+        y += 5
+      }
+    }
+  }
 
   return doc.output('blob')
 }

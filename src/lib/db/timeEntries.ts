@@ -156,8 +156,11 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
   const db = await getDB()
   const all = await db.getAll('time_entries')
   let result = all.map(fromStored)
+  // Range filter: include entries whose interval overlaps [from, to].
+  // For running entries (endedAt == null), treat "ended" as +Infinity so they
+  // are kept as long as they started before `to`.
   if (filter.from != null) {
-    result = result.filter((e) => e.startedAt >= filter.from!)
+    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= filter.from!)
   }
   if (filter.to != null) {
     result = result.filter((e) => e.startedAt <= filter.to!)
@@ -175,7 +178,7 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
     result = result.filter((e) => e.tagIds.some((t) => wanted.has(t)))
   }
   if (!filter.includeRunning) {
-    // include running by default — but allow opt-out for reports
+    result = result.filter((e) => e.endedAt != null)
   }
   return result.sort((a, b) => b.startedAt - a.startedAt)
 }
@@ -184,4 +187,12 @@ export async function deleteEntry(id: string): Promise<void> {
   const db = await getDB()
   await db.delete('time_entries', id)
   broadcast({ type: 'entry-deleted', id })
+}
+
+// Re-insert an entry snapshot under its original id. Used by undo-toasts.
+export async function restoreEntry(entry: TimeEntry): Promise<TimeEntry> {
+  const db = await getDB()
+  await db.put('time_entries', toStored(entry))
+  broadcast({ type: 'entry-changed', id: entry.id })
+  return entry
 }

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Download } from 'lucide-react'
 import { useEntries } from '../lib/hooks/useEntries'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
 import { useSettings } from '../lib/hooks/useSettings'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFilterState } from '../lib/hooks/useFilterState'
 import { getRange } from '../lib/reports/range'
 import {
   groupByDay,
@@ -32,7 +33,7 @@ const INITIAL_FILTER: ReportFilterState = {
 export function ReportsPage() {
   const { settings } = useSettings()
   const { atLeast } = useDetailLevel()
-  const [filter, setFilter] = useState<ReportFilterState>(INITIAL_FILTER)
+  const [filter, setFilter] = useFilterState<ReportFilterState>('reports', INITIAL_FILTER)
 
   const range = useMemo(() => {
     if (filter.preset === 'custom') {
@@ -41,10 +42,22 @@ export function ReportsPage() {
       from.setHours(0, 0, 0, 0)
       const to = new Date(filter.customTo)
       to.setHours(23, 59, 59, 999)
+      // Auto-swap when user picked from > to so the range is never empty.
+      if (from.getTime() > to.getTime()) {
+        return { from: to.getTime(), to: from.getTime() }
+      }
       return { from: from.getTime(), to: to.getTime() }
     }
     return getRange(filter.preset, settings.weekStart)
   }, [filter, settings.weekStart])
+
+  const rangeWarning =
+    filter.preset === 'custom' &&
+    filter.customFrom &&
+    filter.customTo &&
+    new Date(filter.customFrom).getTime() > new Date(filter.customTo).getTime()
+      ? 'Von ist nach Bis — Reihenfolge wurde getauscht.'
+      : null
 
   const entryFilter = useMemo(
     () => ({
@@ -106,13 +119,16 @@ export function ReportsPage() {
 
       <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
         <ReportFilters state={filter} onChange={setFilter} />
+        {rangeWarning && (
+          <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{rangeWarning}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard
           label="Erfasste Zeit"
           value={formatDuration(totalSec, 'long')}
-          hint={`${formatDecimalHours(totalSec)} Stunden`}
+          hint={`${formatDecimalHours(totalSec, settings.locale)} Stunden`}
         />
         <StatCard label="Einträge" value={String(entries.length)} />
         {atLeast('pro') && (
@@ -151,7 +167,7 @@ export function ReportsPage() {
                   {bucket.projectName}
                 </span>
                 <span className="flex items-center gap-3 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
-                  <span>{formatDecimalHours(bucket.durationSec)}h</span>
+                  <span>{formatDecimalHours(bucket.durationSec, settings.locale)}h</span>
                   {atLeast('pro') && bucket.amount > 0 && bucket.currency && (
                     <span className="text-emerald-600 dark:text-emerald-400">
                       {formatMoney(bucket.amount, bucket.currency, settings.locale)}
@@ -184,7 +200,7 @@ export function ReportsPage() {
                       {tag.name}
                     </span>
                     <span className="font-mono tabular-nums">
-                      {formatDecimalHours(bucket.durationSec)}h
+                      {formatDecimalHours(bucket.durationSec, settings.locale)}h
                     </span>
                   </li>
                 )

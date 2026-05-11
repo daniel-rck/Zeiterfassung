@@ -88,4 +88,51 @@ describe('timer engine', () => {
     const after = await listEntries()
     expect(after.find((e) => e.id === entry.id)).toBeUndefined()
   })
+
+  it('excludes the running entry by default and includes it on opt-in', async () => {
+    await createEntry({
+      description: 'finished',
+      startedAt: Date.now() - 60_000,
+      endedAt: Date.now() - 30_000,
+      billable: false,
+      tagIds: [],
+    })
+    await startTimer({ description: 'live' })
+
+    const defaulted = await listEntries()
+    expect(defaulted.some((e) => e.description === 'live')).toBe(false)
+    expect(defaulted.some((e) => e.description === 'finished')).toBe(true)
+
+    const withRunning = await listEntries({ includeRunning: true })
+    expect(withRunning.some((e) => e.description === 'live')).toBe(true)
+  })
+
+  it('keeps entries spanning midnight in the next day range', async () => {
+    const start = new Date('2026-05-10T23:00:00Z').getTime()
+    const end = new Date('2026-05-11T01:00:00Z').getTime()
+    await createEntry({
+      description: 'cross',
+      startedAt: start,
+      endedAt: end,
+      billable: false,
+      tagIds: [],
+    })
+    const dayFrom = new Date('2026-05-11T00:00:00Z').getTime()
+    const dayTo = new Date('2026-05-11T23:59:59Z').getTime()
+    const range = await listEntries({ from: dayFrom, to: dayTo })
+    expect(range.some((e) => e.description === 'cross')).toBe(true)
+  })
+
+  it('keeps a running entry inside an open range', async () => {
+    const start = Date.now() - 3600_000
+    vi.spyOn(Date, 'now').mockReturnValue(start)
+    await startTimer({ description: 'running' })
+    vi.restoreAllMocks()
+    const range = await listEntries({
+      from: start - 60_000,
+      to: start + 7200_000,
+      includeRunning: true,
+    })
+    expect(range.some((e) => e.description === 'running')).toBe(true)
+  })
 })
