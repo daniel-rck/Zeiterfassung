@@ -54,10 +54,36 @@ export async function listProjects(options?: {
   return filtered.sort((a, b) => a.name.localeCompare(b.name, 'de'))
 }
 
-export async function deleteProject(id: string): Promise<void> {
+// Count of time entries currently referencing this project. Used by UI to
+// warn before delete.
+export async function countEntriesForProject(id: string): Promise<number> {
   const db = await getDB()
-  await db.delete('projects', id)
+  return db.countFromIndex('time_entries', 'byProjectId', id)
+}
+
+export interface DeleteProjectResult {
+  cleaned: number
+}
+
+// Delete a project and unlink it from all referencing entries in a single
+// transaction so no entry is left with a dangling projectId.
+export async function deleteProject(id: string): Promise<DeleteProjectResult> {
+  const db = await getDB()
+  const tx = db.transaction(['projects', 'time_entries'], 'readwrite')
+  await tx.objectStore('projects').delete(id)
+  const entriesIndex = tx.objectStore('time_entries').index('byProjectId')
+  const linked = await entriesIndex.getAll(id)
+  for (const entry of linked) {
+    const { projectId: _drop, ...rest } = entry
+    void _drop
+    await tx.objectStore('time_entries').put(rest as typeof entry)
+  }
+  await tx.done
   broadcast({ type: 'project-deleted', id })
+  for (const entry of linked) {
+    broadcast({ type: 'entry-changed', id: entry.id })
+  }
+  return { cleaned: linked.length }
 }
 
 export async function archiveProject(id: string): Promise<void> {

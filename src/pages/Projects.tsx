@@ -5,6 +5,7 @@ import { useSettings } from '../lib/hooks/useSettings'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 import {
   archiveProject,
+  countEntriesForProject,
   createProject,
   deleteProject,
   restoreProject,
@@ -92,16 +93,23 @@ export function ProjectsPage() {
   }
 
   const handleDelete = async (project: Project) => {
+    const count = await countEntriesForProject(project.id)
     const ok = await confirm.confirm({
       title: `„${project.name}“ löschen?`,
       description:
-        'Bestehende Einträge bleiben erhalten, verlieren aber die Projektzuordnung. Stundensätze früherer Einträge sind als Snapshot gesichert.',
+        count === 0
+          ? 'Es sind keine Einträge mit diesem Projekt verknüpft.'
+          : `${count} Eintr${count === 1 ? 'ag verliert' : 'äge verlieren'} die Projektzuordnung. Stundensätze früherer Einträge bleiben als Snapshot erhalten.`,
       tone: 'danger',
       confirmLabel: 'Löschen',
     })
     if (!ok) return
-    await deleteProject(project.id)
-    toast.success('Gelöscht')
+    const result = await deleteProject(project.id)
+    toast.success(
+      result.cleaned > 0
+        ? `Gelöscht (${result.cleaned} Eintr${result.cleaned === 1 ? 'ag' : 'äge'} entkoppelt)`
+        : 'Gelöscht',
+    )
   }
 
   const active = projects.filter((p) => !p.archived)
