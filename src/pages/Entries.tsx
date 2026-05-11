@@ -5,7 +5,7 @@ import { useEntries } from '../lib/hooks/useEntries'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
 import { useSettings } from '../lib/hooks/useSettings'
-import { deleteEntry } from '../lib/db/timeEntries'
+import { deleteEntry, restoreEntry } from '../lib/db/timeEntries'
 import { dayKey } from '../lib/db'
 import { EntryCard } from '../components/EntryCard'
 import { DayGroup } from '../components/DayGroup'
@@ -44,6 +44,7 @@ export function EntriesPage() {
   }, [entries, projectMap, atLeast])
 
   const handleDelete = async (id: string) => {
+    const snapshot = entries.find((e) => e.id === id)
     const ok = await confirm.confirm({
       title: 'Eintrag löschen?',
       tone: 'danger',
@@ -51,7 +52,16 @@ export function EntriesPage() {
     })
     if (!ok) return
     await deleteEntry(id)
-    toast.success('Gelöscht')
+    toast.success('Gelöscht', {
+      action: snapshot
+        ? {
+            label: 'Rückgängig',
+            onClick: () => {
+              void restoreEntry(snapshot)
+            },
+          }
+        : undefined,
+    })
   }
 
   return (

@@ -188,3 +188,11 @@ export async function deleteEntry(id: string): Promise<void> {
   await db.delete('time_entries', id)
   broadcast({ type: 'entry-deleted', id })
 }
+
+// Re-insert an entry snapshot under its original id. Used by undo-toasts.
+export async function restoreEntry(entry: TimeEntry): Promise<TimeEntry> {
+  const db = await getDB()
+  await db.put('time_entries', toStored(entry))
+  broadcast({ type: 'entry-changed', id: entry.id })
+  return entry
+}

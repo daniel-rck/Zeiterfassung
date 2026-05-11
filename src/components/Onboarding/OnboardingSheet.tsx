@@ -139,24 +139,46 @@ export function OnboardingSheet({
     return false
   })()
 
+  const currentStepIndex = isUpgrade ? step - 1 : step
+  const progressPercent = ((currentStepIndex + 1) / totalSteps) * 100
+
+  const skipOnboarding = () => {
+    patchSettings({ onboardingCompleted: true })
+    onClose(false)
+  }
+
   return (
     <Sheet
       open={open}
-      onClose={() => onClose(false)}
-      closeable={false}
+      onClose={skipOnboarding}
+      closeable={!isUpgrade}
       title={isUpgrade ? 'Detail-Tiefe ändern' : 'Willkommen bei Zeiterfassung'}
       size="md"
     >
-      <div className="mb-3 flex items-center justify-between text-xs text-zinc-500">
-        <span>
-          Schritt {Math.min(step + 1, totalSteps)} von {totalSteps}
-        </span>
-        <span>
-          {step === 0 && !isUpgrade && 'Begrüßung'}
-          {step === 1 && 'Tiefe wählen'}
-          {step === 2 && 'Konfiguration'}
-          {step === 3 && 'Fertig'}
-        </span>
+      <div className="mb-3 space-y-1.5">
+        <div className="flex items-center justify-between text-xs text-zinc-500">
+          <span>
+            Schritt {Math.min(currentStepIndex + 1, totalSteps)} von {totalSteps}
+          </span>
+          <span>
+            {step === 0 && !isUpgrade && 'Begrüßung'}
+            {step === 1 && 'Tiefe wählen'}
+            {step === 2 && 'Konfiguration'}
+            {step === 3 && 'Fertig'}
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={totalSteps}
+          aria-valuenow={currentStepIndex + 1}
+          className="h-1 overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800"
+        >
+          <div
+            className="h-full rounded-full bg-brand-500 transition-[width]"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
       </div>
 
       {step === 0 && (
@@ -183,7 +205,10 @@ export function OnboardingSheet({
               </p>
             </div>
           </div>
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-between pt-2">
+            <Button variant="ghost" onClick={skipOnboarding}>
+              Überspringen
+            </Button>
             <Button variant="primary" onClick={() => setStep(1)} icon={<ArrowRight size={16} />}>
               Weiter
             </Button>

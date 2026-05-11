@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Download } from 'lucide-react'
 import { useEntries } from '../lib/hooks/useEntries'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
 import { useSettings } from '../lib/hooks/useSettings'
 import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFilterState } from '../lib/hooks/useFilterState'
 import { getRange } from '../lib/reports/range'
 import {
   groupByDay,
@@ -32,7 +33,7 @@ const INITIAL_FILTER: ReportFilterState = {
 export function ReportsPage() {
   const { settings } = useSettings()
   const { atLeast } = useDetailLevel()
-  const [filter, setFilter] = useState<ReportFilterState>(INITIAL_FILTER)
+  const [filter, setFilter] = useFilterState<ReportFilterState>('reports', INITIAL_FILTER)
 
   const range = useMemo(() => {
     if (filter.preset === 'custom') {
@@ -41,10 +42,22 @@ export function ReportsPage() {
       from.setHours(0, 0, 0, 0)
       const to = new Date(filter.customTo)
       to.setHours(23, 59, 59, 999)
+      // Auto-swap when user picked from > to so the range is never empty.
+      if (from.getTime() > to.getTime()) {
+        return { from: to.getTime(), to: from.getTime() }
+      }
       return { from: from.getTime(), to: to.getTime() }
     }
     return getRange(filter.preset, settings.weekStart)
   }, [filter, settings.weekStart])
+
+  const rangeWarning =
+    filter.preset === 'custom' &&
+    filter.customFrom &&
+    filter.customTo &&
+    new Date(filter.customFrom).getTime() > new Date(filter.customTo).getTime()
+      ? 'Von ist nach Bis — Reihenfolge wurde getauscht.'
+      : null
 
   const entryFilter = useMemo(
     () => ({
@@ -106,6 +119,9 @@ export function ReportsPage() {
 
       <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
         <ReportFilters state={filter} onChange={setFilter} />
+        {rangeWarning && (
+          <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{rangeWarning}</p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
