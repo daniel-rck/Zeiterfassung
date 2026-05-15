@@ -13,6 +13,11 @@ dist-ssr
 dev-dist
 *.local
 
+# We pin via bun.lock; other package managers' lockfiles only confuse CI
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
 # Cloudflare Workers
 .wrangler
 .dev.vars
