@@ -17,7 +17,6 @@ export function presetFromLevel(level: DetailLevel): FeatureFlags {
     notifications: false,
     hoursAccount: false,
     weeklyView: false,
-    swipeActions: true,
   }
 }
 

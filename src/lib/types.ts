@@ -79,7 +79,6 @@ export interface FeatureFlags {
   notifications: boolean
   hoursAccount: boolean
   weeklyView: boolean
-  swipeActions: boolean
 }
 
 export type FeatureName = keyof FeatureFlags
