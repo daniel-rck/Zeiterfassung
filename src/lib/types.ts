@@ -45,6 +45,17 @@ export interface TimeEntry {
   updatedAt: number
 }
 
+export interface Break {
+  id: string
+  entryId: string
+  startedAt: number
+  endedAt?: number
+  durationSec: number
+  auto?: boolean
+  createdAt: number
+  updatedAt: number
+}
+
 export interface InvoiceProfile {
   issuerName?: string
   issuerAddress?: string
@@ -55,6 +66,38 @@ export interface InvoiceProfile {
   bic?: string
   bankName?: string
   paymentNote?: string
+}
+
+export interface FeatureFlags {
+  projects: boolean
+  tags: boolean
+  reports: boolean
+  billing: boolean
+  invoicing: boolean
+  breaks: boolean
+  pomodoro: boolean
+  notifications: boolean
+  hoursAccount: boolean
+  weeklyView: boolean
+  swipeActions: boolean
+}
+
+export type FeatureName = keyof FeatureFlags
+
+export interface ReminderRule {
+  id: string
+  kind: 'daily' | 'idle'
+  enabled: boolean
+  timeOfDay?: string
+  afterMinutes?: number
+  label?: string
+}
+
+export interface PomodoroConfig {
+  workMinutes: number
+  breakMinutes: number
+  longBreakMinutes: number
+  setsBeforeLongBreak: number
 }
 
 export interface Settings {
@@ -69,6 +112,11 @@ export interface Settings {
   roundTo: 0 | 1 | 5 | 15 | 30
   invoiceProfile?: InvoiceProfile
   lastBackupAt?: number
+  features: FeatureFlags
+  targetHoursPerWeek?: number
+  reminderRules?: ReminderRule[]
+  pomodoro?: PomodoroConfig
+  autoBreakAfterMinutes?: number
 }
 
 export interface StoredInvoiceLineItem {
@@ -106,4 +154,5 @@ export interface DBSnapshot {
   timeEntries: TimeEntry[]
   settings: Settings
   invoices?: StoredInvoice[]
+  breaks?: Break[]
 }

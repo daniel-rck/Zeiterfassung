@@ -1,8 +1,8 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb'
-import type { Project, Tag, TimeEntry, StoredInvoice } from '../types'
+import type { Break, Project, Tag, TimeEntry, StoredInvoice } from '../types'
 
 export const DB_NAME = 'zeiterfassung'
-export const DB_VERSION = 2
+export const DB_VERSION = 3
 
 export type StoredTimeEntry = TimeEntry & {
   startedAtDay: string
@@ -42,6 +42,14 @@ export interface ZeiterfassungDB extends DBSchema {
       byDate: number
     }
   }
+  breaks: {
+    key: string
+    value: Break
+    indexes: {
+      byEntryId: string
+      byStartedAt: number
+    }
+  }
 }
 
 export function dayKey(timestamp: number): string {
@@ -75,6 +83,11 @@ export function getDB(): Promise<IDBPDatabase<ZeiterfassungDB>> {
         if (oldVersion < 2) {
           const invoices = db.createObjectStore('invoices', { keyPath: 'id' })
           invoices.createIndex('byDate', 'date')
+        }
+        if (oldVersion < 3) {
+          const breaks = db.createObjectStore('breaks', { keyPath: 'id' })
+          breaks.createIndex('byEntryId', 'entryId')
+          breaks.createIndex('byStartedAt', 'startedAt')
         }
       },
       blocked() {
