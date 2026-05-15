@@ -4,6 +4,7 @@ import { Plus, X } from 'lucide-react'
 import { TimerHero } from '../components/TimerHero'
 import { EntryCard } from '../components/EntryCard'
 import { DayGroup } from '../components/DayGroup'
+import { HoursAccountCard } from '../components/HoursAccountCard'
 import { useEntries } from '../lib/hooks/useEntries'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
@@ -26,6 +27,7 @@ export function TodayPage() {
   const { projects } = useProjects()
   const { tags } = useTags()
   const billingOn = useFeature('billing')
+  const hoursAccountOn = useFeature('hoursAccount')
   const confirm = useConfirm()
   const toast = useToast()
 
@@ -136,6 +138,8 @@ export function TodayPage() {
         </div>
       )}
       <TimerHero />
+
+      {hoursAccountOn && <HoursAccountCard />}
 
       <section>
         <div className="mb-3 flex items-center justify-between">

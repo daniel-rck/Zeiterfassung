@@ -200,8 +200,8 @@ function InvoicePreview({
   locale: string
 }) {
   return (
-    <article className="rounded-2xl bg-white p-8 ring-1 ring-zinc-200 print:p-0 print:ring-0 dark:bg-zinc-900 dark:ring-zinc-800 print:dark:bg-white">
-      <header className="mb-8 flex items-start justify-between">
+    <article className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 sm:p-8 print:p-0 print:ring-0 dark:bg-zinc-900 dark:ring-zinc-800 print:dark:bg-white">
+      <header className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row sm:gap-0">
         <div>
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 print:text-black">
             Rechnung
@@ -218,7 +218,7 @@ function InvoicePreview({
             Leistungszeitraum: {formatDate(invoice.range.from, locale)} – {formatDate(invoice.range.to, locale)}
           </p>
         </div>
-        <div className="text-right text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
+        <div className="text-left text-sm text-zinc-700 sm:text-right dark:text-zinc-300 print:text-right print:text-black">
           {invoice.issuer.issuerName && (
             <div className="font-semibold">{invoice.issuer.issuerName}</div>
           )}
@@ -243,7 +243,68 @@ function InvoicePreview({
         ))}
       </section>
 
-      <table className="w-full text-sm">
+      <ul className="space-y-3 sm:hidden print:hidden">
+        {invoice.lineItems.map((item, i) => (
+          <li
+            key={i}
+            className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+          >
+            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              {item.description}
+            </div>
+            {item.date && (
+              <div className="mt-0.5 text-xs text-zinc-500">{item.date}</div>
+            )}
+            <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
+              <div>
+                <dt className="text-zinc-500">Stunden</dt>
+                <dd className="font-mono tabular-nums text-zinc-800 dark:text-zinc-200">
+                  {item.hours.toFixed(2)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-zinc-500">Satz</dt>
+                <dd className="font-mono tabular-nums text-zinc-800 dark:text-zinc-200">
+                  {formatMoney(item.rate, invoice.currency, locale)}
+                </dd>
+              </div>
+              <div className="text-right">
+                <dt className="text-zinc-500">Betrag</dt>
+                <dd className="font-mono text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {formatMoney(item.amount, invoice.currency, locale)}
+                </dd>
+              </div>
+            </dl>
+          </li>
+        ))}
+      </ul>
+
+      <dl className="mt-4 space-y-1 text-sm sm:hidden print:hidden">
+        <div className="flex justify-between">
+          <dt className="text-zinc-600 dark:text-zinc-400">Zwischensumme</dt>
+          <dd className="font-mono tabular-nums">
+            {formatMoney(invoice.subtotal, invoice.currency, locale)}
+          </dd>
+        </div>
+        {invoice.taxRate != null && invoice.taxRate > 0 && (
+          <div className="flex justify-between">
+            <dt className="text-zinc-600 dark:text-zinc-400">
+              USt. {invoice.taxRate.toFixed(0)} %
+            </dt>
+            <dd className="font-mono tabular-nums">
+              {formatMoney(invoice.taxAmount, invoice.currency, locale)}
+            </dd>
+          </div>
+        )}
+        <div className="flex justify-between border-t border-zinc-200 pt-2 text-base font-semibold dark:border-zinc-800">
+          <dt>Gesamt</dt>
+          <dd className="font-mono tabular-nums">
+            {formatMoney(invoice.total, invoice.currency, locale)}
+          </dd>
+        </div>
+      </dl>
+
+      <table className="hidden w-full text-sm sm:table print:table">
         <thead>
           <tr className="border-b-2 border-zinc-300 text-left dark:border-zinc-700 print:border-black">
             <th className="py-2">Beschreibung</th>
