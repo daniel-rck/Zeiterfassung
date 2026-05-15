@@ -1,7 +1,7 @@
 import { Field, Input, Select, Checkbox } from './ui/Input'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeatures } from '../lib/hooks/useFeature'
 import { RANGE_PRESET_LABELS, type RangePreset } from '../lib/reports/range'
 
 export interface ReportFilterState {
@@ -22,7 +22,7 @@ export function ReportFilters({
 }) {
   const { projects } = useProjects()
   const { tags } = useTags()
-  const { atLeast } = useDetailLevel()
+  const features = useFeatures()
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4">
@@ -70,31 +70,31 @@ export function ReportFilters({
           ))}
         </Select>
       </Field>
-      {atLeast('pro') && (
-        <>
-          <Field label="Tag">
-            <Select
-              value={state.tagId}
-              onChange={(e) => onChange({ ...state, tagId: e.target.value })}
-            >
-              <option value="all">Alle</option>
-              {tags.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field label="Status">
-            <div className="pt-2">
-              <Checkbox
-                label="Nur abrechenbar"
-                checked={state.billableOnly}
-                onChange={(billableOnly) => onChange({ ...state, billableOnly })}
-              />
-            </div>
-          </Field>
-        </>
+      {features.tags && (
+        <Field label="Tag">
+          <Select
+            value={state.tagId}
+            onChange={(e) => onChange({ ...state, tagId: e.target.value })}
+          >
+            <option value="all">Alle</option>
+            {tags.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+      )}
+      {features.billing && (
+        <Field label="Status">
+          <div className="pt-2">
+            <Checkbox
+              label="Nur abrechenbar"
+              checked={state.billableOnly}
+              onChange={(billableOnly) => onChange({ ...state, billableOnly })}
+            />
+          </div>
+        </Field>
       )}
     </div>
   )

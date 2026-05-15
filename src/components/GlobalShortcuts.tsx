@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useShortcuts, type ShortcutBinding } from '../lib/keyboard/shortcuts'
 import { getRunningEntry, startTimer, stopTimer } from '../lib/db/timeEntries'
 import { useToast } from './ui/Toast'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeatures } from '../lib/hooks/useFeature'
 import { Sheet } from './ui/Sheet'
 
 export function GlobalShortcuts() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { atLeast } = useDetailLevel()
+  const features = useFeatures()
   const [helpOpen, setHelpOpen] = useState(false)
 
   const bindings: ShortcutBinding[] = [
@@ -50,24 +50,24 @@ export function GlobalShortcuts() {
       key: 'p',
       description: 'Projekte',
       handler: () => {
-        if (atLeast('standard')) navigate('/projects')
-        else toast.show('Projekte ab Stufe „Standard" verfügbar.')
+        if (features.projects) navigate('/projects')
+        else toast.show('Projekte sind in den Einstellungen ausgeschaltet.')
       },
     },
     {
       key: 'r',
       description: 'Reports',
       handler: () => {
-        if (atLeast('standard')) navigate('/reports')
-        else toast.show('Reports ab Stufe „Standard" verfügbar.')
+        if (features.reports) navigate('/reports')
+        else toast.show('Reports sind in den Einstellungen ausgeschaltet.')
       },
     },
     {
       key: 'i',
       description: 'Rechnung',
       handler: () => {
-        if (atLeast('proplus')) navigate('/invoice')
-        else toast.show('Rechnungen ab Stufe „Pro+" verfügbar.')
+        if (features.invoicing) navigate('/invoice')
+        else toast.show('Rechnungen sind in den Einstellungen ausgeschaltet.')
       },
     },
     {

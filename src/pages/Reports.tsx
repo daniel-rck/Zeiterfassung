@@ -4,7 +4,7 @@ import { useEntries } from '../lib/hooks/useEntries'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
 import { useSettings } from '../lib/hooks/useSettings'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeatures } from '../lib/hooks/useFeature'
 import { useFilterState } from '../lib/hooks/useFilterState'
 import { getRange } from '../lib/reports/range'
 import {
@@ -32,7 +32,7 @@ const INITIAL_FILTER: ReportFilterState = {
 
 export function ReportsPage() {
   const { settings } = useSettings()
-  const { atLeast } = useDetailLevel()
+  const features = useFeatures()
   const [filter, setFilter] = useFilterState<ReportFilterState>('reports', INITIAL_FILTER)
 
   const range = useMemo(() => {
@@ -131,7 +131,7 @@ export function ReportsPage() {
           hint={`${formatDecimalHours(totalSec, settings.locale)} Stunden`}
         />
         <StatCard label="Einträge" value={String(entries.length)} />
-        {atLeast('pro') && (
+        {features.billing && (
           <StatCard
             label="Abrechenbar"
             value={
@@ -168,7 +168,7 @@ export function ReportsPage() {
                 </span>
                 <span className="flex items-center gap-3 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
                   <span>{formatDecimalHours(bucket.durationSec, settings.locale)}h</span>
-                  {atLeast('pro') && bucket.amount > 0 && bucket.currency && (
+                  {features.billing && bucket.amount > 0 && bucket.currency && (
                     <span className="text-emerald-600 dark:text-emerald-400">
                       {formatMoney(bucket.amount, bucket.currency, settings.locale)}
                     </span>
@@ -180,7 +180,7 @@ export function ReportsPage() {
         )}
       </section>
 
-      <Gated level="pro">
+      <Gated feature="tags">
         {tagBuckets.length > 0 && (
           <section className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
             <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">

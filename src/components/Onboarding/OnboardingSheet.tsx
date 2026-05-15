@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Sparkles, Lock, ArrowRight, Check } from 'lucide-react'
 import type { DetailLevel, InvoiceProfile, Settings } from '../../lib/types'
 import { DETAIL_LEVEL_ORDER } from '../../lib/types'
-import { patchSettings } from '../../lib/db/settings'
+import { patchSettings, presetFromLevel } from '../../lib/db/settings'
 import { Sheet } from '../ui/Sheet'
 import { Button } from '../ui/Button'
 import { Field, Input, Select, Textarea } from '../ui/Input'
@@ -107,6 +107,7 @@ export function OnboardingSheet({
       locale: config.locale,
       weekStart: config.weekStart,
       theme: config.theme,
+      features: presetFromLevel(level),
     }
     if (DETAIL_LEVEL_ORDER[level] >= DETAIL_LEVEL_ORDER.pro) {
       patch.defaultBillable = config.defaultBillable

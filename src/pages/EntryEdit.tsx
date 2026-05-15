@@ -164,7 +164,7 @@ export function EntryEditPage() {
           />
         </Field>
 
-        <Gated level="standard">
+        <Gated feature="projects">
           <ProjectPicker
             value={form.projectId}
             onChange={(projectId) => setForm({ ...form, projectId })}
@@ -194,11 +194,13 @@ export function EntryEditPage() {
           />
         </div>
 
-        <Gated level="pro">
+        <Gated feature="tags">
           <TagPicker
             value={form.tagIds}
             onChange={(tagIds) => setForm({ ...form, tagIds })}
           />
+        </Gated>
+        <Gated feature="billing">
           <Checkbox
             label="Abrechenbar"
             checked={form.billable}

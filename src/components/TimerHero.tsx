@@ -3,7 +3,6 @@ import { Play, Square } from 'lucide-react'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
 import { useProjects } from '../lib/hooks/useProjects'
 import { startTimer, stopTimer, updateEntry } from '../lib/db/timeEntries'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
 import { formatDuration } from '../lib/format'
 import { Input } from './ui/Input'
 import { useToast } from './ui/Toast'
@@ -12,7 +11,6 @@ import { Gated } from './Gated'
 export function TimerHero() {
   const { entry, liveDurationSec } = useRunningEntry()
   const { projects } = useProjects()
-  const { atLeast } = useDetailLevel()
   const toast = useToast()
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string | undefined>(undefined)
@@ -115,7 +113,7 @@ export function TimerHero() {
               }
             }}
           />
-          <Gated level="standard">
+          <Gated feature="projects">
             <select
               value={projectId ?? ''}
               onChange={(e) => void persistProject(e.target.value || undefined)}
@@ -125,7 +123,7 @@ export function TimerHero() {
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
-                  {atLeast('pro') && p.client ? ` · ${p.client}` : ''}
+                  {p.client ? ` · ${p.client}` : ''}
                 </option>
               ))}
             </select>

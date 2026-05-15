@@ -13,7 +13,7 @@ import { dayKey } from '../lib/db'
 import { Button } from '../components/ui/Button'
 import { useConfirm } from '../components/ui/Confirm'
 import { useToast } from '../components/ui/Toast'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeature } from '../lib/hooks/useFeature'
 import { downloadSnapshot } from '../lib/io/exportJson'
 import { patchSettings } from '../lib/db/settings'
 
@@ -25,7 +25,7 @@ export function TodayPage() {
   const { entries } = useEntries({ includeRunning: true })
   const { projects } = useProjects()
   const { tags } = useTags()
-  const { atLeast } = useDetailLevel()
+  const billingOn = useFeature('billing')
   const confirm = useConfirm()
   const toast = useToast()
 
@@ -37,7 +37,7 @@ export function TodayPage() {
   const todayKey = dayKey(today.getTime())
   const todays = entries.filter((e) => dayKey(e.startedAt) === todayKey)
   const todayTotalSec = todays.reduce((s, e) => s + e.durationSec, 0)
-  const todayAmount = atLeast('pro')
+  const todayAmount = billingOn
     ? todays.reduce((sum, e) => {
         if (!e.billable) return sum
         const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
