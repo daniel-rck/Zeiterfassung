@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Play, Square } from 'lucide-react'
+import { Play, Square, Coffee, PlayCircle } from 'lucide-react'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
 import { useProjects } from '../lib/hooks/useProjects'
+import { useBreaksForEntry } from '../lib/hooks/useBreaks'
+import { useFeature } from '../lib/hooks/useFeature'
 import { startTimer, stopTimer, updateEntry } from '../lib/db/timeEntries'
+import { endRunningBreakFor, startBreak } from '../lib/db/breaks'
 import { formatDuration } from '../lib/format'
 import { Input } from './ui/Input'
 import { useToast } from './ui/Toast'
@@ -12,6 +15,8 @@ export function TimerHero() {
   const { entry, liveDurationSec } = useRunningEntry()
   const { projects } = useProjects()
   const toast = useToast()
+  const breaksOn = useFeature('breaks')
+  const { runningBreak, totalSec: breakTotalSec, liveBreakSec } = useBreaksForEntry(entry?.id)
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string | undefined>(undefined)
 
@@ -35,12 +40,30 @@ export function TimerHero() {
 
   const handleStop = async () => {
     try {
+      if (entry) {
+        await endRunningBreakFor(entry.id)
+      }
       const stopped = await stopTimer()
       if (stopped) {
         toast.success(`Eintrag gestoppt: ${formatDuration(stopped.durationSec, 'long')}`)
       }
       setDescription('')
       setProjectId(undefined)
+    } catch (err) {
+      toast.error((err as Error).message)
+    }
+  }
+
+  const handleToggleBreak = async () => {
+    if (!entry) return
+    try {
+      if (runningBreak) {
+        await endRunningBreakFor(entry.id)
+        toast.success('Pause beendet')
+      } else {
+        await startBreak(entry.id)
+        toast.success('Pause läuft')
+      }
     } catch (err) {
       toast.error((err as Error).message)
     }
@@ -95,12 +118,46 @@ export function TimerHero() {
           {entry ? <Square size={32} fill="white" /> : <Play size={36} fill="white" />}
         </button>
         <div className="flex-1 space-y-2">
-          <div className="font-mono text-3xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
-            {formatDuration(entry ? liveDurationSec : 0, 'short')}
+          <div className="flex items-baseline justify-between gap-3">
+            <div className="font-mono text-3xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+              {formatDuration(entry ? liveDurationSec : 0, 'short')}
+            </div>
+            {entry && breaksOn && breakTotalSec > 0 && (
+              <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                <Coffee size={12} />
+                <span className="font-mono tabular-nums">
+                  {formatDuration(breakTotalSec, 'short')}
+                </span>
+              </div>
+            )}
           </div>
           <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
             {announcement}
+            {runningBreak ? ` Pause läuft seit ${Math.floor(liveBreakSec / 60)} Minuten.` : ''}
           </div>
+          {entry && breaksOn && (
+            <button
+              type="button"
+              onClick={() => void handleToggleBreak()}
+              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                runningBreak
+                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-300'
+                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+              }`}
+            >
+              {runningBreak ? (
+                <>
+                  <PlayCircle size={16} />
+                  <span>Weiter ({formatDuration(liveBreakSec, 'short')})</span>
+                </>
+              ) : (
+                <>
+                  <Coffee size={16} />
+                  <span>Pause</span>
+                </>
+              )}
+            </button>
+          )}
           <Input
             placeholder={entry ? 'Beschreibung…' : 'Was machst du gerade?'}
             value={description}

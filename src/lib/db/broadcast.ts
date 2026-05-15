@@ -11,6 +11,7 @@ export type BroadcastMessage =
   | { type: 'timer-stopped'; id: string }
   | { type: 'invoice-changed'; id: string }
   | { type: 'invoice-deleted'; id: string }
+  | { type: 'breaks-changed' }
   | { type: 'settings-changed' }
   | { type: 'db-cleared' }
 
