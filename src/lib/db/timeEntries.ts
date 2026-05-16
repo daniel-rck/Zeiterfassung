@@ -79,13 +79,16 @@ export async function stopTimer(): Promise<TimeEntry | null> {
   const running = await getRunningEntry()
   if (!running) return null
   const now = Date.now()
+  const db = await getDB()
+  const breaks = await db.getAllFromIndex('breaks', 'byEntryId', running.id)
+  const breakSec = breaks.reduce((s, b) => s + (b.endedAt ? b.durationSec : 0), 0)
+  const grossSec = calcDuration(running.startedAt, now)
   const updated: TimeEntry = {
     ...running,
     endedAt: now,
-    durationSec: calcDuration(running.startedAt, now),
+    durationSec: Math.max(0, grossSec - breakSec),
     updatedAt: now,
   }
-  const db = await getDB()
   await db.put('time_entries', toStored(updated))
   broadcast({ type: 'timer-stopped', id: updated.id })
   return updated

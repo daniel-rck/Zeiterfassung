@@ -1,7 +1,24 @@
-import type { DetailLevel, InvoiceProfile, Settings } from '../types'
+import type { DetailLevel, FeatureFlags, InvoiceProfile, Settings } from '../types'
+import { DETAIL_LEVEL_ORDER } from '../types'
 import { broadcast } from './broadcast'
 
 const KEY = 'zeiterfassung:settings'
+
+export function presetFromLevel(level: DetailLevel): FeatureFlags {
+  const order = DETAIL_LEVEL_ORDER[level]
+  return {
+    projects: order >= DETAIL_LEVEL_ORDER.standard,
+    tags: order >= DETAIL_LEVEL_ORDER.pro,
+    reports: order >= DETAIL_LEVEL_ORDER.standard,
+    billing: order >= DETAIL_LEVEL_ORDER.pro,
+    invoicing: order >= DETAIL_LEVEL_ORDER.proplus,
+    breaks: false,
+    pomodoro: false,
+    notifications: false,
+    hoursAccount: false,
+    weeklyView: false,
+  }
+}
 
 export const DEFAULT_SETTINGS: Settings = {
   detailLevel: 'standard',
@@ -12,6 +29,7 @@ export const DEFAULT_SETTINGS: Settings = {
   weekStart: 1,
   theme: 'system',
   roundTo: 0,
+  features: presetFromLevel('standard'),
 }
 
 function safeStorage(): Storage | null {
@@ -30,7 +48,9 @@ export function readSettings(): Settings {
   if (!raw) return { ...DEFAULT_SETTINGS }
   try {
     const parsed = JSON.parse(raw) as Partial<Settings>
-    return { ...DEFAULT_SETTINGS, ...parsed }
+    const level = parsed.detailLevel ?? DEFAULT_SETTINGS.detailLevel
+    const features: FeatureFlags = { ...presetFromLevel(level), ...(parsed.features ?? {}) }
+    return { ...DEFAULT_SETTINGS, ...parsed, features }
   } catch {
     return { ...DEFAULT_SETTINGS }
   }

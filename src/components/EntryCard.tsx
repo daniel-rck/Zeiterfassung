@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Pencil, Trash2, Banknote } from 'lucide-react'
 import type { Project, Tag, TimeEntry } from '../lib/types'
 import { formatDuration, formatTime } from '../lib/format'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeatures } from '../lib/hooks/useFeature'
 
 export function EntryCard({
   entry,
@@ -17,7 +17,7 @@ export function EntryCard({
   locale: string
   onDelete: (id: string) => void
 }) {
-  const { atLeast } = useDetailLevel()
+  const features = useFeatures()
   const isRunning = entry.endedAt == null
 
   return (
@@ -47,14 +47,14 @@ export function EntryCard({
           </div>
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-          {atLeast('standard') && project && (
+          {features.projects && project && (
             <span className="font-medium text-zinc-700 dark:text-zinc-300">{project.name}</span>
           )}
           <span>
             {formatTime(entry.startedAt, locale)}
             {entry.endedAt && ` – ${formatTime(entry.endedAt, locale)}`}
           </span>
-          {atLeast('pro') &&
+          {features.tags &&
             tags.map((tag) => (
               <span
                 key={tag.id}
@@ -64,29 +64,29 @@ export function EntryCard({
                 {tag.name}
               </span>
             ))}
-          {atLeast('pro') && entry.billable && (
+          {features.billing && entry.billable && (
             <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <Banknote size={12} /> abrechenbar
             </span>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-1 opacity-60 hover:opacity-100">
+      <div className="flex items-center gap-1">
         <Link
           to={`/entry/${entry.id}`}
-          className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 no-min-tap"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
           aria-label="Eintrag bearbeiten"
         >
-          <Pencil size={14} />
+          <Pencil size={18} />
         </Link>
         {!isRunning && (
           <button
             type="button"
             onClick={() => onDelete(entry.id)}
-            className="rounded-md p-1.5 text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 no-min-tap"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
             aria-label="Eintrag löschen"
           >
-            <Trash2 size={14} />
+            <Trash2 size={18} />
           </button>
         )}
       </div>

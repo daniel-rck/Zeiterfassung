@@ -3,6 +3,9 @@ main = "worker/index.ts"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+[build]
+command = "bun run build"
+
 [assets]
 directory = "./dist"
 binding = "ASSETS"

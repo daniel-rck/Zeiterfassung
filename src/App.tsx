@@ -9,6 +9,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { SwUpdateNotifier } from './components/SwUpdateNotifier'
 import { TodayPage } from './pages/Today'
 import { EntriesPage } from './pages/Entries'
+import { WeekPage } from './pages/Week'
 import { EntryEditPage } from './pages/EntryEdit'
 import { ProjectsPage } from './pages/Projects'
 import { TagsPage } from './pages/Tags'
@@ -31,6 +32,7 @@ export function App() {
                 <Route element={<AppShell />}>
                   <Route index element={<TodayPage />} />
                   <Route path="entries" element={<EntriesPage />} />
+                  <Route path="week" element={<WeekPage />} />
                   <Route path="entry/new" element={<EntryEditPage />} />
                   <Route path="entry/:id" element={<EntryEditPage />} />
                   <Route path="projects" element={<ProjectsPage />} />

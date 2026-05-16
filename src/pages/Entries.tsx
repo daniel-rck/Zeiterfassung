@@ -12,14 +12,14 @@ import { DayGroup } from '../components/DayGroup'
 import { Button } from '../components/ui/Button'
 import { useConfirm } from '../components/ui/Confirm'
 import { useToast } from '../components/ui/Toast'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeature } from '../lib/hooks/useFeature'
 
 export function EntriesPage() {
   const { entries } = useEntries({ includeRunning: true })
   const { projects } = useProjects({ includeArchived: true })
   const { tags } = useTags({ includeArchived: true })
   const { settings } = useSettings()
-  const { atLeast } = useDetailLevel()
+  const billingOn = useFeature('billing')
   const confirm = useConfirm()
   const toast = useToast()
   const [query, setQuery] = useState('')
@@ -50,7 +50,7 @@ export function EntriesPage() {
       const day = new Date(e.startedAt)
       day.setHours(0, 0, 0, 0)
       const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-      const amount = atLeast('pro') && e.billable && rate ? (e.durationSec / 3600) * rate : 0
+      const amount = billingOn && e.billable && rate ? (e.durationSec / 3600) * rate : 0
       const bucket = map.get(key) ?? { day: day.getTime(), entries: [], sec: 0, amount: 0 }
       bucket.entries.push(e)
       bucket.sec += e.durationSec
@@ -58,7 +58,7 @@ export function EntriesPage() {
       map.set(key, bucket)
     }
     return Array.from(map.values()).sort((a, b) => b.day - a.day)
-  }, [filtered, projectMap, atLeast])
+  }, [filtered, projectMap, billingOn])
 
   const handleDelete = async (id: string) => {
     const snapshot = entries.find((e) => e.id === id)

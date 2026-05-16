@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Plus, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useSettings } from '../lib/hooks/useSettings'
-import { useDetailLevel } from '../lib/hooks/useDetailLevel'
+import { useFeature } from '../lib/hooks/useFeature'
 import {
   archiveProject,
   countEntriesForProject,
@@ -40,7 +40,7 @@ function emptyDraft(defaultBillable: boolean): ProjectDraft {
 
 export function ProjectsPage() {
   const { settings } = useSettings()
-  const { atLeast } = useDetailLevel()
+  const billingOn = useFeature('billing')
   const { projects } = useProjects({ includeArchived: true })
   const toast = useToast()
   const confirm = useConfirm()
@@ -150,13 +150,13 @@ export function ProjectsPage() {
                 </div>
                 <div className="truncate text-xs text-zinc-500">
                   {project.client && <span>{project.client}</span>}
-                  {atLeast('pro') && project.hourlyRate != null && (
+                  {billingOn && project.hourlyRate != null && (
                     <span>
                       {project.client ? ' · ' : ''}
                       {formatMoney(project.hourlyRate, project.currency ?? settings.currency, settings.locale)}/h
                     </span>
                   )}
-                  {atLeast('pro') && project.billableDefault && <span> · abrechenbar</span>}
+                  {billingOn && project.billableDefault && <span> · abrechenbar</span>}
                 </div>
               </button>
               <button
@@ -249,7 +249,7 @@ export function ProjectsPage() {
               ))}
             </div>
           </Field>
-          {atLeast('pro') && (
+          {billingOn && (
             <>
               <Field label={`Stundensatz (${settings.currency})`} hint="Optional, gilt nur für neue Einträge.">
                 <Input
