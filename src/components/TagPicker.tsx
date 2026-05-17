@@ -49,7 +49,7 @@ export function TagPicker({
 
   return (
     <Field label={label}>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {tags.map((tag) => {
           const isSelected = selected.has(tag.id)
           return (
@@ -57,19 +57,19 @@ export function TagPicker({
               key={tag.id}
               type="button"
               onClick={() => toggle(tag.id)}
-              className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors no-min-tap ${
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors duration-150 no-min-tap ${
                 isSelected
-                  ? 'border-transparent text-white'
-                  : 'border-zinc-300 text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-600'
+                  ? 'border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300'
+                  : 'border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] text-[color:var(--color-text-2)] hover:border-[color:var(--color-border-strong)] hover:text-[color:var(--color-text-1)]'
               }`}
-              style={isSelected ? { backgroundColor: tag.color } : undefined}
             >
               <span
-                className={isSelected ? 'h-2 w-2 rounded-full bg-white/70' : 'h-2 w-2 rounded-full'}
-                style={isSelected ? undefined : { backgroundColor: tag.color }}
+                aria-hidden="true"
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: tag.color }}
               />
               {tag.name}
-              {isSelected && <X size={12} />}
+              {isSelected && <X size={11} />}
             </button>
           )
         })}
@@ -95,15 +95,15 @@ export function TagPicker({
               }
             }}
             placeholder="Tag-Name"
-            className="rounded-full border border-brand-500 bg-white px-3 py-1 text-xs focus:outline-none dark:bg-zinc-900"
+            className="rounded-md border border-brand-500 bg-[color:var(--color-surface-1)] px-2 py-1 text-xs text-[color:var(--color-text-1)] focus:outline-none"
           />
         ) : (
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-1 rounded-full border border-dashed border-zinc-300 px-3 py-1 text-xs text-zinc-600 hover:border-zinc-400 hover:text-zinc-800 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 no-min-tap"
+            className="inline-flex items-center gap-1 rounded-md border border-dashed border-[color:var(--color-border-strong)] px-2 py-1 text-xs text-[color:var(--color-text-3)] transition-colors hover:border-[color:var(--color-text-3)] hover:text-[color:var(--color-text-1)] no-min-tap"
           >
-            <Plus size={12} /> Tag
+            <Plus size={11} /> Tag
           </button>
         )}
       </div>

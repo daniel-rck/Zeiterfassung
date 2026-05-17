@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, Archive, ArchiveRestore, Trash2 } from 'lucide-react'
+import { Plus, Archive, ArchiveRestore, Trash2, Pencil } from 'lucide-react'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useSettings } from '../lib/hooks/useSettings'
 import { useFeature } from '../lib/hooks/useFeature'
@@ -16,6 +16,7 @@ import { CATEGORY_COLORS, DEFAULT_PROJECT_COLOR } from '../lib/categoryColors'
 import { Button } from '../components/ui/Button'
 import { Field, Input, Checkbox } from '../components/ui/Input'
 import { Sheet } from '../components/ui/Sheet'
+import { Badge } from '../components/ui/Badge'
 import { useToast } from '../components/ui/Toast'
 import { useConfirm } from '../components/ui/Confirm'
 import { formatMoney } from '../lib/format'
@@ -47,7 +48,9 @@ export function ProjectsPage() {
 
   const [editing, setEditing] = useState<Project | null>(null)
   const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState<ProjectDraft>(() => emptyDraft(settings.defaultBillable))
+  const [draft, setDraft] = useState<ProjectDraft>(() =>
+    emptyDraft(settings.defaultBillable),
+  )
 
   const startNew = () => {
     setEditing(null)
@@ -72,7 +75,9 @@ export function ProjectsPage() {
       toast.error('Bitte einen Namen eingeben.')
       return
     }
-    const rateNum = draft.hourlyRate ? Number(draft.hourlyRate.replace(',', '.')) : undefined
+    const rateNum = draft.hourlyRate
+      ? Number(draft.hourlyRate.replace(',', '.'))
+      : undefined
     const rate = rateNum != null && Number.isFinite(rateNum) ? rateNum : undefined
     const payload = {
       name: draft.name.trim(),
@@ -99,7 +104,7 @@ export function ProjectsPage() {
       description:
         count === 0
           ? 'Es sind keine Einträge mit diesem Projekt verknüpft.'
-          : `${count} Eintr${count === 1 ? 'ag verliert' : 'äge verlieren'} die Projektzuordnung. Stundensätze früherer Einträge bleiben als Snapshot erhalten.`,
+          : `${count} Eintr${count === 1 ? 'ag verliert' : 'äge verlieren'} die Projektzuordnung.`,
       tone: 'danger',
       confirmLabel: 'Löschen',
     })
@@ -118,94 +123,130 @@ export function ProjectsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Projekte</h1>
-        <Button variant="primary" icon={<Plus size={16} />} onClick={startNew}>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+            Projekte
+          </h1>
+          <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+            {active.length} aktiv
+            {archived.length > 0 && ` · ${archived.length} archiviert`}
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus size={14} />}
+          onClick={startNew}
+        >
           Neues Projekt
         </Button>
       </div>
 
       {active.length === 0 ? (
-        <p className="rounded-lg bg-white p-6 text-center text-sm text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+        <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           Noch keine Projekte. Lege eins an, um Stunden zuzuordnen.
-        </p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {active.map((project) => (
             <li
               key={project.id}
-              className="flex items-center gap-3 rounded-lg bg-white p-3 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
+              className="group flex items-center gap-3 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3 py-2.5 transition-colors hover:bg-[color:var(--color-surface-2)]"
             >
               <span
-                className="h-4 w-4 flex-shrink-0 rounded-full"
-                style={{ backgroundColor: project.color }}
                 aria-hidden="true"
+                className="h-7 w-1 flex-shrink-0 rounded-full"
+                style={{ backgroundColor: project.color }}
               />
               <button
                 type="button"
                 onClick={() => startEdit(project)}
                 className="min-w-0 flex-1 text-left"
               >
-                <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {project.name}
+                <div className="flex items-center gap-2">
+                  <span className="truncate text-sm font-medium text-[color:var(--color-text-1)]">
+                    {project.name}
+                  </span>
+                  {billingOn && project.billableDefault && (
+                    <Badge tone="success" size="xs">
+                      abrechenbar
+                    </Badge>
+                  )}
                 </div>
-                <div className="truncate text-xs text-zinc-500">
+                <div className="mt-0.5 truncate text-xs text-[color:var(--color-text-3)]">
                   {project.client && <span>{project.client}</span>}
                   {billingOn && project.hourlyRate != null && (
                     <span>
                       {project.client ? ' · ' : ''}
-                      {formatMoney(project.hourlyRate, project.currency ?? settings.currency, settings.locale)}/h
+                      <span className="tnum font-mono">
+                        {formatMoney(
+                          project.hourlyRate,
+                          project.currency ?? settings.currency,
+                          settings.locale,
+                        )}
+                        /h
+                      </span>
                     </span>
                   )}
-                  {billingOn && project.billableDefault && <span> · abrechenbar</span>}
                 </div>
               </button>
-              <button
-                type="button"
-                onClick={() => void archiveProject(project.id)}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 no-min-tap"
-                aria-label="Archivieren"
-                title="Archivieren"
-              >
-                <Archive size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleDelete(project)}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 no-min-tap"
-                aria-label="Löschen"
-                title="Löschen"
-              >
-                <Trash2 size={16} />
-              </button>
+              <div className="flex items-center gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => startEdit(project)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                  aria-label="Bearbeiten"
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void archiveProject(project.id)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                  aria-label="Archivieren"
+                  title="Archivieren"
+                >
+                  <Archive size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(project)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                  aria-label="Löschen"
+                  title="Löschen"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
       {archived.length > 0 && (
-        <details className="rounded-lg bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-          <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <details className="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-4">
+          <summary className="cursor-pointer text-sm font-medium text-[color:var(--color-text-2)]">
             Archivierte Projekte ({archived.length})
           </summary>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-1">
             {archived.map((project) => (
               <li
                 key={project.id}
-                className="flex items-center gap-3 text-sm text-zinc-500"
+                className="flex items-center gap-3 text-sm text-[color:var(--color-text-3)]"
               >
                 <span
-                  className="h-3 w-3 rounded-full opacity-50"
+                  className="h-2 w-2 rounded-full opacity-50"
                   style={{ backgroundColor: project.color }}
                 />
                 <span className="flex-1 truncate">{project.name}</span>
                 <button
                   type="button"
                   onClick={() => void restoreProject(project.id)}
-                  className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 no-min-tap"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-text-3)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
                   aria-label="Wiederherstellen"
                   title="Wiederherstellen"
                 >
-                  <ArchiveRestore size={14} />
+                  <ArchiveRestore size={13} />
                 </button>
               </li>
             ))}
@@ -226,7 +267,10 @@ export function ProjectsPage() {
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           </Field>
-          <Field label="Kunde" hint="Optional. Erscheint in Reports und auf Rechnungen.">
+          <Field
+            label="Kunde"
+            hint="Optional. Erscheint in Reports und auf Rechnungen."
+          >
             <Input
               value={draft.client}
               onChange={(e) => setDraft({ ...draft, client: e.target.value })}
@@ -239,8 +283,10 @@ export function ProjectsPage() {
                   key={c.value}
                   type="button"
                   onClick={() => setDraft({ ...draft, color: c.value })}
-                  className={`h-8 w-8 rounded-full ring-2 transition-all no-min-tap ${
-                    draft.color === c.value ? 'ring-zinc-900 dark:ring-zinc-100' : 'ring-transparent'
+                  className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
+                    draft.color === c.value
+                      ? 'ring-[color:var(--color-text-1)]'
+                      : 'ring-transparent'
                   }`}
                   style={{ backgroundColor: c.value }}
                   aria-label={c.name}
@@ -251,19 +297,26 @@ export function ProjectsPage() {
           </Field>
           {billingOn && (
             <>
-              <Field label={`Stundensatz (${settings.currency})`} hint="Optional, gilt nur für neue Einträge.">
+              <Field
+                label={`Stundensatz (${settings.currency})`}
+                hint="Optional, gilt nur für neue Einträge."
+              >
                 <Input
                   type="text"
                   inputMode="decimal"
                   value={draft.hourlyRate}
-                  onChange={(e) => setDraft({ ...draft, hourlyRate: e.target.value })}
+                  onChange={(e) =>
+                    setDraft({ ...draft, hourlyRate: e.target.value })
+                  }
                   placeholder="z. B. 90"
                 />
               </Field>
               <Checkbox
                 label="Standardmäßig abrechenbar"
                 checked={draft.billableDefault}
-                onChange={(billableDefault) => setDraft({ ...draft, billableDefault })}
+                onChange={(billableDefault) =>
+                  setDraft({ ...draft, billableDefault })
+                }
               />
             </>
           )}

@@ -6,19 +6,24 @@ import { useBreaksForEntry } from '../lib/hooks/useBreaks'
 import { useFeature } from '../lib/hooks/useFeature'
 import { startTimer, stopTimer, updateEntry } from '../lib/db/timeEntries'
 import { endRunningBreakFor, startBreak } from '../lib/db/breaks'
-import { formatDuration } from '../lib/format'
-import { Input } from './ui/Input'
+import { formatDuration, formatTime } from '../lib/format'
+import { useSettings } from '../lib/hooks/useSettings'
 import { useToast } from './ui/Toast'
+import { Button } from './ui/Button'
+import { Combobox, type ComboOption } from './ui/Combobox'
 import { Gated } from './Gated'
 
 export function TimerHero() {
   const { entry, liveDurationSec } = useRunningEntry()
   const { projects } = useProjects()
+  const { settings } = useSettings()
   const toast = useToast()
   const breaksOn = useFeature('breaks')
-  const { runningBreak, totalSec: breakTotalSec, liveBreakSec } = useBreaksForEntry(entry?.id)
+  const { runningBreak, totalSec: breakTotalSec, liveBreakSec } =
+    useBreaksForEntry(entry?.id)
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string | undefined>(undefined)
+  const [savedFlash, setSavedFlash] = useState(false)
 
   useEffect(() => {
     if (entry) {
@@ -26,6 +31,17 @@ export function TimerHero() {
       setProjectId(entry.projectId)
     }
   }, [entry])
+
+  const projectOptions: ComboOption[] = useMemo(
+    () =>
+      projects.map((p) => ({
+        value: p.id,
+        label: p.name,
+        hint: p.client,
+        color: p.color,
+      })),
+    [projects],
+  )
 
   const handleStart = async () => {
     try {
@@ -45,7 +61,9 @@ export function TimerHero() {
       }
       const stopped = await stopTimer()
       if (stopped) {
-        toast.success(`Eintrag gestoppt: ${formatDuration(stopped.durationSec, 'long')}`)
+        toast.success(
+          `Eintrag gestoppt: ${formatDuration(stopped.durationSec, 'long')}`,
+        )
       }
       setDescription('')
       setProjectId(undefined)
@@ -74,6 +92,8 @@ export function TimerHero() {
     if (description === entry.description) return
     try {
       await updateEntry(entry.id, { description })
+      setSavedFlash(true)
+      window.setTimeout(() => setSavedFlash(false), 1400)
     } catch (err) {
       toast.error((err as Error).message)
     }
@@ -89,8 +109,6 @@ export function TimerHero() {
     }
   }
 
-  // Announce the timer at minute granularity for screen readers without
-  // spamming once per second.
   const liveMinutes = Math.floor(liveDurationSec / 60)
   const announcement = useMemo(() => {
     if (!entry) return ''
@@ -103,63 +121,64 @@ export function TimerHero() {
   }, [entry, liveMinutes])
 
   return (
-    <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <button
-          type="button"
-          onClick={() => (entry ? void handleStop() : void handleStart())}
-          className={`flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-95 no-min-tap ${
-            entry
-              ? 'bg-red-600 hover:bg-red-700'
-              : 'bg-brand-600 hover:bg-brand-700'
-          }`}
-          aria-label={entry ? 'Timer stoppen' : 'Timer starten'}
-        >
-          {entry ? <Square size={32} fill="white" /> : <Play size={36} fill="white" />}
-        </button>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-baseline justify-between gap-3">
-            <div className="font-mono text-3xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
-              {formatDuration(entry ? liveDurationSec : 0, 'short')}
-            </div>
-            {entry && breaksOn && breakTotalSec > 0 && (
-              <div className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                <Coffee size={12} />
-                <span className="font-mono tabular-nums">
-                  {formatDuration(breakTotalSec, 'short')}
+    <div
+      className={`relative overflow-hidden rounded-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-5 sm:p-6 ${
+        entry ? 'shadow-sm' : ''
+      }`}
+    >
+      {entry && (
+        <span
+          aria-hidden="true"
+          className="hero-glow pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-brand-500/15 blur-3xl"
+        />
+      )}
+
+      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs uppercase tracking-wide text-[color:var(--color-text-3)]">
+            {entry ? (
+              <>
+                <span
+                  aria-hidden="true"
+                  className="pulse-dot inline-block h-1.5 w-1.5 rounded-full bg-brand-500"
+                />
+                <span>
+                  läuft seit {formatTime(entry.startedAt, settings.locale)}
                 </span>
-              </div>
+              </>
+            ) : (
+              <span>Bereit</span>
+            )}
+            {savedFlash && (
+              <span className="ml-auto text-[color:var(--color-success-600)]">
+                Gespeichert
+              </span>
             )}
           </div>
-          <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
-            {announcement}
-            {runningBreak ? ` Pause läuft seit ${Math.floor(liveBreakSec / 60)} Minuten.` : ''}
+          <div
+            className={`tnum mt-1 font-mono font-semibold leading-none tracking-[-0.04em] ${
+              entry
+                ? 'text-[color:var(--color-text-1)]'
+                : 'text-[color:var(--color-text-3)]'
+            }`}
+            style={{ fontSize: 'clamp(2.5rem, 7vw, 3.5rem)' }}
+          >
+            {formatDuration(entry ? liveDurationSec : 0, 'short')}
           </div>
-          {entry && breaksOn && (
-            <button
-              type="button"
-              onClick={() => void handleToggleBreak()}
-              className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                runningBreak
-                  ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-950/40 dark:text-amber-300'
-                  : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
-              }`}
-            >
-              {runningBreak ? (
-                <>
-                  <PlayCircle size={16} />
-                  <span>Weiter ({formatDuration(liveBreakSec, 'short')})</span>
-                </>
-              ) : (
-                <>
-                  <Coffee size={16} />
-                  <span>Pause</span>
-                </>
-              )}
-            </button>
-          )}
-          <Input
-            placeholder={entry ? 'Beschreibung…' : 'Was machst du gerade?'}
+          <div
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+          >
+            {announcement}
+            {runningBreak
+              ? ` Pause läuft seit ${Math.floor(liveBreakSec / 60)} Minuten.`
+              : ''}
+          </div>
+
+          <input
+            type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={() => void persistDescription()}
@@ -169,24 +188,70 @@ export function TimerHero() {
                 void handleStart()
               }
             }}
+            placeholder={entry ? 'Beschreibung…' : 'Was machst du gerade?'}
+            className="mt-4 w-full border-b border-[color:var(--color-border-subtle)] bg-transparent py-2 text-base text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:border-brand-500 focus:outline-none transition-colors duration-150"
           />
-          <Gated feature="projects">
-            <select
-              value={projectId ?? ''}
-              onChange={(e) => void persistProject(e.target.value || undefined)}
-              className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+        </div>
+
+        <div className="flex flex-shrink-0 items-center gap-2">
+          {entry && breaksOn && (
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => void handleToggleBreak()}
+              icon={runningBreak ? <PlayCircle size={16} /> : <Coffee size={16} />}
             >
-              <option value="">Ohne Projekt</option>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                  {p.client ? ` · ${p.client}` : ''}
-                </option>
-              ))}
-            </select>
-          </Gated>
+              {runningBreak
+                ? `Weiter (${formatDuration(liveBreakSec, 'short')})`
+                : 'Pause'}
+            </Button>
+          )}
+          <Button
+            variant={entry ? 'danger' : 'primary'}
+            size="lg"
+            onClick={() => (entry ? void handleStop() : void handleStart())}
+            icon={
+              entry ? (
+                <Square size={16} fill="currentColor" />
+              ) : (
+                <Play size={16} fill="currentColor" />
+              )
+            }
+            aria-label={entry ? 'Timer stoppen' : 'Timer starten'}
+          >
+            {entry ? 'Stop' : 'Start'}
+          </Button>
         </div>
       </div>
+
+      <Gated feature="projects">
+        <div className="relative mt-4 flex items-center gap-3 border-t border-[color:var(--color-border-subtle)] pt-4">
+          <span className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-3)]">
+            Projekt
+          </span>
+          <div className="min-w-0 flex-1">
+            <Combobox
+              options={projectOptions}
+              value={projectId}
+              onChange={(next) => void persistProject(next)}
+              placeholder="Ohne Projekt"
+              clearLabel="Ohne Projekt"
+              variant="ghost"
+              size="sm"
+              ariaLabel="Projekt wählen"
+            />
+          </div>
+        </div>
+      </Gated>
+
+      {entry && breaksOn && breakTotalSec > 0 && (
+        <div className="relative mt-2 flex items-center gap-1.5 text-xs text-[color:var(--color-warn-600)] dark:text-[color:var(--color-warn-500)]">
+          <Coffee size={12} />
+          <span className="tnum font-mono">
+            {formatDuration(breakTotalSec, 'short')} Pause
+          </span>
+        </div>
+      )}
     </div>
   )
 }

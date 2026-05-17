@@ -82,79 +82,93 @@ export function TagsPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Tags</h1>
-        <Button variant="primary" icon={<Plus size={16} />} onClick={startNew}>
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+            Tags
+          </h1>
+          <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+            {active.length} aktiv
+            {archived.length > 0 && ` · ${archived.length} archiviert`}
+          </p>
+        </div>
+        <Button
+          variant="primary"
+          size="sm"
+          icon={<Plus size={14} />}
+          onClick={startNew}
+        >
           Neuer Tag
         </Button>
       </div>
 
       {active.length === 0 ? (
-        <p className="rounded-lg bg-white p-6 text-center text-sm text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+        <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           Noch keine Tags.
-        </p>
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="flex flex-wrap gap-1.5">
           {active.map((tag) => (
-            <li
-              key={tag.id}
-              className="flex items-center gap-3 rounded-lg bg-white p-3 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
-            >
-              <span
-                className="h-4 w-4 flex-shrink-0 rounded-full"
-                style={{ backgroundColor: tag.color }}
-                aria-hidden="true"
-              />
-              <button
-                type="button"
-                onClick={() => startEdit(tag)}
-                className="flex-1 truncate text-left text-sm font-medium text-zinc-900 dark:text-zinc-100"
-              >
-                {tag.name}
-              </button>
-              <button
-                type="button"
-                onClick={() => void archiveTag(tag.id)}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 no-min-tap"
-                aria-label="Archivieren"
-                title="Archivieren"
-              >
-                <Archive size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleDelete(tag)}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 no-min-tap"
-                aria-label="Löschen"
-                title="Löschen"
-              >
-                <Trash2 size={16} />
-              </button>
+            <li key={tag.id}>
+              <div className="group inline-flex items-center gap-1.5 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] py-1 pl-2 pr-1 text-sm transition-colors hover:bg-[color:var(--color-surface-2)]">
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 rounded-full"
+                  style={{ backgroundColor: tag.color }}
+                />
+                <button
+                  type="button"
+                  onClick={() => startEdit(tag)}
+                  className="text-[color:var(--color-text-1)] no-min-tap"
+                >
+                  {tag.name}
+                </button>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => void archiveTag(tag.id)}
+                    className="inline-flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                    aria-label="Archivieren"
+                  >
+                    <Archive size={12} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void handleDelete(tag)}
+                    className="inline-flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                    aria-label="Löschen"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </div>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
       {archived.length > 0 && (
-        <details className="rounded-lg bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-          <summary className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <details className="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-4">
+          <summary className="cursor-pointer text-sm font-medium text-[color:var(--color-text-2)]">
             Archivierte Tags ({archived.length})
           </summary>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-3 space-y-1">
             {archived.map((tag) => (
-              <li key={tag.id} className="flex items-center gap-3 text-sm text-zinc-500">
+              <li
+                key={tag.id}
+                className="flex items-center gap-3 text-sm text-[color:var(--color-text-3)]"
+              >
                 <span
-                  className="h-3 w-3 rounded-full opacity-50"
+                  className="h-2 w-2 rounded-full opacity-50"
                   style={{ backgroundColor: tag.color }}
                 />
                 <span className="flex-1 truncate">{tag.name}</span>
                 <button
                   type="button"
                   onClick={() => void restoreTag(tag.id)}
-                  className="rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800 no-min-tap"
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[color:var(--color-surface-2)] no-min-tap"
                   aria-label="Wiederherstellen"
-                  title="Wiederherstellen"
                 >
-                  <ArchiveRestore size={14} />
+                  <ArchiveRestore size={13} />
                 </button>
               </li>
             ))}
@@ -170,7 +184,11 @@ export function TagsPage() {
       >
         <div className="space-y-4">
           <Field label="Name">
-            <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              autoFocus
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </Field>
           <Field label="Farbe">
             <div className="flex flex-wrap gap-2">
@@ -179,8 +197,10 @@ export function TagsPage() {
                   key={c.value}
                   type="button"
                   onClick={() => setColor(c.value)}
-                  className={`h-8 w-8 rounded-full ring-2 transition-all no-min-tap ${
-                    color === c.value ? 'ring-zinc-900 dark:ring-zinc-100' : 'ring-transparent'
+                  className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
+                    color === c.value
+                      ? 'ring-[color:var(--color-text-1)]'
+                      : 'ring-transparent'
                   }`}
                   style={{ backgroundColor: c.value }}
                   aria-label={c.name}
@@ -199,6 +219,7 @@ export function TagsPage() {
           </div>
         </div>
       </Sheet>
+
     </div>
   )
 }

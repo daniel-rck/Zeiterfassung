@@ -15,11 +15,21 @@ import {
   totalDurationSec,
 } from '../lib/reports/aggregate'
 import { downloadCsv, entriesToCsv } from '../lib/io/exportCsv'
-import { ReportFilters, type ReportFilterState } from '../components/ReportFilters'
+import {
+  ReportFilters,
+  type ReportFilterState,
+} from '../components/ReportFilters'
 import { ReportChart } from '../components/ReportChart'
+import { DonutChart, type DonutSlice } from '../components/charts/DonutChart'
 import { Button } from '../components/ui/Button'
+import { MetricCard } from '../components/ui/MetricCard'
+import { Card, CardHeader } from '../components/ui/Card'
 import { Gated } from '../components/Gated'
-import { formatDuration, formatMoney, formatDecimalHours } from '../lib/format'
+import {
+  formatDuration,
+  formatMoney,
+  formatDecimalHours,
+} from '../lib/format'
 
 const INITIAL_FILTER: ReportFilterState = {
   preset: 'thisMonth',
@@ -30,10 +40,24 @@ const INITIAL_FILTER: ReportFilterState = {
   billableOnly: false,
 }
 
+const FALLBACK_COLORS = [
+  '#3b82f6',
+  '#22c55e',
+  '#f59e0b',
+  '#ef4444',
+  '#a855f7',
+  '#06b6d4',
+  '#ec4899',
+  '#84cc16',
+]
+
 export function ReportsPage() {
   const { settings } = useSettings()
   const features = useFeatures()
-  const [filter, setFilter] = useFilterState<ReportFilterState>('reports', INITIAL_FILTER)
+  const [filter, setFilter] = useFilterState<ReportFilterState>(
+    'reports',
+    INITIAL_FILTER,
+  )
 
   const range = useMemo(() => {
     if (filter.preset === 'custom') {
@@ -42,7 +66,6 @@ export function ReportsPage() {
       from.setHours(0, 0, 0, 0)
       const to = new Date(filter.customTo)
       to.setHours(23, 59, 59, 999)
-      // Auto-swap when user picked from > to so the range is never empty.
       if (from.getTime() > to.getTime()) {
         return { from: to.getTime(), to: from.getTime() }
       }
@@ -55,7 +78,8 @@ export function ReportsPage() {
     filter.preset === 'custom' &&
     filter.customFrom &&
     filter.customTo &&
-    new Date(filter.customFrom).getTime() > new Date(filter.customTo).getTime()
+    new Date(filter.customFrom).getTime() >
+      new Date(filter.customTo).getTime()
       ? 'Von ist nach Bis — Reihenfolge wurde getauscht.'
       : null
 
@@ -84,7 +108,10 @@ export function ReportsPage() {
     [entries, settings.roundTo],
   )
   const billableInfo = useMemo(
-    () => totalBillableAmount(entries, projects, { roundToMinutes: settings.roundTo }),
+    () =>
+      totalBillableAmount(entries, projects, {
+        roundToMinutes: settings.roundTo,
+      }),
     [entries, projects, settings.roundTo],
   )
   const dayBuckets = useMemo(
@@ -92,14 +119,32 @@ export function ReportsPage() {
     [entries, projects, settings.roundTo],
   )
   const projectBuckets = useMemo(
-    () => groupByProject(entries, projects, { roundToMinutes: settings.roundTo }),
+    () =>
+      groupByProject(entries, projects, {
+        roundToMinutes: settings.roundTo,
+      }),
     [entries, projects, settings.roundTo],
   )
   const tagBuckets = useMemo(
     () => groupByTag(entries, projects, { roundToMinutes: settings.roundTo }),
     [entries, projects, settings.roundTo],
   )
+  const projectMap = useMemo(
+    () => new Map(projects.map((p) => [p.id, p])),
+    [projects],
+  )
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
+
+  const donutSlices: DonutSlice[] = projectBuckets.map((b, i) => {
+    const proj = b.projectId ? projectMap.get(b.projectId) : undefined
+    return {
+      key: b.projectId ?? 'none',
+      label: b.projectName,
+      value: b.durationSec,
+      color: proj?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+      display: `${formatDecimalHours(b.durationSec, settings.locale)} h`,
+    }
+  })
 
   const handleCsv = () => {
     if (entries.length === 0) return
@@ -109,118 +154,162 @@ export function ReportsPage() {
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Reports</h1>
-        <Button variant="secondary" icon={<Download size={16} />} onClick={handleCsv}>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+            Reports
+          </h1>
+          <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+            Erfasste Zeit über Zeiträume, Projekte und Tags.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Download size={14} />}
+          onClick={handleCsv}
+          disabled={entries.length === 0}
+        >
           CSV-Export
         </Button>
       </div>
 
-      <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+      <Card padding="md">
         <ReportFilters state={filter} onChange={setFilter} />
         {rangeWarning && (
-          <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">{rangeWarning}</p>
+          <p className="mt-3 text-xs text-[color:var(--color-warn-600)] dark:text-[color:var(--color-warn-500)]">
+            {rangeWarning}
+          </p>
         )}
-      </div>
+      </Card>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <MetricCard
           label="Erfasste Zeit"
           value={formatDuration(totalSec, 'long')}
           hint={`${formatDecimalHours(totalSec, settings.locale)} Stunden`}
         />
-        <StatCard label="Einträge" value={String(entries.length)} />
+        <MetricCard label="Einträge" value={String(entries.length)} />
         {features.billing && (
-          <StatCard
+          <MetricCard
             label="Abrechenbar"
             value={
               billableInfo.currency
-                ? formatMoney(billableInfo.amount, billableInfo.currency, settings.locale)
-                : formatMoney(billableInfo.amount, settings.currency, settings.locale)
+                ? formatMoney(
+                    billableInfo.amount,
+                    billableInfo.currency,
+                    settings.locale,
+                  )
+                : formatMoney(
+                    billableInfo.amount,
+                    settings.currency,
+                    settings.locale,
+                  )
             }
+            accent="success"
           />
         )}
       </div>
 
-      <section className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-        <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          Pro Tag
-        </h2>
+      <Card padding="md">
+        <CardHeader title="Pro Tag" description="Aufgewendete Stunden je Tag" />
         <ReportChart buckets={dayBuckets} locale={settings.locale} />
-      </section>
+      </Card>
 
-      <section className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-        <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          Pro Projekt
-        </h2>
-        {projectBuckets.length === 0 ? (
-          <p className="text-sm text-zinc-500">Keine Daten.</p>
-        ) : (
-          <ul className="space-y-2 text-sm">
-            {projectBuckets.map((bucket) => (
-              <li
-                key={bucket.projectId ?? 'none'}
-                className="flex items-center justify-between gap-2"
-              >
-                <span className="truncate text-zinc-800 dark:text-zinc-200">
-                  {bucket.projectName}
-                </span>
-                <span className="flex items-center gap-3 font-mono tabular-nums text-zinc-700 dark:text-zinc-300">
-                  <span>{formatDecimalHours(bucket.durationSec, settings.locale)}h</span>
-                  {features.billing && bucket.amount > 0 && bucket.currency && (
-                    <span className="text-emerald-600 dark:text-emerald-400">
-                      {formatMoney(bucket.amount, bucket.currency, settings.locale)}
-                    </span>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card padding="md">
+          <CardHeader
+            title="Pro Projekt"
+            description={`${projectBuckets.length} Projekt${projectBuckets.length === 1 ? '' : 'e'}`}
+          />
+          {projectBuckets.length === 0 ? (
+            <p className="text-sm text-[color:var(--color-text-3)]">
+              Keine Daten.
+            </p>
+          ) : (
+            <DonutChart
+              slices={donutSlices}
+              centerLabel="Gesamt"
+              centerValue={`${formatDecimalHours(totalSec, settings.locale)}h`}
+              ariaLabel="Stunden pro Projekt"
+              size={160}
+            />
+          )}
+        </Card>
 
-      <Gated feature="tags">
-        {tagBuckets.length > 0 && (
-          <section className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-            <h2 className="mb-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              Pro Tag (Label)
-            </h2>
-            <ul className="space-y-2 text-sm">
-              {tagBuckets.map((bucket) => {
-                const tag = tagMap.get(bucket.tagId)
-                if (!tag) return null
-                return (
-                  <li key={bucket.tagId} className="flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-2">
+        <Gated feature="tags">
+          <Card padding="md">
+            <CardHeader
+              title="Pro Tag (Label)"
+              description={`${tagBuckets.length} Tag${tagBuckets.length === 1 ? '' : 's'}`}
+            />
+            {tagBuckets.length === 0 ? (
+              <p className="text-sm text-[color:var(--color-text-3)]">
+                Keine Daten.
+              </p>
+            ) : (
+              <ul className="space-y-1">
+                {tagBuckets.map((bucket) => {
+                  const tag = tagMap.get(bucket.tagId)
+                  if (!tag) return null
+                  const pct = totalSec > 0
+                    ? Math.round((bucket.durationSec / totalSec) * 100)
+                    : 0
+                  return (
+                    <li
+                      key={bucket.tagId}
+                      className="flex items-center gap-3 py-1.5"
+                    >
                       <span
-                        className="h-2.5 w-2.5 rounded-full"
+                        aria-hidden="true"
+                        className="h-2 w-2 flex-shrink-0 rounded-full"
                         style={{ backgroundColor: tag.color }}
                       />
-                      {tag.name}
-                    </span>
-                    <span className="font-mono tabular-nums">
-                      {formatDecimalHours(bucket.durationSec, settings.locale)}h
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-        )}
-      </Gated>
-    </div>
-  )
-}
-
-function StatCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-      <div className="text-xs uppercase tracking-wide text-zinc-500">{label}</div>
-      <div className="mt-1 font-mono text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
-        {value}
+                      <span className="min-w-0 flex-1 truncate text-sm text-[color:var(--color-text-1)]">
+                        {tag.name}
+                      </span>
+                      <span className="tnum text-xs text-[color:var(--color-text-3)]">
+                        {pct}%
+                      </span>
+                      <span className="tnum text-xs font-medium text-[color:var(--color-text-2)]">
+                        {formatDecimalHours(bucket.durationSec, settings.locale)} h
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </Card>
+        </Gated>
       </div>
-      {hint && <div className="text-xs text-zinc-500">{hint}</div>}
+
+      {features.billing && projectBuckets.some((b) => b.amount > 0) && (
+        <Card padding="md">
+          <CardHeader title="Abrechenbar pro Projekt" />
+          <ul className="divide-y divide-[color:var(--color-border-subtle)]">
+            {projectBuckets
+              .filter((b) => b.amount > 0)
+              .map((b) => (
+                <li
+                  key={b.projectId ?? 'none'}
+                  className="flex items-center justify-between py-2 text-sm"
+                >
+                  <span className="min-w-0 truncate text-[color:var(--color-text-1)]">
+                    {b.projectName}
+                  </span>
+                  <span className="tnum font-medium text-[color:var(--color-success-600)] dark:text-[color:var(--color-success-500)]">
+                    {formatMoney(
+                      b.amount,
+                      b.currency ?? settings.currency,
+                      settings.locale,
+                    )}
+                  </span>
+                </li>
+              ))}
+          </ul>
+        </Card>
+      )}
     </div>
   )
 }

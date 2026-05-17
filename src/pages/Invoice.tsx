@@ -5,6 +5,7 @@ import { useProjects } from '../lib/hooks/useProjects'
 import { useSettings } from '../lib/hooks/useSettings'
 import { Button } from '../components/ui/Button'
 import { Field, Input, Select, Textarea } from '../components/ui/Input'
+import { Card, CardHeader } from '../components/ui/Card'
 import { useToast } from '../components/ui/Toast'
 import { composeInvoice, type ComposedInvoice } from '../lib/invoice/compose'
 import { downloadInvoicePdf } from '../lib/invoice/pdf'
@@ -19,8 +20,14 @@ export function InvoicePage() {
   const toast = useToast()
 
   const [projectId, setProjectId] = useState<string>('')
-  const [from, setFrom] = useState(() => formatDateInput(getRange('lastMonth', settings.weekStart)?.from ?? Date.now()))
-  const [to, setTo] = useState(() => formatDateInput(getRange('lastMonth', settings.weekStart)?.to ?? Date.now()))
+  const [from, setFrom] = useState(() =>
+    formatDateInput(
+      getRange('lastMonth', settings.weekStart)?.from ?? Date.now(),
+    ),
+  )
+  const [to, setTo] = useState(() =>
+    formatDateInput(getRange('lastMonth', settings.weekStart)?.to ?? Date.now()),
+  )
   const [recipientName, setRecipientName] = useState('')
   const [recipientAddress, setRecipientAddress] = useState('')
   const [invoiceNumber, setInvoiceNumber] = useState(() =>
@@ -110,12 +117,23 @@ export function InvoicePage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Rechnung</h1>
+      <div>
+        <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+          Rechnung
+        </h1>
+        <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+          Erzeuge eine PDF aus abrechenbaren Einträgen eines Projekts.
+        </p>
+      </div>
 
-      <div className="space-y-4 rounded-2xl bg-white p-5 ring-1 ring-zinc-200 print:hidden dark:bg-zinc-900 dark:ring-zinc-800">
+      <Card padding="md" className="print:hidden">
+        <CardHeader title="Daten" />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field label="Projekt">
-            <Select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+            <Select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+            >
               <option value="">— wählen —</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>
@@ -133,10 +151,18 @@ export function InvoicePage() {
             />
           </Field>
           <Field label="Von">
-            <Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
+            <Input
+              type="date"
+              value={from}
+              onChange={(e) => setFrom(e.target.value)}
+            />
           </Field>
           <Field label="Bis">
-            <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
+            <Input
+              type="date"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+            />
           </Field>
           <Field label="Empfänger-Name">
             <Input
@@ -161,10 +187,10 @@ export function InvoicePage() {
             </Select>
           </Field>
         </div>
-        <div className="flex flex-wrap justify-end gap-2">
+        <div className="mt-4 flex flex-wrap justify-end gap-2">
           <Button
-            variant="secondary"
-            icon={<Printer size={16} />}
+            variant="outline"
+            icon={<Printer size={14} />}
             onClick={() => window.print()}
             disabled={!invoice}
           >
@@ -172,21 +198,21 @@ export function InvoicePage() {
           </Button>
           <Button
             variant="primary"
-            icon={<Download size={16} />}
+            icon={<Download size={14} />}
             onClick={() => void handlePdf()}
             disabled={!invoice}
           >
             PDF erzeugen
           </Button>
         </div>
-      </div>
+      </Card>
 
       {invoice ? (
         <InvoicePreview invoice={invoice} locale={settings.locale} />
       ) : (
-        <p className="rounded-lg bg-white p-6 text-center text-sm text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+        <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           Wähle Projekt, Zeitraum und Empfänger, um eine Rechnung zu erzeugen.
-        </p>
+        </div>
       )}
     </div>
   )
@@ -200,44 +226,52 @@ function InvoicePreview({
   locale: string
 }) {
   return (
-    <article className="rounded-2xl bg-white p-4 ring-1 ring-zinc-200 sm:p-8 print:p-0 print:ring-0 dark:bg-zinc-900 dark:ring-zinc-800 print:dark:bg-white">
+    <article className="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-5 sm:p-8 print:border-0 print:p-0 print:bg-white print:text-black">
       <header className="mb-6 flex flex-col items-start justify-between gap-4 sm:mb-8 sm:flex-row sm:gap-0">
         <div>
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 print:text-black">
+          <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--color-text-1)] print:text-black">
             Rechnung
           </h2>
           {invoice.number && (
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 print:text-black">
+            <p className="mt-1 text-sm text-[color:var(--color-text-2)] print:text-black">
               Nr. {invoice.number}
             </p>
           )}
-          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400 print:text-black">
+          <p className="mt-1 text-sm text-[color:var(--color-text-2)] print:text-black">
             Datum: {formatDate(invoice.date, locale)}
           </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400 print:text-black">
-            Leistungszeitraum: {formatDate(invoice.range.from, locale)} – {formatDate(invoice.range.to, locale)}
+          <p className="text-sm text-[color:var(--color-text-2)] print:text-black">
+            Leistungszeitraum: {formatDate(invoice.range.from, locale)} –{' '}
+            {formatDate(invoice.range.to, locale)}
           </p>
         </div>
-        <div className="text-left text-sm text-zinc-700 sm:text-right dark:text-zinc-300 print:text-right print:text-black">
+        <div className="text-left text-sm text-[color:var(--color-text-2)] sm:text-right print:text-right print:text-black">
           {invoice.issuer.issuerName && (
-            <div className="font-semibold">{invoice.issuer.issuerName}</div>
+            <div className="font-semibold text-[color:var(--color-text-1)] print:text-black">
+              {invoice.issuer.issuerName}
+            </div>
           )}
           {invoice.issuer.issuerAddress?.split('\n').map((line, i) => (
             <div key={i}>{line}</div>
           ))}
-          {invoice.issuer.taxId && <div className="mt-1">Steuer-ID: {invoice.issuer.taxId}</div>}
+          {invoice.issuer.taxId && (
+            <div className="mt-1">Steuer-ID: {invoice.issuer.taxId}</div>
+          )}
         </div>
       </header>
 
       <section className="mb-8">
-        <p className="text-xs uppercase tracking-wide text-zinc-500 print:text-black">
+        <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-3)] print:text-black">
           Rechnung an
         </p>
-        <p className="font-medium text-zinc-900 dark:text-zinc-100 print:text-black">
+        <p className="mt-1 font-medium text-[color:var(--color-text-1)] print:text-black">
           {invoice.recipient.name}
         </p>
         {invoice.recipient.address?.split('\n').map((line, i) => (
-          <p key={i} className="text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
+          <p
+            key={i}
+            className="text-sm text-[color:var(--color-text-2)] print:text-black"
+          >
             {line}
           </p>
         ))}
@@ -247,30 +281,30 @@ function InvoicePreview({
         {invoice.lineItems.map((item, i) => (
           <li
             key={i}
-            className="rounded-xl border border-zinc-200 p-3 dark:border-zinc-800"
+            className="rounded-md border border-[color:var(--color-border-subtle)] p-3"
           >
-            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            <div className="text-sm font-medium text-[color:var(--color-text-1)]">
               {item.description}
             </div>
             {item.date && (
-              <div className="mt-0.5 text-xs text-zinc-500">{item.date}</div>
+              <div className="mt-0.5 text-xs text-[color:var(--color-text-3)]">
+                {item.date}
+              </div>
             )}
             <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
               <div>
-                <dt className="text-zinc-500">Stunden</dt>
-                <dd className="font-mono tabular-nums text-zinc-800 dark:text-zinc-200">
-                  {item.hours.toFixed(2)}
-                </dd>
+                <dt className="text-[color:var(--color-text-3)]">Stunden</dt>
+                <dd className="tnum font-mono">{item.hours.toFixed(2)}</dd>
               </div>
               <div>
-                <dt className="text-zinc-500">Satz</dt>
-                <dd className="font-mono tabular-nums text-zinc-800 dark:text-zinc-200">
+                <dt className="text-[color:var(--color-text-3)]">Satz</dt>
+                <dd className="tnum font-mono">
                   {formatMoney(item.rate, invoice.currency, locale)}
                 </dd>
               </div>
               <div className="text-right">
-                <dt className="text-zinc-500">Betrag</dt>
-                <dd className="font-mono text-sm font-semibold tabular-nums text-zinc-900 dark:text-zinc-100">
+                <dt className="text-[color:var(--color-text-3)]">Betrag</dt>
+                <dd className="tnum font-mono text-sm font-semibold">
                   {formatMoney(item.amount, invoice.currency, locale)}
                 </dd>
               </div>
@@ -281,24 +315,24 @@ function InvoicePreview({
 
       <dl className="mt-4 space-y-1 text-sm sm:hidden print:hidden">
         <div className="flex justify-between">
-          <dt className="text-zinc-600 dark:text-zinc-400">Zwischensumme</dt>
-          <dd className="font-mono tabular-nums">
+          <dt className="text-[color:var(--color-text-2)]">Zwischensumme</dt>
+          <dd className="tnum font-mono">
             {formatMoney(invoice.subtotal, invoice.currency, locale)}
           </dd>
         </div>
         {invoice.taxRate != null && invoice.taxRate > 0 && (
           <div className="flex justify-between">
-            <dt className="text-zinc-600 dark:text-zinc-400">
+            <dt className="text-[color:var(--color-text-2)]">
               USt. {invoice.taxRate.toFixed(0)} %
             </dt>
-            <dd className="font-mono tabular-nums">
+            <dd className="tnum font-mono">
               {formatMoney(invoice.taxAmount, invoice.currency, locale)}
             </dd>
           </div>
         )}
-        <div className="flex justify-between border-t border-zinc-200 pt-2 text-base font-semibold dark:border-zinc-800">
+        <div className="flex justify-between border-t border-[color:var(--color-border-subtle)] pt-2 text-base font-semibold">
           <dt>Gesamt</dt>
-          <dd className="font-mono tabular-nums">
+          <dd className="tnum font-mono">
             {formatMoney(invoice.total, invoice.currency, locale)}
           </dd>
         </div>
@@ -306,28 +340,42 @@ function InvoicePreview({
 
       <table className="hidden w-full text-sm sm:table print:table">
         <thead>
-          <tr className="border-b-2 border-zinc-300 text-left dark:border-zinc-700 print:border-black">
-            <th className="py-2">Beschreibung</th>
-            <th className="py-2 text-right">Stunden</th>
-            <th className="py-2 text-right">Satz</th>
-            <th className="py-2 text-right">Betrag</th>
+          <tr className="border-b-2 border-[color:var(--color-border-strong)] text-left print:border-black">
+            <th className="py-2 font-medium text-[color:var(--color-text-2)]">
+              Beschreibung
+            </th>
+            <th className="py-2 text-right font-medium text-[color:var(--color-text-2)]">
+              Stunden
+            </th>
+            <th className="py-2 text-right font-medium text-[color:var(--color-text-2)]">
+              Satz
+            </th>
+            <th className="py-2 text-right font-medium text-[color:var(--color-text-2)]">
+              Betrag
+            </th>
           </tr>
         </thead>
         <tbody>
           {invoice.lineItems.map((item, i) => (
             <tr
               key={i}
-              className="border-b border-zinc-200 dark:border-zinc-800 print:border-black"
+              className="border-b border-[color:var(--color-border-subtle)] print:border-black"
             >
               <td className="py-2">
-                {item.date && <span className="text-zinc-500 mr-2 print:text-black">{item.date}</span>}
+                {item.date && (
+                  <span className="mr-2 text-[color:var(--color-text-3)] print:text-black">
+                    {item.date}
+                  </span>
+                )}
                 {item.description}
               </td>
-              <td className="py-2 text-right font-mono tabular-nums">{item.hours.toFixed(2)}</td>
-              <td className="py-2 text-right font-mono tabular-nums">
+              <td className="tnum py-2 text-right font-mono">
+                {item.hours.toFixed(2)}
+              </td>
+              <td className="tnum py-2 text-right font-mono">
                 {formatMoney(item.rate, invoice.currency, locale)}
               </td>
-              <td className="py-2 text-right font-mono tabular-nums">
+              <td className="tnum py-2 text-right font-mono">
                 {formatMoney(item.amount, invoice.currency, locale)}
               </td>
             </tr>
@@ -335,19 +383,25 @@ function InvoicePreview({
         </tbody>
         <tfoot>
           <tr>
-            <td colSpan={3} className="pt-3 text-right text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
+            <td
+              colSpan={3}
+              className="pt-3 text-right text-sm text-[color:var(--color-text-2)] print:text-black"
+            >
               Zwischensumme
             </td>
-            <td className="pt-3 text-right font-mono tabular-nums">
+            <td className="tnum pt-3 text-right font-mono">
               {formatMoney(invoice.subtotal, invoice.currency, locale)}
             </td>
           </tr>
           {invoice.taxRate != null && invoice.taxRate > 0 && (
             <tr>
-              <td colSpan={3} className="text-right text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
+              <td
+                colSpan={3}
+                className="text-right text-sm text-[color:var(--color-text-2)] print:text-black"
+              >
                 USt. {invoice.taxRate.toFixed(0)} %
               </td>
-              <td className="text-right font-mono tabular-nums">
+              <td className="tnum text-right font-mono">
                 {formatMoney(invoice.taxAmount, invoice.currency, locale)}
               </td>
             </tr>
@@ -355,11 +409,11 @@ function InvoicePreview({
           <tr>
             <td
               colSpan={3}
-              className="pt-2 text-right text-base font-semibold text-zinc-900 dark:text-zinc-100 print:text-black"
+              className="pt-2 text-right text-base font-semibold text-[color:var(--color-text-1)] print:text-black"
             >
               Gesamt
             </td>
-            <td className="pt-2 text-right font-mono text-base font-semibold tabular-nums text-zinc-900 dark:text-zinc-100 print:text-black">
+            <td className="tnum pt-2 text-right font-mono text-base font-semibold">
               {formatMoney(invoice.total, invoice.currency, locale)}
             </td>
           </tr>
@@ -370,15 +424,19 @@ function InvoicePreview({
         invoice.issuer.bic ||
         invoice.issuer.bankName ||
         invoice.issuer.paymentNote) && (
-        <section className="mt-8 text-sm text-zinc-700 dark:text-zinc-300 print:text-black">
-          <p className="text-xs uppercase tracking-wide text-zinc-500 print:text-black">
+        <section className="mt-8 text-sm text-[color:var(--color-text-2)] print:text-black">
+          <p className="text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-3)] print:text-black">
             Zahlung
           </p>
-          {invoice.issuer.bankName && <p>{invoice.issuer.bankName}</p>}
-          {invoice.issuer.iban && <p>IBAN: {invoice.issuer.iban}</p>}
-          {invoice.issuer.bic && <p>BIC: {invoice.issuer.bic}</p>}
-          {invoice.issuer.paymentNote &&
-            invoice.issuer.paymentNote.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+          <div className="mt-1 space-y-0.5">
+            {invoice.issuer.bankName && <p>{invoice.issuer.bankName}</p>}
+            {invoice.issuer.iban && <p>IBAN: {invoice.issuer.iban}</p>}
+            {invoice.issuer.bic && <p>BIC: {invoice.issuer.bic}</p>}
+            {invoice.issuer.paymentNote &&
+              invoice.issuer.paymentNote
+                .split('\n')
+                .map((line, i) => <p key={i}>{line}</p>)}
+          </div>
         </section>
       )}
     </article>
