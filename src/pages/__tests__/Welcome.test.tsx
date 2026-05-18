@@ -19,10 +19,10 @@ describe('WelcomePage', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders both primary CTAs that link to the app root', () => {
+  it('renders both primary CTAs (Hero + Final) that link to the app root', () => {
     renderWelcome()
     const ctas = screen.getAllByRole('link', { name: /Jetzt loslegen/i })
-    expect(ctas.length).toBeGreaterThanOrEqual(1)
+    expect(ctas).toHaveLength(2)
     ctas.forEach((cta) => {
       expect(cta).toHaveAttribute('href', '/')
     })

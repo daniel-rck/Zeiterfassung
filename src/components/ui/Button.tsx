@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, ElementType, ReactNode } from 'react'
 import { Loader2 } from 'lucide-react'
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'outline' | 'danger'
@@ -24,7 +24,8 @@ const SIZE_CLASSES: Record<Size, string> = {
   lg: 'h-11 px-5 text-sm gap-2 rounded-md',
 }
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   variant?: Variant
   size?: Size
   icon?: ReactNode
@@ -32,6 +33,13 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   block?: boolean
   loading?: boolean
   kbd?: string
+  type?: 'button' | 'submit' | 'reset'
+  as?: ElementType
+  // Pass-through props when rendered as Link / anchor
+  to?: string
+  href?: string
+  target?: string
+  rel?: string
 }
 
 export function Button({
@@ -45,14 +53,21 @@ export function Button({
   className = '',
   children,
   disabled,
-  type = 'button',
+  as,
+  type,
   ...props
 }: ButtonProps) {
   const isDisabled = disabled || loading
+  const Tag = (as ?? 'button') as ElementType
+  const isNativeButton = !as || as === 'button'
+  const tagProps: Record<string, unknown> = isNativeButton
+    ? { type: type ?? 'button', disabled: isDisabled }
+    : isDisabled
+      ? { 'aria-disabled': true }
+      : {}
   return (
-    <button
-      type={type}
-      disabled={isDisabled}
+    <Tag
+      {...tagProps}
       {...props}
       className={`relative inline-flex items-center justify-center font-medium transition-colors duration-150 ease-out disabled:cursor-not-allowed focus-visible:outline-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${block ? 'w-full' : ''} ${className}`}
     >
@@ -69,6 +84,6 @@ export function Button({
       {kbd && (
         <span className="kbd ml-1.5 -mr-1 hidden sm:inline-flex">{kbd}</span>
       )}
-    </button>
+    </Tag>
   )
 }

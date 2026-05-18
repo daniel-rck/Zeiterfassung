@@ -97,11 +97,16 @@ export function WelcomePage() {
             <Github size={14} />
             GitHub
           </a>
-          <Link to="/">
-            <Button variant="primary" size="sm" icon={<ArrowRight size={14} />} iconPosition="right">
-              Zur App
-            </Button>
-          </Link>
+          <Button
+            as={Link}
+            to="/"
+            variant="primary"
+            size="sm"
+            icon={<ArrowRight size={14} />}
+            iconPosition="right"
+          >
+            Zur App
+          </Button>
         </nav>
       </header>
 
@@ -125,25 +130,27 @@ export function WelcomePage() {
             in deinem Browser.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link to="/">
-              <Button
-                variant="primary"
-                size="lg"
-                icon={<ArrowRight size={16} />}
-                iconPosition="right"
-              >
-                Jetzt loslegen
-              </Button>
-            </Link>
-            <a
+            <Button
+              as={Link}
+              to="/"
+              variant="primary"
+              size="lg"
+              icon={<ArrowRight size={16} />}
+              iconPosition="right"
+            >
+              Jetzt loslegen
+            </Button>
+            <Button
+              as="a"
               href="https://github.com/daniel-rck/Zeiterfassung"
               target="_blank"
               rel="noreferrer noopener"
+              variant="outline"
+              size="lg"
+              icon={<Github size={16} />}
             >
-              <Button variant="outline" size="lg" icon={<Github size={16} />}>
-                Auf GitHub ansehen
-              </Button>
-            </a>
+              Auf GitHub ansehen
+            </Button>
           </div>
           <p className="mt-4 text-xs text-[color:var(--color-text-3)]">
             Keine Anmeldung. Funktioniert sofort.
@@ -290,16 +297,16 @@ export function WelcomePage() {
             ändern.
           </p>
           <div className="mt-8">
-            <Link to="/">
-              <Button
-                variant="primary"
-                size="lg"
-                icon={<ArrowRight size={16} />}
-                iconPosition="right"
-              >
-                Jetzt loslegen
-              </Button>
-            </Link>
+            <Button
+              as={Link}
+              to="/"
+              variant="primary"
+              size="lg"
+              icon={<ArrowRight size={16} />}
+              iconPosition="right"
+            >
+              Jetzt loslegen
+            </Button>
           </div>
         </div>
       </section>

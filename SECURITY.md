@@ -10,7 +10,7 @@ Diese App ist eine **client-seitige PWA**. Alle Daten leben in IndexedDB und `lo
 
 Relevante Themenfelder für Security-Reports:
 
-- XSS, CSP-Umgehung, Service-Worker-Mißbrauch
+- XSS, CSP-Umgehung, Service-Worker-Missbrauch
 - Datenexposition durch Bugs im Import/Export (JSON, CSV, PDF)
 - Supply-Chain (z. B. kompromittierte Dependencies)
 - Probleme mit dem Worker-Routing oder Headers
