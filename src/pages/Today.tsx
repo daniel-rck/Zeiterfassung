@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, X, Database } from 'lucide-react'
 import { TimerHero } from '../components/TimerHero'
@@ -44,12 +44,26 @@ export function TodayPage() {
   )
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
 
-  const today = useMemo(() => {
+  const [todayStart, setTodayStart] = useState(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
-    return d
+    return d.getTime()
+  })
+
+  // Roll the page over to the new day at midnight when the app stays open.
+  useEffect(() => {
+    const tick = () => {
+      const d = new Date()
+      d.setHours(0, 0, 0, 0)
+      const next = d.getTime()
+      setTodayStart((current) => (current === next ? current : next))
+    }
+    const id = window.setInterval(tick, 60_000)
+    return () => window.clearInterval(id)
   }, [])
-  const todayKey = dayKey(today.getTime())
+
+  const today = useMemo(() => new Date(todayStart), [todayStart])
+  const todayKey = dayKey(todayStart)
   const todays = entries.filter((e) => dayKey(e.startedAt) === todayKey)
   const todayTotalSec = todays.reduce((s, e) => s + e.durationSec, 0)
 

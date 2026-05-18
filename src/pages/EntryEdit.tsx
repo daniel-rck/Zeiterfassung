@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Save, Trash2 } from 'lucide-react'
 import { Field, Input, Textarea, Checkbox } from '../components/ui/Input'
@@ -100,7 +100,7 @@ export function EntryEditPage() {
     })()
   }, [id, isNew, navigate, toast])
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (form.durationSec <= 0) {
       toast.error('Dauer muss größer als 0 sein.')
       return
@@ -145,7 +145,7 @@ export function EntryEditPage() {
     } finally {
       setSubmitting(false)
     }
-  }
+  }, [form, id, isNew, navigate, projectMap, toast])
 
   const handleDelete = async () => {
     if (isNew || !id) return
@@ -171,8 +171,7 @@ export function EntryEditPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form])
+  }, [handleSave])
 
   if (loading) {
     return (

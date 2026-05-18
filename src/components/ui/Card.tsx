@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { ElementType, HTMLAttributes, ReactNode } from 'react'
 
 type Padding = 'none' | 'sm' | 'md' | 'lg'
 type Variant = 'flat' | 'elevated'
@@ -10,28 +10,30 @@ const PADDING: Record<Padding, string> = {
   lg: 'p-5 sm:p-6',
 }
 
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends HTMLAttributes<HTMLElement> {
   padding?: Padding
   variant?: Variant
   interactive?: boolean
-  as?: 'div' | 'section' | 'article'
+  as?: ElementType
 }
 
 export function Card({
   padding = 'md',
   variant = 'flat',
   interactive,
+  as,
   className = '',
   children,
   ...props
 }: CardProps) {
+  const Tag = (as ?? 'div') as ElementType
   return (
-    <div
+    <Tag
       {...props}
       className={`rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] ${PADDING[padding]} ${variant === 'elevated' ? 'shadow-sm' : ''} ${interactive ? 'transition-colors duration-150 hover:border-[color:var(--color-border-strong)]' : ''} ${className}`}
     >
       {children}
-    </div>
+    </Tag>
   )
 }
 

@@ -55,10 +55,11 @@ export function Toggle({
   id?: string
 }) {
   return (
-    <label
-      htmlFor={id}
-      className={`flex cursor-pointer items-center gap-3 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-3 transition-colors duration-150 hover:border-[color:var(--color-border-strong)] ${
-        disabled ? 'cursor-not-allowed opacity-60' : ''
+    <div
+      role="group"
+      onClick={() => !disabled && onChange(!checked)}
+      className={`flex items-center gap-3 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-3 transition-colors duration-150 hover:border-[color:var(--color-border-strong)] ${
+        disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
       }`}
     >
       {icon && (
@@ -76,13 +77,15 @@ export function Toggle({
           </span>
         )}
       </span>
-      <Switch
-        id={id}
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-        ariaLabel={label}
-      />
-    </label>
+      <span onClick={(e) => e.stopPropagation()}>
+        <Switch
+          id={id}
+          checked={checked}
+          onChange={onChange}
+          disabled={disabled}
+          ariaLabel={label}
+        />
+      </span>
+    </div>
   )
 }

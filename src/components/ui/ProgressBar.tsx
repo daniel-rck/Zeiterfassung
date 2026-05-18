@@ -11,7 +11,8 @@ export function ProgressBar({
   tone?: 'brand' | 'success' | 'warn' | 'danger'
   label?: string
 }) {
-  const pct = Math.max(0, Math.min(100, (value / max) * 100))
+  const clampedValue = Math.max(0, Math.min(max, value))
+  const pct = max > 0 ? (clampedValue / max) * 100 : 0
   const h = size === 'sm' ? 'h-1' : size === 'lg' ? 'h-3' : 'h-1.5'
   const bar =
     tone === 'success'
@@ -24,9 +25,9 @@ export function ProgressBar({
   return (
     <div
       role="progressbar"
-      aria-valuenow={Math.round(pct)}
+      aria-valuenow={clampedValue}
       aria-valuemin={0}
-      aria-valuemax={100}
+      aria-valuemax={max}
       aria-label={label}
       className={`relative w-full overflow-hidden rounded-full bg-[color:var(--color-surface-3)] ${h}`}
     >
