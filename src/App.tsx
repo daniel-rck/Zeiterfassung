@@ -17,6 +17,7 @@ import { ReportsPage } from './pages/Reports'
 import { InvoicePage } from './pages/Invoice'
 import { InvoicesPage } from './pages/Invoices'
 import { SettingsPage } from './pages/Settings'
+import { WelcomePage } from './pages/Welcome'
 
 export function App() {
   return (
@@ -29,6 +30,7 @@ export function App() {
               <GlobalShortcuts />
               <Onboarding />
               <Routes>
+                <Route path="/willkommen" element={<WelcomePage />} />
                 <Route element={<AppShell />}>
                   <Route index element={<TodayPage />} />
                   <Route path="entries" element={<EntriesPage />} />

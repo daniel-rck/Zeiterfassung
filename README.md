@@ -1,69 +1,84 @@
+<div align="center">
+  <img src="./public/logo.svg" alt="Zeiterfassung" width="96" height="96" />
+
 # Zeiterfassung
 
 Eine schlanke, lokale Browser-PWA für Zeiterfassung. Timer starten, Projekten zuordnen, Reports und Rechnungen erstellen — ohne Account, alles im Browser.
 
-## Was ist das?
+[![CI](https://github.com/daniel-rck/Zeiterfassung/actions/workflows/ci.yml/badge.svg)](https://github.com/daniel-rck/Zeiterfassung/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![PWA](https://img.shields.io/badge/PWA-installable-5A0FC8.svg)](https://web.dev/progressive-web-apps/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020.svg?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
 
-Ein persönliches Zeiterfassungs-Tool für den Browser. Daten liegen in IndexedDB (lokal im Browser), keine Server-Anbindung, kein Tracking. Beim ersten Start wählst du, **wie tief** du erfassen willst — Basis (nur Timer), Standard (+ Projekte), Pro (+ Tags & Stundensätze) oder Pro+ (+ Rechnungs-Vorschau & PDF-Export). Du kannst die Stufe jederzeit ändern, ohne Daten zu verlieren.
+[![React 19](https://img.shields.io/badge/React-19-61DAFB.svg?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6.svg?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite 7](https://img.shields.io/badge/Vite-7-646CFF.svg?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![Tailwind 4](https://img.shields.io/badge/Tailwind-4-06B6D4.svg?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Bun](https://img.shields.io/badge/Bun-1.x-FBF0DF.svg?logo=bun&logoColor=black)](https://bun.sh/)
 
-## Funktionen
+</div>
 
-- **Timer** mit Beschreibung, Live-Anzeige, Multi-Tab-Sync
-- **Manuelle Einträge** mit flexibler Dauer-Eingabe (`1h 30m`, `1.5`, `90m`, `01:30`)
-- **Projekte** mit Farbe, Kunde, Stundensatz und Standard-Abrechenbarkeit
-- **Tags** mit Farbe für freie Klassifikation
-- **Reports** nach Tag/Woche/Monat/Custom — gefiltert nach Projekt, Tag, Abrechenbarkeit
-- **CSV-Export** der gefilterten Einträge
-- **Rechnungen** als druck- und PDF-fähige Vorschau, mit Steuersatz und fortlaufender Nummer
-- **Backup** als JSON-Datei, Import auf anderem Gerät
-- **Tastatur-Shortcuts** (Leertaste = Start/Stop, `N` = Neu, `R` = Reports …)
-- **PWA** — installierbar, offline-fähig, eigene Icons
-- **Dark Mode** + System-Theme
+---
 
-## Deine Daten gehören dir
+## Für Nutzer
 
-Alle Daten bleiben in deinem Browser (IndexedDB + localStorage). Es gibt **keine Cloud-Anbindung**, keinen Account und kein Tracking. Für Backup oder Geräte-Umzug nutze die JSON-Export/Import-Funktion in den Einstellungen. Beim Löschen der Browser-Daten gehen die Einträge verloren — also regelmäßig exportieren!
+- **Lokal, ohne Account** — Daten liegen in IndexedDB im Browser, keine Cloud, kein Tracking.
+- **Vier Detail-Stufen** — Basis (nur Timer) bis Pro+ (Rechnungen mit PDF), jederzeit umschaltbar.
+- **PWA** — installierbar, offline-fähig, Dark Mode, Tastatur-Shortcuts.
+- **Backup als JSON** — exportieren, auf anderem Gerät importieren.
 
-## Lokal entwickeln
+→ App ansehen: **[/willkommen](https://zeiterfassung.daniel-rck.workers.dev/willkommen)** · Direkt loslegen: **[zeiterfassung.daniel-rck.workers.dev](https://zeiterfassung.daniel-rck.workers.dev)**
 
-```bash
-bun install
-bun run dev          # Vite Dev Server auf http://localhost:5173
-bun run build        # Production Build nach dist/
-bun run preview      # gebauten Stand lokal ausliefern
-bun run test         # Vitest einmalig
-bun run test:watch   # Vitest watch mode
-bun run lint         # ESLint
-bun run typecheck    # tsc -b --noEmit
-```
+## Für Entwickler
 
-## Cloudflare Worker
-
-```bash
-bun run build           # erst dist/ erzeugen
-bun run worker:dev      # wrangler dev — lokaler Worker mit Static Assets
-bun run worker:deploy   # Deployment
-```
-
-Details zum Cloudflare-Setup in [SETUP.md](./SETUP.md). Der Worker ist bewusst minimal — er liefert nur die Static Assets aus und stellt einen Health-Check bereit. Es gibt keine Backend-Logik.
-
-## Tech-Stack
+### Tech-Stack
 
 | Bereich | Wahl |
 |---|---|
 | Framework | React 19 + TypeScript |
 | Build | Vite 7 |
 | Styling | Tailwind CSS 4 |
-| PWA | `vite-plugin-pwa` (`injectManifest`, eigener Service Worker) |
-| Storage | IndexedDB via `idb` + `localStorage` für Settings |
+| PWA | `vite-plugin-pwa` (`injectManifest`) |
+| Storage | IndexedDB via `idb` + `localStorage` |
 | Tests | Vitest + Testing Library |
 | Hosting | Cloudflare Workers + Static Assets |
 | Package Manager | Bun |
 
-## Roadmap
+### Quickstart
 
-Siehe [PLAN.md](./PLAN.md) für das vollständige Roadmap-Dokument mit Phasen 0–6 und Out-of-Scope-Liste.
+```bash
+bun install
+bun run dev          # http://localhost:5173
+```
+
+### Befehle
+
+```bash
+bun run build        # Production Build nach dist/
+bun run preview      # gebauten Stand lokal ausliefern
+bun run test         # Vitest einmalig
+bun run test:watch   # Vitest watch mode
+bun run lint         # ESLint
+bun run typecheck    # tsc -b --noEmit
+bun run worker:dev   # lokaler Cloudflare Worker
+bun run worker:deploy
+```
+
+### Architektur in 30 Sekunden
+
+- **Keine Backend-Logik.** Der Worker (`worker/index.ts`) liefert nur Static Assets aus und hält einen `/healthz`-Endpoint bereit.
+- **Storage**: IndexedDB (`src/lib/db/`) für Domain-Daten, `localStorage` für Settings, `BroadcastChannel` für Multi-Tab-Sync.
+- **Features per Detail-Stufe**: `useDetailLevel()` + `<Gated level="pro">` (`src/components/Gated.tsx`) blenden Felder dynamisch ein/aus, ohne Daten zu verlieren.
+- **Routing**: `react-router-dom` v7, Layout in `src/components/AppShell.tsx`, Pages in `src/pages/`.
+
+Mehr Kontext: [PLAN.md](./PLAN.md) (Roadmap, Datenmodell, Out-of-Scope) · [SETUP.md](./SETUP.md) (Cloudflare-Deployment).
+
+## Beitragen
+
+Pull Requests sind willkommen. Vor dem ersten PR bitte [CONTRIBUTING.md](./CONTRIBUTING.md) lesen — dort stehen Branch-Konventionen, lokales Setup und was vor dem Push grün sein muss.
+
+Bug oder Idee? → [Issue eröffnen](https://github.com/daniel-rck/Zeiterfassung/issues/new/choose). Sicherheitslücke? → [SECURITY.md](./SECURITY.md).
 
 ## Lizenz
 
-MIT — siehe [LICENSE](./LICENSE).
+[MIT](./LICENSE) · © Daniel Rück

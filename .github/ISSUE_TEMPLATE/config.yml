@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Sicherheitslücke melden
+    url: https://github.com/daniel-rck/Zeiterfassung/blob/main/SECURITY.md
+    about: Sicherheitslücken bitte privat melden, nicht hier.
+  - name: Frage oder Diskussion
+    url: https://github.com/daniel-rck/Zeiterfassung/discussions
+    about: Allgemeine Fragen besser in den Discussions stellen.
