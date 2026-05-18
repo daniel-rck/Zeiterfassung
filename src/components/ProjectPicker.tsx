@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useProjects } from '../lib/hooks/useProjects'
 import { createProject } from '../lib/db/projects'
 import { DEFAULT_PROJECT_COLOR, pickColor } from '../lib/categoryColors'
 import { useSettings } from '../lib/hooks/useSettings'
 import { Field, Input } from './ui/Input'
+import { Combobox, type ComboOption } from './ui/Combobox'
+import { Button } from './ui/Button'
 import { useToast } from './ui/Toast'
 
 export function ProjectPicker({
@@ -25,6 +27,17 @@ export function ProjectPicker({
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   const toast = useToast()
+
+  const options: ComboOption[] = useMemo(
+    () =>
+      projects.map((p) => ({
+        value: p.id,
+        label: p.name,
+        hint: p.client,
+        color: p.color,
+      })),
+    [projects],
+  )
 
   const handleCreate = async () => {
     const trimmed = name.trim()
@@ -64,23 +77,18 @@ export function ProjectPicker({
               }
             }}
           />
-          <button
-            type="button"
-            onClick={() => void handleCreate()}
-            className="rounded-lg bg-brand-600 px-3 text-sm font-medium text-white hover:bg-brand-700"
-          >
+          <Button variant="primary" onClick={() => void handleCreate()}>
             Anlegen
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="ghost"
             onClick={() => {
               setCreating(false)
               setName('')
             }}
-            className="rounded-lg px-3 text-sm text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
           >
             Abbrechen
-          </button>
+          </Button>
         </div>
       </Field>
     )
@@ -89,27 +97,25 @@ export function ProjectPicker({
   return (
     <Field label={label}>
       <div className="flex gap-2">
-        <select
-          value={value ?? ''}
-          onChange={(e) => onChange(e.target.value || undefined)}
-          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-        >
-          {allowEmpty && <option value="">{emptyLabel}</option>}
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-              {p.client ? ` · ${p.client}` : ''}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
+        <div className="min-w-0 flex-1">
+          <Combobox
+            options={options}
+            value={value}
+            onChange={onChange}
+            placeholder={emptyLabel}
+            clearLabel={emptyLabel}
+            allowClear={allowEmpty}
+            ariaLabel={label}
+          />
+        </div>
+        <Button
+          variant="outline"
+          icon={<Plus size={14} />}
           onClick={() => setCreating(true)}
-          className="inline-flex items-center gap-1 rounded-lg border border-zinc-300 bg-white px-3 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800"
           aria-label="Neues Projekt anlegen"
         >
-          <Plus size={14} /> Neu
-        </button>
+          Neu
+        </Button>
       </div>
     </Field>
   )

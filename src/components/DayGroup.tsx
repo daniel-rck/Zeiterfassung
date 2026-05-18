@@ -19,14 +19,14 @@ export function DayGroup({
   const hours = (totalSec / 3600).toFixed(2)
   return (
     <section className="space-y-2">
-      <header className="flex items-baseline justify-between border-b border-zinc-200 pb-1 dark:border-zinc-800">
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+      <header className="flex items-baseline justify-between border-b border-[color:var(--color-border-subtle)] pb-1.5">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-[color:var(--color-text-3)]">
           {formatRelativeDay(dayTimestamp, locale)}
         </h3>
-        <div className="text-xs text-zinc-500">
-          <span className="font-mono tabular-nums">{hours}h</span>
+        <div className="flex items-baseline gap-3 text-xs text-[color:var(--color-text-3)]">
+          <span className="tnum font-mono">{hours} h</span>
           {amount != null && amount > 0 && currency && (
-            <span className="ml-2">
+            <span className="tnum font-mono text-[color:var(--color-success-600)] dark:text-[color:var(--color-success-500)]">
               {new Intl.NumberFormat(locale, {
                 style: 'currency',
                 currency,

@@ -5,6 +5,7 @@ import { getRunningEntry, startTimer, stopTimer } from '../lib/db/timeEntries'
 import { useToast } from './ui/Toast'
 import { useFeatures } from '../lib/hooks/useFeature'
 import { Sheet } from './ui/Sheet'
+import { Kbd } from './ui/Kbd'
 
 export function GlobalShortcuts() {
   const navigate = useNavigate()
@@ -36,16 +37,8 @@ export function GlobalShortcuts() {
       description: 'Neuer Eintrag',
       handler: () => navigate('/entry/new'),
     },
-    {
-      key: 't',
-      description: 'Heute',
-      handler: () => navigate('/'),
-    },
-    {
-      key: 'e',
-      description: 'Einträge',
-      handler: () => navigate('/entries'),
-    },
+    { key: 't', description: 'Heute', handler: () => navigate('/') },
+    { key: 'e', description: 'Einträge', handler: () => navigate('/entries') },
     {
       key: 'p',
       description: 'Projekte',
@@ -85,19 +78,27 @@ export function GlobalShortcuts() {
   useShortcuts(bindings)
 
   return (
-    <Sheet open={helpOpen} onClose={() => setHelpOpen(false)} title="Tastatur-Shortcuts" size="sm">
-      <ul className="space-y-2 text-sm text-zinc-700 dark:text-zinc-300">
+    <Sheet
+      open={helpOpen}
+      onClose={() => setHelpOpen(false)}
+      title="Tastatur-Shortcuts"
+      size="sm"
+    >
+      <ul className="space-y-1.5 text-sm text-[color:var(--color-text-2)]">
         {bindings
           .filter((b) => b.key !== '?')
           .map((b) => (
-            <li key={b.key} className="flex items-center justify-between gap-3">
+            <li
+              key={b.key}
+              className="flex items-center justify-between gap-3 py-1"
+            >
               <span>{b.description}</span>
-              <kbd className="kbd">{labelForKey(b.key)}</kbd>
+              <Kbd>{labelForKey(b.key)}</Kbd>
             </li>
           ))}
-        <li className="flex items-center justify-between gap-3">
+        <li className="flex items-center justify-between gap-3 py-1">
           <span>Diese Übersicht öffnen</span>
-          <kbd className="kbd">?</kbd>
+          <Kbd>?</Kbd>
         </li>
       </ul>
     </Sheet>

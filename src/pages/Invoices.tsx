@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Download, Trash2 } from 'lucide-react'
+import { Download, Trash2, FileText } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import type { StoredInvoice } from '../lib/types'
 import { deleteInvoice, listInvoices } from '../lib/db/invoices'
 import { downloadInvoicePdf } from '../lib/invoice/pdf'
@@ -7,6 +8,7 @@ import { useSettings } from '../lib/hooks/useSettings'
 import { Button } from '../components/ui/Button'
 import { useToast } from '../components/ui/Toast'
 import { useConfirm } from '../components/ui/Confirm'
+import { Skeleton } from '../components/ui/Skeleton'
 import { formatDate, formatMoney } from '../lib/format'
 import { subscribe } from '../lib/db/broadcast'
 import type { ComposedInvoice } from '../lib/invoice/compose'
@@ -83,48 +85,75 @@ export function InvoicesPage() {
 
   return (
     <div className="space-y-5">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Rechnungs-Archiv</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+            Rechnungs-Archiv
+          </h1>
+          <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+            {loading ? 'Lädt …' : `${invoices.length} Rechnungen`}
+          </p>
+        </div>
+        <Link to="/invoice">
+          <Button variant="primary" size="sm" icon={<FileText size={14} />}>
+            Neue Rechnung
+          </Button>
+        </Link>
+      </div>
+
       {loading ? (
-        <p className="text-sm text-zinc-500">Lädt …</p>
+        <div className="space-y-1.5">
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+        </div>
       ) : invoices.length === 0 ? (
-        <p className="rounded-lg bg-white p-6 text-center text-sm text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-          Noch keine Rechnungen erstellt. Erzeuge eine PDF auf der Rechnungs-Seite, dann landet sie hier.
-        </p>
+        <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
+          Noch keine Rechnungen erstellt. Erzeuge eine PDF auf der Rechnungs-Seite,
+          dann landet sie hier.
+        </div>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-1.5">
           {invoices.map((record) => (
             <li
               key={record.id}
-              className="flex flex-wrap items-center gap-3 rounded-lg bg-white p-3 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
+              className="group flex flex-wrap items-center gap-3 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3 py-2.5 transition-colors hover:bg-[color:var(--color-surface-2)]"
             >
+              <FileText
+                size={14}
+                className="flex-shrink-0 text-[color:var(--color-text-3)]"
+              />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  {record.number ? `Rechnung ${record.number}` : 'Rechnung'} ·{' '}
-                  {record.recipient.name}
+                <div className="truncate text-sm font-medium text-[color:var(--color-text-1)]">
+                  {record.number ? `Rechnung ${record.number}` : 'Rechnung'}{' '}
+                  · {record.recipient.name}
                 </div>
-                <div className="truncate text-xs text-zinc-500">
+                <div className="truncate text-xs text-[color:var(--color-text-3)]">
                   {formatDate(record.date, settings.locale)}
-                  {record.projectName ? ` · ${record.projectName}` : ''} ·{' '}
-                  {formatMoney(record.total, record.currency, settings.locale)}
+                  {record.projectName ? ` · ${record.projectName}` : ''}
                 </div>
               </div>
-              <Button
-                size="sm"
-                variant="secondary"
-                icon={<Download size={14} />}
-                onClick={() => void handleDownload(record)}
-              >
-                PDF
-              </Button>
-              <button
-                type="button"
-                onClick={() => void handleDelete(record)}
-                className="rounded-md p-1.5 text-zinc-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 no-min-tap"
-                aria-label="Entfernen"
-                title="Entfernen"
-              >
-                <Trash2 size={16} />
-              </button>
+              <span className="tnum text-sm font-medium text-[color:var(--color-text-1)]">
+                {formatMoney(record.total, record.currency, settings.locale)}
+              </span>
+              <div className="flex items-center gap-0.5">
+                <Button
+                  size="xs"
+                  variant="outline"
+                  icon={<Download size={12} />}
+                  onClick={() => void handleDownload(record)}
+                >
+                  PDF
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => void handleDelete(record)}
+                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                  aria-label="Entfernen"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

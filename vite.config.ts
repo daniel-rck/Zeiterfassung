@@ -14,15 +14,15 @@ export default defineConfig({
       registerType: 'autoUpdate',
       injectRegister: 'auto',
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,woff2}'],
       },
       manifest: {
         name: 'Zeiterfassung',
         short_name: 'Zeiterfassung',
         description:
           'Zeiterfassung — Timer, Projekte, Tags und Reports. Ohne Account, alles lokal im Browser.',
-        theme_color: '#0d9488',
-        background_color: '#0b0f10',
+        theme_color: '#2563eb',
+        background_color: '#0a0e14',
         display: 'standalone',
         start_url: '/',
         scope: '/',

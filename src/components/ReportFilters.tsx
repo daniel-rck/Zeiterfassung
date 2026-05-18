@@ -1,8 +1,13 @@
-import { Field, Input, Select, Checkbox } from './ui/Input'
+import { Field, Input, Checkbox } from './ui/Input'
+import { Combobox, type ComboOption } from './ui/Combobox'
+import { SegmentedControl, type Segment } from './ui/SegmentedControl'
 import { useProjects } from '../lib/hooks/useProjects'
 import { useTags } from '../lib/hooks/useTags'
 import { useFeatures } from '../lib/hooks/useFeature'
-import { RANGE_PRESET_LABELS, type RangePreset } from '../lib/reports/range'
+import {
+  RANGE_PRESET_LABELS,
+  type RangePreset,
+} from '../lib/reports/range'
 
 export interface ReportFilterState {
   preset: RangePreset
@@ -12,6 +17,15 @@ export interface ReportFilterState {
   tagId: string | 'all'
   billableOnly: boolean
 }
+
+const QUICK_PRESETS: RangePreset[] = [
+  'today',
+  'thisWeek',
+  'thisMonth',
+  'last30Days',
+  'thisYear',
+  'custom',
+]
 
 export function ReportFilters({
   state,
@@ -24,77 +38,120 @@ export function ReportFilters({
   const { tags } = useTags()
   const features = useFeatures()
 
+  const presetSegments: Segment<RangePreset>[] = QUICK_PRESETS.map((preset) => ({
+    value: preset,
+    label:
+      preset === 'today'
+        ? 'Heute'
+        : preset === 'thisWeek'
+          ? 'Woche'
+          : preset === 'thisMonth'
+            ? 'Monat'
+            : preset === 'last30Days'
+              ? '30 Tage'
+              : preset === 'thisYear'
+                ? 'Jahr'
+                : 'Custom',
+  }))
+
+  const projectOptions: ComboOption[] = [
+    { value: 'all', label: 'Alle Projekte' },
+    { value: 'none', label: 'Ohne Projekt' },
+    ...projects.map((p) => ({
+      value: p.id,
+      label: p.name,
+      color: p.color,
+      hint: p.client,
+    })),
+  ]
+  const tagOptions: ComboOption[] = [
+    { value: 'all', label: 'Alle Tags' },
+    ...tags.map((t) => ({
+      value: t.id,
+      label: t.name,
+      color: t.color,
+    })),
+  ]
+
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4">
-      <Field label="Zeitraum">
-        <Select
-          value={state.preset}
-          onChange={(e) => onChange({ ...state, preset: e.target.value as RangePreset })}
-        >
-          {(Object.keys(RANGE_PRESET_LABELS) as RangePreset[]).map((preset) => (
-            <option key={preset} value={preset}>
-              {RANGE_PRESET_LABELS[preset]}
-            </option>
-          ))}
-        </Select>
-      </Field>
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <SegmentedControl
+          segments={presetSegments}
+          value={QUICK_PRESETS.includes(state.preset) ? state.preset : 'custom'}
+          onChange={(preset) => onChange({ ...state, preset })}
+          ariaLabel="Zeitraum-Voreinstellung"
+        />
+        {!QUICK_PRESETS.includes(state.preset) && (
+          <span className="text-xs text-[color:var(--color-text-3)]">
+            {RANGE_PRESET_LABELS[state.preset]}
+          </span>
+        )}
+      </div>
+
       {state.preset === 'custom' && (
-        <>
+        <div className="grid grid-cols-2 gap-2">
           <Field label="Von">
             <Input
               type="date"
               value={state.customFrom}
-              onChange={(e) => onChange({ ...state, customFrom: e.target.value })}
+              onChange={(e) =>
+                onChange({ ...state, customFrom: e.target.value })
+              }
             />
           </Field>
           <Field label="Bis">
             <Input
               type="date"
               value={state.customTo}
-              onChange={(e) => onChange({ ...state, customTo: e.target.value })}
+              onChange={(e) =>
+                onChange({ ...state, customTo: e.target.value })
+              }
             />
           </Field>
-        </>
+        </div>
       )}
-      <Field label="Projekt">
-        <Select
-          value={state.projectId}
-          onChange={(e) => onChange({ ...state, projectId: e.target.value as ReportFilterState['projectId'] })}
-        >
-          <option value="all">Alle</option>
-          <option value="none">Ohne Projekt</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      {features.tags && (
-        <Field label="Tag">
-          <Select
-            value={state.tagId}
-            onChange={(e) => onChange({ ...state, tagId: e.target.value })}
-          >
-            <option value="all">Alle</option>
-            {tags.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      )}
-      {features.billing && (
-        <Field label="Status">
-          <div className="pt-2">
-            <Checkbox
-              label="Nur abrechenbar"
-              checked={state.billableOnly}
-              onChange={(billableOnly) => onChange({ ...state, billableOnly })}
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {features.projects && (
+          <Field label="Projekt">
+            <Combobox
+              options={projectOptions}
+              value={state.projectId}
+              onChange={(next) =>
+                onChange({
+                  ...state,
+                  projectId: (next ?? 'all') as ReportFilterState['projectId'],
+                })
+              }
+              allowClear={false}
+              ariaLabel="Projekt-Filter"
             />
-          </div>
-        </Field>
+          </Field>
+        )}
+        {features.tags && (
+          <Field label="Tag">
+            <Combobox
+              options={tagOptions}
+              value={state.tagId}
+              onChange={(next) =>
+                onChange({ ...state, tagId: next ?? 'all' })
+              }
+              allowClear={false}
+              ariaLabel="Tag-Filter"
+            />
+          </Field>
+        )}
+      </div>
+
+      {features.billing && (
+        <div>
+          <Checkbox
+            label="Nur abrechenbare Einträge"
+            checked={state.billableOnly}
+            onChange={(billableOnly) => onChange({ ...state, billableOnly })}
+          />
+        </div>
       )}
     </div>
   )

@@ -32,7 +32,6 @@ export function Sheet({
         (el) => el.offsetParent !== null || el === document.activeElement,
       )
 
-    // Move focus into the dialog on open
     const initial = focusables()
     if (initial.length > 0) {
       initial[0].focus()
@@ -74,9 +73,9 @@ export function Sheet({
   if (!open) return null
 
   const sizeClass = {
-    sm: 'max-w-md',
-    md: 'max-w-2xl',
-    lg: 'max-w-4xl',
+    sm: 'sm:max-w-md',
+    md: 'sm:max-w-2xl',
+    lg: 'sm:max-w-4xl',
   }[size]
 
   return (
@@ -87,27 +86,30 @@ export function Sheet({
       aria-labelledby={title ? titleId : undefined}
     >
       <div
-        className="absolute inset-0 bg-zinc-900/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
         onClick={() => closeable && onClose()}
         aria-hidden="true"
       />
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative z-10 flex max-h-[90vh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl outline-none sm:max-h-[85vh] sm:rounded-2xl ${sizeClass} dark:bg-zinc-900`}
+        className={`relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md outline-none sm:max-h-[85vh] sm:rounded-lg ${sizeClass}`}
       >
         {(title || closeable) && (
-          <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-3 dark:border-zinc-800">
-            <div id={titleId} className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+          <div className="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-5 py-3">
+            <div
+              id={titleId}
+              className="text-sm font-semibold text-[color:var(--color-text-1)]"
+            >
               {title}
             </div>
             {closeable && (
               <button
                 onClick={onClose}
-                className="rounded-md p-1 text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                className="rounded-md p-1 text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
                 aria-label="Schließen"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             )}
           </div>

@@ -7,9 +7,10 @@ import { useTags } from '../lib/hooks/useTags'
 import { useSettings } from '../lib/hooks/useSettings'
 import { deleteEntry, restoreEntry } from '../lib/db/timeEntries'
 import { dayKey } from '../lib/db'
-import { EntryCard } from '../components/EntryCard'
+import { EntryRow } from '../components/EntryRow'
 import { DayGroup } from '../components/DayGroup'
 import { Button } from '../components/ui/Button'
+import { Input } from '../components/ui/Input'
 import { useConfirm } from '../components/ui/Confirm'
 import { useToast } from '../components/ui/Toast'
 import { useFeature } from '../lib/hooks/useFeature'
@@ -24,7 +25,10 @@ export function EntriesPage() {
   const toast = useToast()
   const [query, setQuery] = useState('')
 
-  const projectMap = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects])
+  const projectMap = useMemo(
+    () => new Map(projects.map((p) => [p.id, p])),
+    [projects],
+  )
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
 
   const filtered = useMemo(() => {
@@ -44,14 +48,25 @@ export function EntriesPage() {
   }, [entries, query, projectMap, tagMap])
 
   const groups = useMemo(() => {
-    const map = new Map<string, { day: number; entries: typeof filtered; sec: number; amount: number }>()
+    const map = new Map<
+      string,
+      { day: number; entries: typeof filtered; sec: number; amount: number }
+    >()
     for (const e of filtered) {
       const key = dayKey(e.startedAt)
       const day = new Date(e.startedAt)
       day.setHours(0, 0, 0, 0)
-      const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-      const amount = billingOn && e.billable && rate ? (e.durationSec / 3600) * rate : 0
-      const bucket = map.get(key) ?? { day: day.getTime(), entries: [], sec: 0, amount: 0 }
+      const rate =
+        e.hourlyRateSnapshot ??
+        (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
+      const amount =
+        billingOn && e.billable && rate ? (e.durationSec / 3600) * rate : 0
+      const bucket = map.get(key) ?? {
+        day: day.getTime(),
+        entries: [],
+        sec: 0,
+        amount: 0,
+      }
       bucket.entries.push(e)
       bucket.sec += e.durationSec
       bucket.amount += amount
@@ -83,48 +98,52 @@ export function EntriesPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Alle Einträge</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight text-[color:var(--color-text-1)]">
+            Alle Einträge
+          </h1>
+          <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
+            {entries.length} Eintrag{entries.length === 1 ? '' : 'e'} insgesamt
+          </p>
+        </div>
         <Link to="/entry/new">
-          <Button variant="primary" icon={<Plus size={16} />}>
+          <Button variant="primary" size="sm" icon={<Plus size={14} />}>
             Neuer Eintrag
           </Button>
         </Link>
       </div>
+
       {entries.length > 0 && (
-        <div className="relative">
-          <Search
-            size={16}
-            aria-hidden="true"
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400"
-          />
-          <input
-            type="search"
-            inputMode="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Suchen — Beschreibung, Projekt, Kunde, Tag"
-            aria-label="Einträge suchen"
-            className="w-full rounded-lg border border-zinc-300 bg-white py-2 pl-9 pr-9 text-sm dark:border-zinc-700 dark:bg-zinc-900"
-          />
-          {query && (
-            <button
-              type="button"
-              onClick={() => setQuery('')}
-              aria-label="Suche leeren"
-              className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 no-min-tap"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
+        <Input
+          type="search"
+          inputMode="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Suchen — Beschreibung, Projekt, Kunde, Tag"
+          aria-label="Einträge suchen"
+          leadingIcon={<Search size={14} />}
+          trailingIcon={
+            query ? (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                aria-label="Suche leeren"
+                className="rounded p-0.5 hover:bg-[color:var(--color-surface-2)] no-min-tap"
+              >
+                <X size={12} />
+              </button>
+            ) : undefined
+          }
+        />
       )}
+
       {groups.length === 0 ? (
-        <p className="rounded-lg bg-white p-6 text-center text-sm text-zinc-500 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+        <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           {entries.length === 0
             ? 'Noch keine Einträge.'
             : 'Kein Eintrag passt zur Suche.'}
-        </p>
+        </div>
       ) : (
         <div className="space-y-6">
           {groups.map((group) => (
@@ -137,11 +156,19 @@ export function EntriesPage() {
               locale={settings.locale}
             >
               {group.entries.map((entry) => (
-                <EntryCard
+                <EntryRow
                   key={entry.id}
                   entry={entry}
-                  project={entry.projectId ? projectMap.get(entry.projectId) : undefined}
-                  tags={entry.tagIds.map((id) => tagMap.get(id)).filter(Boolean) as typeof tags}
+                  project={
+                    entry.projectId
+                      ? projectMap.get(entry.projectId)
+                      : undefined
+                  }
+                  tags={
+                    entry.tagIds
+                      .map((id) => tagMap.get(id))
+                      .filter(Boolean) as typeof tags
+                  }
                   locale={settings.locale}
                   onDelete={(id) => void handleDelete(id)}
                 />

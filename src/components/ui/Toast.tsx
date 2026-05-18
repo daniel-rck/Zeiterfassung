@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react'
 import { newId } from '../../lib/ids'
 
 type Tone = 'info' | 'success' | 'error'
@@ -45,6 +46,8 @@ const DEFAULT_DURATION: Record<Tone, number> = {
   error: 6000,
 }
 
+const MAX_VISIBLE = 4
+
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
 
@@ -52,18 +55,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((i) => i.id !== id))
   }, [])
 
-  const show = useCallback(
-    (message: string, options: ToastOptions = {}) => {
-      const id = newId()
-      const tone: Tone = options.tone ?? 'info'
-      const duration = options.duration ?? DEFAULT_DURATION[tone]
-      setItems((current) => [
-        ...current,
-        { id, message, tone, duration, action: options.action },
-      ])
-    },
-    [],
-  )
+  const show = useCallback((message: string, options: ToastOptions = {}) => {
+    const id = newId()
+    const tone: Tone = options.tone ?? 'info'
+    const duration = options.duration ?? DEFAULT_DURATION[tone]
+    setItems((current) =>
+      [...current, { id, message, tone, duration, action: options.action }].slice(
+        -MAX_VISIBLE,
+      ),
+    )
+  }, [])
 
   const value = useMemo<ToastContextValue>(
     () => ({
@@ -80,24 +81,37 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="region"
         aria-label="Benachrichtigungen"
-        className="pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6"
+        className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6 sm:right-6 sm:left-auto sm:items-end sm:px-0"
       >
         {items.map((item) => (
-          <ToastEntry key={item.id} item={item} onDismiss={() => dismiss(item.id)} />
+          <ToastEntry
+            key={item.id}
+            item={item}
+            onDismiss={() => dismiss(item.id)}
+          />
         ))}
       </div>
     </ToastContext.Provider>
   )
 }
 
-function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: () => void }) {
+function ToastEntry({
+  item,
+  onDismiss,
+}: {
+  item: ToastItem
+  onDismiss: () => void
+}) {
   const [paused, setPaused] = useState(false)
   const startedAt = useRef(Date.now())
   const remaining = useRef(item.duration)
 
   useEffect(() => {
     if (paused) {
-      remaining.current = Math.max(0, remaining.current - (Date.now() - startedAt.current))
+      remaining.current = Math.max(
+        0,
+        remaining.current - (Date.now() - startedAt.current),
+      )
       return
     }
     startedAt.current = Date.now()
@@ -105,15 +119,18 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: () => voi
     return () => clearTimeout(timer)
   }, [paused, onDismiss])
 
+  const Icon =
+    item.tone === 'success' ? CheckCircle2 : item.tone === 'error' ? AlertCircle : Info
+  const iconColor =
+    item.tone === 'success'
+      ? 'text-[color:var(--color-success-500)]'
+      : item.tone === 'error'
+        ? 'text-[color:var(--color-danger-500)]'
+        : 'text-brand-500'
+
   return (
     <div
-      className={`pointer-events-auto flex items-center gap-3 rounded-lg px-4 py-2 text-sm shadow-lg ${
-        item.tone === 'success'
-          ? 'bg-green-600 text-white'
-          : item.tone === 'error'
-            ? 'bg-red-600 text-white'
-            : 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-      }`}
+      className="page-fade pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3.5 py-3 shadow-md"
       role={item.tone === 'error' ? 'alert' : 'status'}
       aria-live={item.tone === 'error' ? 'assertive' : 'polite'}
       onMouseEnter={() => setPaused(true)}
@@ -121,7 +138,10 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: () => voi
       onFocus={() => setPaused(true)}
       onBlur={() => setPaused(false)}
     >
-      <span>{item.message}</span>
+      <Icon className={`mt-0.5 flex-shrink-0 ${iconColor}`} size={16} />
+      <div className="min-w-0 flex-1 text-sm text-[color:var(--color-text-1)]">
+        {item.message}
+      </div>
       {item.action && (
         <button
           type="button"
@@ -129,11 +149,19 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: () => voi
             item.action?.onClick()
             onDismiss()
           }}
-          className="rounded bg-white/20 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide hover:bg-white/30"
+          className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/40 no-min-tap"
         >
           {item.action.label}
         </button>
       )}
+      <button
+        type="button"
+        onClick={onDismiss}
+        aria-label="Schließen"
+        className="flex-shrink-0 rounded p-0.5 text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
+      >
+        <X size={14} />
+      </button>
     </div>
   )
 }
