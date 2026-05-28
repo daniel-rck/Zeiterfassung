@@ -1,3 +1,4 @@
+import { lazy } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { ThemeProvider } from './lib/hooks/useTheme'
 import { ToastProvider } from './components/ui/Toast'
@@ -7,17 +8,39 @@ import { Onboarding } from './components/Onboarding'
 import { GlobalShortcuts } from './components/GlobalShortcuts'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { SwUpdateNotifier } from './components/SwUpdateNotifier'
+// Today and Welcome are the first-paint routes → keep eager. The remaining
+// pages are code-split so the initial bundle stays lean (Reports pulls in the
+// charts, Invoice/Invoices pull in jspdf via a further dynamic import).
 import { TodayPage } from './pages/Today'
-import { EntriesPage } from './pages/Entries'
-import { WeekPage } from './pages/Week'
-import { EntryEditPage } from './pages/EntryEdit'
-import { ProjectsPage } from './pages/Projects'
-import { TagsPage } from './pages/Tags'
-import { ReportsPage } from './pages/Reports'
-import { InvoicePage } from './pages/Invoice'
-import { InvoicesPage } from './pages/Invoices'
-import { SettingsPage } from './pages/Settings'
 import { WelcomePage } from './pages/Welcome'
+
+const EntriesPage = lazy(() =>
+  import('./pages/Entries').then((m) => ({ default: m.EntriesPage })),
+)
+const WeekPage = lazy(() =>
+  import('./pages/Week').then((m) => ({ default: m.WeekPage })),
+)
+const EntryEditPage = lazy(() =>
+  import('./pages/EntryEdit').then((m) => ({ default: m.EntryEditPage })),
+)
+const ProjectsPage = lazy(() =>
+  import('./pages/Projects').then((m) => ({ default: m.ProjectsPage })),
+)
+const TagsPage = lazy(() =>
+  import('./pages/Tags').then((m) => ({ default: m.TagsPage })),
+)
+const ReportsPage = lazy(() =>
+  import('./pages/Reports').then((m) => ({ default: m.ReportsPage })),
+)
+const InvoicePage = lazy(() =>
+  import('./pages/Invoice').then((m) => ({ default: m.InvoicePage })),
+)
+const InvoicesPage = lazy(() =>
+  import('./pages/Invoices').then((m) => ({ default: m.InvoicesPage })),
+)
+const SettingsPage = lazy(() =>
+  import('./pages/Settings').then((m) => ({ default: m.SettingsPage })),
+)
 
 export function App() {
   return (

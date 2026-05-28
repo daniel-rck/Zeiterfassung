@@ -14,7 +14,7 @@ import {
   Laptop,
   Download,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useFeatures } from '../lib/hooks/useFeature'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
 import { useTheme } from '../lib/hooks/useTheme'
@@ -212,7 +212,19 @@ export function AppShell() {
           className="page-fade flex-1 overflow-y-auto pb-24 md:pb-8"
         >
           <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 md:py-8">
-            <Outlet />
+            <Suspense
+              fallback={
+                <div
+                  className="flex min-h-[40vh] items-center justify-center text-sm text-[color:var(--color-text-3)]"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Lädt…
+                </div>
+              }
+            >
+              <Outlet />
+            </Suspense>
           </div>
         </main>
         <footer className="hidden border-t border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-6 py-3 text-center text-xs text-[color:var(--color-text-3)] md:block">

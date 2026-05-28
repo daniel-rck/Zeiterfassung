@@ -1,6 +1,7 @@
 import type { Project, TimeEntry } from '../types'
 import { dayKey } from '../db'
 import { roundDurationSec } from '../duration'
+import { roundCents } from '../money'
 
 export interface DayBucket {
   day: string
@@ -52,10 +53,10 @@ export function totalBillableAmount(
     const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
     if (rate == null) continue
     const sec = roundDurationSec(e.durationSec, options.roundToMinutes)
-    amount += (sec / 3600) * rate
+    amount += roundCents((sec / 3600) * rate)
     currency = currency ?? e.currencySnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.currency : undefined)
   }
-  return { amount, currency }
+  return { amount: roundCents(amount), currency }
 }
 
 export function groupByDay(
@@ -69,7 +70,7 @@ export function groupByDay(
     const day = dayKey(e.startedAt)
     const sec = roundDurationSec(e.durationSec, options.roundToMinutes)
     const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-    const amount = e.billable && rate ? (sec / 3600) * rate : 0
+    const amount = e.billable && rate ? roundCents((sec / 3600) * rate) : 0
     const bucket = map.get(day) ?? { day, durationSec: 0, amount: 0 }
     bucket.durationSec += sec
     bucket.amount += amount
@@ -90,7 +91,7 @@ export function groupByProject(
     const project = e.projectId ? projectMap.get(e.projectId) : undefined
     const sec = roundDurationSec(e.durationSec, options.roundToMinutes)
     const rate = e.hourlyRateSnapshot ?? project?.hourlyRate
-    const amount = e.billable && rate ? (sec / 3600) * rate : 0
+    const amount = e.billable && rate ? roundCents((sec / 3600) * rate) : 0
     const bucket: ProjectBucket =
       map.get(key) ??
       {
@@ -120,7 +121,7 @@ export function groupByTag(
   for (const e of entries) {
     const sec = roundDurationSec(e.durationSec, options.roundToMinutes)
     const rate = e.hourlyRateSnapshot ?? (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-    const amount = e.billable && rate ? (sec / 3600) * rate : 0
+    const amount = e.billable && rate ? roundCents((sec / 3600) * rate) : 0
     for (const tagId of e.tagIds) {
       const bucket = map.get(tagId) ?? { tagId, durationSec: 0, amount: 0 }
       bucket.durationSec += sec

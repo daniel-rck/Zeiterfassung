@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Play, Square, Coffee, PlayCircle } from 'lucide-react'
 import { useRunningEntry } from '../lib/hooks/useRunningEntry'
 import { useProjects } from '../lib/hooks/useProjects'
@@ -24,11 +24,19 @@ export function TimerHero() {
   const [description, setDescription] = useState('')
   const [projectId, setProjectId] = useState<string | undefined>(undefined)
   const [savedFlash, setSavedFlash] = useState(false)
+  const syncedEntryId = useRef<string | undefined>(undefined)
 
+  // Sync the local fields from the running entry only when a *different* entry
+  // becomes active. Re-syncing on every `entry` object identity (which changes
+  // on each reload/broadcast tick) would clobber text the user is currently
+  // typing but has not yet persisted.
   useEffect(() => {
-    if (entry) {
+    if (entry && entry.id !== syncedEntryId.current) {
       setDescription(entry.description)
       setProjectId(entry.projectId)
+      syncedEntryId.current = entry.id
+    } else if (!entry) {
+      syncedEntryId.current = undefined
     }
   }, [entry])
 
