@@ -38,18 +38,21 @@ export function useRunningEntry(): {
     return unsubscribe
   }, [reload])
 
+  const entryStartedAt = entry?.startedAt
   useEffect(() => {
-    if (!entry) {
+    if (entryStartedAt == null) {
       setLiveDurationSec(0)
       return
     }
     const update = () => {
-      setLiveDurationSec(Math.max(0, Math.round((Date.now() - entry.startedAt) / 1000)))
+      setLiveDurationSec(Math.max(0, Math.round((Date.now() - entryStartedAt) / 1000)))
     }
     update()
     const id = setInterval(update, 1000)
     return () => clearInterval(id)
-  }, [entry])
+    // Keyed on the running entry's id + start time so reload-driven object
+    // identity changes (broadcasts) don't tear down and rebuild the 1s tick.
+  }, [entry?.id, entryStartedAt])
 
   return { entry, liveDurationSec, loading, reload }
 }

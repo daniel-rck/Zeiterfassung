@@ -91,4 +91,26 @@ describe('aggregate', () => {
     expect(amount).toBe(100) // 1 hour billable * 100 EUR
     expect(currency).toBe('EUR')
   })
+
+  it('rounds per-entry amounts to cents (matches invoice composition)', () => {
+    // 3 × 20min @ 100/h → 33.333… each. Rounded to cents per entry: 33.33,
+    // summing to 99.99 — consistent with how invoice line items are rounded,
+    // instead of an unrounded 99.99999….
+    const twentyMin: TimeEntry[] = [0, 1, 2].map((i) => ({
+      id: `r${i}`,
+      projectId: 'p1',
+      description: '',
+      startedAt: day1 + i * 3600_000,
+      endedAt: day1 + i * 3600_000 + 1200_000,
+      durationSec: 1200,
+      billable: true,
+      tagIds: [],
+      hourlyRateSnapshot: 100,
+      currencySnapshot: 'EUR',
+      createdAt: 0,
+      updatedAt: 0,
+    }))
+    const { amount } = totalBillableAmount(twentyMin, [project], { roundToMinutes: 0 })
+    expect(amount).toBe(99.99)
+  })
 })
