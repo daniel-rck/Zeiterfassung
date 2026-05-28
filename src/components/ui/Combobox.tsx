@@ -50,6 +50,13 @@ export function Combobox({
     )
   }, [options, query])
 
+  // Reset the highlight to the first match whenever the query narrows the
+  // list, so the highlighted index can never point past the end of `filtered`
+  // (which would make Enter select nothing).
+  useEffect(() => {
+    setHighlight(0)
+  }, [query])
+
   useEffect(() => {
     if (!open) return
     inputRef.current?.focus()

@@ -84,11 +84,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6 sm:right-6 sm:left-auto sm:items-end sm:px-0"
       >
         {items.map((item) => (
-          <ToastEntry
-            key={item.id}
-            item={item}
-            onDismiss={() => dismiss(item.id)}
-          />
+          <ToastEntry key={item.id} item={item} onDismiss={dismiss} />
         ))}
       </div>
     </ToastContext.Provider>
@@ -100,11 +96,12 @@ function ToastEntry({
   onDismiss,
 }: {
   item: ToastItem
-  onDismiss: () => void
+  onDismiss: (id: string) => void
 }) {
   const [paused, setPaused] = useState(false)
   const startedAt = useRef(Date.now())
   const remaining = useRef(item.duration)
+  const dismiss = () => onDismiss(item.id)
 
   useEffect(() => {
     if (paused) {
@@ -115,9 +112,12 @@ function ToastEntry({
       return
     }
     startedAt.current = Date.now()
-    const timer = setTimeout(onDismiss, remaining.current)
+    const timer = setTimeout(() => onDismiss(item.id), remaining.current)
     return () => clearTimeout(timer)
-  }, [paused, onDismiss])
+    // `onDismiss` is stable (useCallback) and `item.id` is constant for this
+    // toast, so this effect only re-runs on pause/resume — adding another toast
+    // no longer restarts this one's auto-dismiss timer.
+  }, [paused, onDismiss, item.id])
 
   const Icon =
     item.tone === 'success' ? CheckCircle2 : item.tone === 'error' ? AlertCircle : Info
@@ -147,7 +147,7 @@ function ToastEntry({
           type="button"
           onClick={() => {
             item.action?.onClick()
-            onDismiss()
+            dismiss()
           }}
           className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/40 no-min-tap"
         >
@@ -156,7 +156,7 @@ function ToastEntry({
       )}
       <button
         type="button"
-        onClick={onDismiss}
+        onClick={dismiss}
         aria-label="Schließen"
         className="flex-shrink-0 rounded p-0.5 text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
       >
