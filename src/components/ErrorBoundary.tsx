@@ -1,27 +1,27 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode } from "react";
 
 interface Props {
-  children: ReactNode
+  children: ReactNode;
 }
 
 interface State {
-  error: Error | null
+  error: Error | null;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { error: null }
+  state: State = { error: null };
 
   static getDerivedStateFromError(error: Error): State {
-    return { error }
+    return { error };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    console.error('[zeiterfassung] uncaught render error', error, info.componentStack)
+    console.error("[zeiterfassung] uncaught render error", error, info.componentStack);
   }
 
   private reset = () => {
-    this.setState({ error: null })
-  }
+    this.setState({ error: null });
+  };
 
   render() {
     if (this.state.error) {
@@ -32,8 +32,8 @@ export class ErrorBoundary extends Component<Props, State> {
               Da ist etwas schiefgegangen.
             </h1>
             <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-              Die App konnte diesen Bereich nicht anzeigen. Deine Daten liegen weiterhin
-              lokal in deinem Browser. Lade die Seite neu oder versuche es nochmal.
+              Die App konnte diesen Bereich nicht anzeigen. Deine Daten liegen weiterhin lokal in
+              deinem Browser. Lade die Seite neu oder versuche es nochmal.
             </p>
             <pre className="mt-3 overflow-x-auto rounded bg-zinc-100 p-2 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
               {this.state.error.message}
@@ -56,8 +56,8 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
           </div>
         </div>
-      )
+      );
     }
-    return this.props.children
+    return this.props.children;
   }
 }

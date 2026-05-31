@@ -1,28 +1,25 @@
-import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
-import { Gauge } from 'lucide-react'
-import { useEntries } from '../lib/hooks/useEntries'
-import { useSettings } from '../lib/hooks/useSettings'
-import { getRange } from '../lib/reports/range'
-import { formatDecimalHours } from '../lib/format'
-import { ProgressBar } from './ui/ProgressBar'
+import { Gauge } from "lucide-react";
+import { useMemo } from "react";
+import { Link } from "react-router-dom";
+import { formatDecimalHours } from "../lib/format";
+import { useEntries } from "../lib/hooks/useEntries";
+import { useSettings } from "../lib/hooks/useSettings";
+import { getRange } from "../lib/reports/range";
+import { ProgressBar } from "./ui/ProgressBar";
 
 export function HoursAccountCard() {
-  const { settings } = useSettings()
-  const target = settings.targetHoursPerWeek ?? 0
-  const { entries } = useEntries({ includeRunning: true })
+  const { settings } = useSettings();
+  const target = settings.targetHoursPerWeek ?? 0;
+  const { entries } = useEntries({ includeRunning: true });
 
-  const range = useMemo(
-    () => getRange('thisWeek', settings.weekStart),
-    [settings.weekStart],
-  )
+  const range = useMemo(() => getRange("thisWeek", settings.weekStart), [settings.weekStart]);
 
   const weekSec = useMemo(() => {
-    if (!range) return 0
+    if (!range) return 0;
     return entries
       .filter((e) => e.startedAt >= range.from && e.startedAt <= range.to)
-      .reduce((s, e) => s + e.durationSec, 0)
-  }, [entries, range])
+      .reduce((s, e) => s + e.durationSec, 0);
+  }, [entries, range]);
 
   if (target <= 0) {
     return (
@@ -31,7 +28,7 @@ export function HoursAccountCard() {
           <Gauge size={16} />
         </span>
         <div className="text-xs text-[color:var(--color-text-2)]">
-          Stundenkonto aktiv —{' '}
+          Stundenkonto aktiv —{" "}
           <Link
             to="/settings"
             className="font-medium text-brand-600 underline-offset-2 hover:underline dark:text-brand-400"
@@ -41,13 +38,13 @@ export function HoursAccountCard() {
           .
         </div>
       </div>
-    )
+    );
   }
 
-  const targetSec = target * 3600
-  const diffSec = weekSec - targetSec
-  const pct = Math.min(100, (weekSec / targetSec) * 100)
-  const isAhead = diffSec >= 0
+  const targetSec = target * 3600;
+  const diffSec = weekSec - targetSec;
+  const pct = Math.min(100, (weekSec / targetSec) * 100);
+  const isAhead = diffSec >= 0;
 
   return (
     <div className="rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-4">
@@ -68,18 +65,18 @@ export function HoursAccountCard() {
         <div
           className={`tnum inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold ${
             isAhead
-              ? 'bg-[color:var(--color-success-500)]/10 text-[color:var(--color-success-600)] dark:text-[color:var(--color-success-500)]'
-              : 'bg-[color:var(--color-warn-500)]/10 text-[color:var(--color-warn-600)] dark:text-[color:var(--color-warn-500)]'
+              ? "bg-[color:var(--color-success-500)]/10 text-[color:var(--color-success-600)] dark:text-[color:var(--color-success-500)]"
+              : "bg-[color:var(--color-warn-500)]/10 text-[color:var(--color-warn-600)] dark:text-[color:var(--color-warn-500)]"
           }`}
         >
-          {isAhead ? '+' : ''}
+          {isAhead ? "+" : ""}
           {formatDecimalHours(diffSec, settings.locale)} h
         </div>
       </header>
       <div className="mt-3">
         <ProgressBar
           value={pct}
-          tone={isAhead ? 'success' : 'brand'}
+          tone={isAhead ? "success" : "brand"}
           label="Stundenkonto Fortschritt"
         />
         <div className="mt-1.5 flex justify-between text-2xs text-[color:var(--color-text-3)]">
@@ -88,5 +85,5 @@ export function HoursAccountCard() {
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -1,117 +1,112 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
-import { Check, ChevronDown, X } from 'lucide-react'
+import { Check, ChevronDown, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 export interface ComboOption {
-  value: string
-  label: string
-  hint?: string
-  color?: string
+  value: string;
+  label: string;
+  hint?: string;
+  color?: string;
 }
 
 export function Combobox({
   options,
   value,
   onChange,
-  placeholder = 'Auswählen…',
-  clearLabel = 'Ohne',
+  placeholder = "Auswählen…",
+  clearLabel = "Ohne",
   allowClear = true,
   ariaLabel,
-  variant = 'default',
-  size = 'md',
+  variant = "default",
+  size = "md",
   block = true,
   leadingIcon,
 }: {
-  options: ComboOption[]
-  value: string | undefined
-  onChange: (next: string | undefined) => void
-  placeholder?: string
-  clearLabel?: string
-  allowClear?: boolean
-  ariaLabel?: string
-  variant?: 'default' | 'ghost'
-  size?: 'sm' | 'md'
-  block?: boolean
-  leadingIcon?: ReactNode
+  options: ComboOption[];
+  value: string | undefined;
+  onChange: (next: string | undefined) => void;
+  placeholder?: string;
+  clearLabel?: string;
+  allowClear?: boolean;
+  ariaLabel?: string;
+  variant?: "default" | "ghost";
+  size?: "sm" | "md";
+  block?: boolean;
+  leadingIcon?: ReactNode;
 }) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [highlight, setHighlight] = useState(0)
-  const wrapRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [highlight, setHighlight] = useState(0);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return options
+    const q = query.trim().toLowerCase();
+    if (!q) return options;
     return options.filter(
-      (o) =>
-        o.label.toLowerCase().includes(q) ||
-        (o.hint && o.hint.toLowerCase().includes(q)),
-    )
-  }, [options, query])
+      (o) => o.label.toLowerCase().includes(q) || (o.hint && o.hint.toLowerCase().includes(q)),
+    );
+  }, [options, query]);
 
   // Reset the highlight to the first match whenever the query narrows the
   // list, so the highlighted index can never point past the end of `filtered`
   // (which would make Enter select nothing).
   useEffect(() => {
-    setHighlight(0)
-  }, [query])
+    setHighlight(0);
+  }, [query]);
 
   useEffect(() => {
-    if (!open) return
-    inputRef.current?.focus()
-    setHighlight(0)
+    if (!open) return;
+    inputRef.current?.focus();
+    setHighlight(0);
     const onClick = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [open])
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [open]);
 
-  const selected = options.find((o) => o.value === value)
+  const selected = options.find((o) => o.value === value);
 
-  const triggerHeight = size === 'sm' ? 'h-8' : 'h-9'
+  const triggerHeight = size === "sm" ? "h-8" : "h-9";
   const triggerBase =
-    'group inline-flex w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-150 focus-visible:outline-none'
+    "group inline-flex w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-150 focus-visible:outline-none";
   const triggerVariant =
-    variant === 'ghost'
-      ? 'bg-transparent text-[color:var(--color-text-1)] hover:bg-[color:var(--color-surface-2)]'
-      : 'border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] text-[color:var(--color-text-1)] hover:border-[color:var(--color-text-3)]'
+    variant === "ghost"
+      ? "bg-transparent text-[color:var(--color-text-1)] hover:bg-[color:var(--color-surface-2)]"
+      : "border border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] text-[color:var(--color-text-1)] hover:border-[color:var(--color-text-3)]";
 
   const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setOpen(false)
-      return
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
     }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault()
-      setHighlight((h) => Math.min(h + 1, filtered.length - 1))
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault()
-      setHighlight((h) => Math.max(h - 1, 0))
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      const opt = filtered[highlight]
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlight((h) => Math.min(h + 1, filtered.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlight((h) => Math.max(h - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const opt = filtered[highlight];
       if (opt) {
-        onChange(opt.value)
-        setOpen(false)
-        setQuery('')
+        onChange(opt.value);
+        setOpen(false);
+        setQuery("");
       }
     }
-  }
+  };
 
   return (
-    <div
-      ref={wrapRef}
-      className={`relative ${block ? 'w-full' : 'inline-block'}`}
-    >
+    <div ref={wrapRef} className={`relative ${block ? "w-full" : "inline-block"}`}>
       <button
         type="button"
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
         onClick={() => setOpen((v) => !v)}
-        className={`${triggerBase} ${triggerVariant} ${triggerHeight} ${block ? 'w-full' : ''}`}
+        className={`${triggerBase} ${triggerVariant} ${triggerHeight} ${block ? "w-full" : ""}`}
       >
         {leadingIcon}
         {selected?.color && (
@@ -123,7 +118,7 @@ export function Combobox({
         )}
         <span
           className={`min-w-0 flex-1 truncate ${
-            selected ? '' : 'text-[color:var(--color-text-3)]'
+            selected ? "" : "text-[color:var(--color-text-3)]"
           }`}
         >
           {selected ? selected.label : placeholder}
@@ -133,10 +128,7 @@ export function Combobox({
             {selected.hint}
           </span>
         )}
-        <ChevronDown
-          size={14}
-          className="flex-shrink-0 text-[color:var(--color-text-3)]"
-        />
+        <ChevronDown size={14} className="flex-shrink-0 text-[color:var(--color-text-3)]" />
       </button>
 
       {open && (
@@ -163,17 +155,15 @@ export function Combobox({
                   role="option"
                   aria-selected={!value}
                   onClick={() => {
-                    onChange(undefined)
-                    setOpen(false)
-                    setQuery('')
+                    onChange(undefined);
+                    setOpen(false);
+                    setQuery("");
                   }}
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-[color:var(--color-text-2)] transition-colors hover:bg-[color:var(--color-surface-2)] no-min-tap"
                 >
                   <X size={12} className="text-[color:var(--color-text-3)]" />
                   <span className="flex-1">{clearLabel}</span>
-                  {!value && (
-                    <Check size={14} className="text-brand-500" />
-                  )}
+                  {!value && <Check size={14} className="text-brand-500" />}
                 </button>
               </li>
             )}
@@ -183,8 +173,8 @@ export function Combobox({
               </li>
             )}
             {filtered.map((opt, i) => {
-              const active = opt.value === value
-              const highlighted = i === highlight
+              const active = opt.value === value;
+              const highlighted = i === highlight;
               return (
                 <li key={opt.value}>
                   <button
@@ -193,14 +183,12 @@ export function Combobox({
                     aria-selected={active}
                     onMouseEnter={() => setHighlight(i)}
                     onClick={() => {
-                      onChange(opt.value)
-                      setOpen(false)
-                      setQuery('')
+                      onChange(opt.value);
+                      setOpen(false);
+                      setQuery("");
                     }}
                     className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors no-min-tap ${
-                      highlighted
-                        ? 'bg-[color:var(--color-surface-2)]'
-                        : ''
+                      highlighted ? "bg-[color:var(--color-surface-2)]" : ""
                     }`}
                   >
                     {opt.color && (
@@ -214,20 +202,16 @@ export function Combobox({
                       {opt.label}
                     </span>
                     {opt.hint && (
-                      <span className="text-xs text-[color:var(--color-text-3)]">
-                        {opt.hint}
-                      </span>
+                      <span className="text-xs text-[color:var(--color-text-3)]">{opt.hint}</span>
                     )}
-                    {active && (
-                      <Check size={14} className="text-brand-500" />
-                    )}
+                    {active && <Check size={14} className="text-brand-500" />}
                   </button>
                 </li>
-              )
+              );
             })}
           </ul>
         </div>
       )}
     </div>
-  )
+  );
 }

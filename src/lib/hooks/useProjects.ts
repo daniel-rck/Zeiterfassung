@@ -1,49 +1,49 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { Project } from '../types'
-import { listProjects } from '../db/projects'
-import { subscribe } from '../db/broadcast'
+import { useCallback, useEffect, useState } from "react";
+import { subscribe } from "../db/broadcast";
+import { listProjects } from "../db/projects";
+import type { Project } from "../types";
 
 export interface UseProjectsOptions {
-  includeArchived?: boolean
+  includeArchived?: boolean;
 }
 
 export function useProjects(options: UseProjectsOptions = {}): {
-  projects: Project[]
-  loading: boolean
-  error: Error | null
-  reload: () => Promise<void>
+  projects: Project[];
+  loading: boolean;
+  error: Error | null;
+  reload: () => Promise<void>;
 } {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<Error | null>(null)
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
 
-  const { includeArchived } = options
+  const { includeArchived } = options;
 
   const reload = useCallback(async () => {
     try {
-      const data = await listProjects({ includeArchived })
-      setProjects(data)
-      setError(null)
+      const data = await listProjects({ includeArchived });
+      setProjects(data);
+      setError(null);
     } catch (err) {
-      setError(err as Error)
+      setError(err as Error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [includeArchived])
+  }, [includeArchived]);
 
   useEffect(() => {
-    void reload()
+    void reload();
     const unsubscribe = subscribe((message) => {
       if (
-        message.type === 'project-changed' ||
-        message.type === 'project-deleted' ||
-        message.type === 'db-cleared'
+        message.type === "project-changed" ||
+        message.type === "project-deleted" ||
+        message.type === "db-cleared"
       ) {
-        void reload()
+        void reload();
       }
-    })
-    return unsubscribe
-  }, [reload])
+    });
+    return unsubscribe;
+  }, [reload]);
 
-  return { projects, loading, error, reload }
+  return { projects, loading, error, reload };
 }

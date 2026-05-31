@@ -1,6 +1,11 @@
-import { useState } from 'react'
-import { Plus, Trash2, Archive, ArchiveRestore } from 'lucide-react'
-import { useTags } from '../lib/hooks/useTags'
+import { Archive, ArchiveRestore, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "../components/ui/Button";
+import { useConfirm } from "../components/ui/Confirm";
+import { Field, Input } from "../components/ui/Input";
+import { Sheet } from "../components/ui/Sheet";
+import { useToast } from "../components/ui/Toast";
+import { CATEGORY_COLORS, DEFAULT_TAG_COLOR } from "../lib/categoryColors";
 import {
   archiveTag,
   countEntriesForTag,
@@ -8,76 +13,71 @@ import {
   deleteTag,
   restoreTag,
   updateTag,
-} from '../lib/db/tags'
-import type { Tag } from '../lib/types'
-import { CATEGORY_COLORS, DEFAULT_TAG_COLOR } from '../lib/categoryColors'
-import { Button } from '../components/ui/Button'
-import { Field, Input } from '../components/ui/Input'
-import { Sheet } from '../components/ui/Sheet'
-import { useToast } from '../components/ui/Toast'
-import { useConfirm } from '../components/ui/Confirm'
+} from "../lib/db/tags";
+import { useTags } from "../lib/hooks/useTags";
+import type { Tag } from "../lib/types";
 
 export function TagsPage() {
-  const { tags } = useTags({ includeArchived: true })
-  const toast = useToast()
-  const confirm = useConfirm()
-  const [editing, setEditing] = useState<Tag | null>(null)
-  const [open, setOpen] = useState(false)
-  const [name, setName] = useState('')
-  const [color, setColor] = useState(DEFAULT_TAG_COLOR)
+  const { tags } = useTags({ includeArchived: true });
+  const toast = useToast();
+  const confirm = useConfirm();
+  const [editing, setEditing] = useState<Tag | null>(null);
+  const [open, setOpen] = useState(false);
+  const [name, setName] = useState("");
+  const [color, setColor] = useState(DEFAULT_TAG_COLOR);
 
   const startNew = () => {
-    setEditing(null)
-    setName('')
-    setColor(DEFAULT_TAG_COLOR)
-    setOpen(true)
-  }
+    setEditing(null);
+    setName("");
+    setColor(DEFAULT_TAG_COLOR);
+    setOpen(true);
+  };
 
   const startEdit = (tag: Tag) => {
-    setEditing(tag)
-    setName(tag.name)
-    setColor(tag.color)
-    setOpen(true)
-  }
+    setEditing(tag);
+    setName(tag.name);
+    setColor(tag.color);
+    setOpen(true);
+  };
 
   const save = async () => {
-    const trimmed = name.trim()
+    const trimmed = name.trim();
     if (!trimmed) {
-      toast.error('Bitte einen Namen eingeben.')
-      return
+      toast.error("Bitte einen Namen eingeben.");
+      return;
     }
     if (editing) {
-      await updateTag(editing.id, { name: trimmed, color })
-      toast.success('Tag gespeichert')
+      await updateTag(editing.id, { name: trimmed, color });
+      toast.success("Tag gespeichert");
     } else {
-      await createTag({ name: trimmed, color, archived: false })
-      toast.success('Tag angelegt')
+      await createTag({ name: trimmed, color, archived: false });
+      toast.success("Tag angelegt");
     }
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
   const handleDelete = async (tag: Tag) => {
-    const count = await countEntriesForTag(tag.id)
+    const count = await countEntriesForTag(tag.id);
     const ok = await confirm.confirm({
       title: `Tag „${tag.name}“ löschen?`,
       description:
         count === 0
-          ? 'Kein Eintrag nutzt diesen Tag.'
-          : `Der Tag wird aus ${count} Eintr${count === 1 ? 'ag' : 'ägen'} entfernt.`,
-      tone: 'danger',
-      confirmLabel: 'Löschen',
-    })
-    if (!ok) return
-    const result = await deleteTag(tag.id)
+          ? "Kein Eintrag nutzt diesen Tag."
+          : `Der Tag wird aus ${count} Eintr${count === 1 ? "ag" : "ägen"} entfernt.`,
+      tone: "danger",
+      confirmLabel: "Löschen",
+    });
+    if (!ok) return;
+    const result = await deleteTag(tag.id);
     toast.success(
       result.cleaned > 0
-        ? `Gelöscht (aus ${result.cleaned} Eintr${result.cleaned === 1 ? 'ag' : 'ägen'} entfernt)`
-        : 'Gelöscht',
-    )
-  }
+        ? `Gelöscht (aus ${result.cleaned} Eintr${result.cleaned === 1 ? "ag" : "ägen"} entfernt)`
+        : "Gelöscht",
+    );
+  };
 
-  const active = tags.filter((t) => !t.archived)
-  const archived = tags.filter((t) => t.archived)
+  const active = tags.filter((t) => !t.archived);
+  const archived = tags.filter((t) => t.archived);
 
   return (
     <div className="space-y-5">
@@ -91,12 +91,7 @@ export function TagsPage() {
             {archived.length > 0 && ` · ${archived.length} archiviert`}
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus size={14} />}
-          onClick={startNew}
-        >
+        <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={startNew}>
           Neuer Tag
         </Button>
       </div>
@@ -179,16 +174,12 @@ export function TagsPage() {
       <Sheet
         open={open}
         onClose={() => setOpen(false)}
-        title={editing ? 'Tag bearbeiten' : 'Neuer Tag'}
+        title={editing ? "Tag bearbeiten" : "Neuer Tag"}
         size="sm"
       >
         <div className="space-y-4">
           <Field label="Name">
-            <Input
-              autoFocus
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
+            <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
           <Field label="Farbe">
             <div className="flex flex-wrap gap-2">
@@ -198,9 +189,7 @@ export function TagsPage() {
                   type="button"
                   onClick={() => setColor(c.value)}
                   className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
-                    color === c.value
-                      ? 'ring-[color:var(--color-text-1)]'
-                      : 'ring-transparent'
+                    color === c.value ? "ring-[color:var(--color-text-1)]" : "ring-transparent"
                   }`}
                   style={{ backgroundColor: c.value }}
                   aria-label={c.name}
@@ -219,7 +208,6 @@ export function TagsPage() {
           </div>
         </div>
       </Sheet>
-
     </div>
-  )
+  );
 }

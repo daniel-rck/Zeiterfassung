@@ -13,11 +13,11 @@
     <script>
       // Apply the theme before React mounts so the dark/light background does
       // not flash on every page load.
-      (function () {
+      (() => {
         try {
-          var raw = localStorage.getItem('zeiterfassung:settings')
-          var theme = raw ? JSON.parse(raw).theme : 'system'
-          var dark =
+          const raw = localStorage.getItem('zeiterfassung:settings')
+          const theme = raw ? JSON.parse(raw).theme : 'system'
+          const dark =
             theme === 'dark' ||
             (theme === 'system' &&
               window.matchMedia('(prefers-color-scheme: dark)').matches)

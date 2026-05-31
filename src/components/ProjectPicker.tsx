@@ -1,32 +1,32 @@
-import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
-import { useProjects } from '../lib/hooks/useProjects'
-import { createProject } from '../lib/db/projects'
-import { DEFAULT_PROJECT_COLOR, pickColor } from '../lib/categoryColors'
-import { useSettings } from '../lib/hooks/useSettings'
-import { Field, Input } from './ui/Input'
-import { Combobox, type ComboOption } from './ui/Combobox'
-import { Button } from './ui/Button'
-import { useToast } from './ui/Toast'
+import { Plus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { DEFAULT_PROJECT_COLOR, pickColor } from "../lib/categoryColors";
+import { createProject } from "../lib/db/projects";
+import { useProjects } from "../lib/hooks/useProjects";
+import { useSettings } from "../lib/hooks/useSettings";
+import { Button } from "./ui/Button";
+import { Combobox, type ComboOption } from "./ui/Combobox";
+import { Field, Input } from "./ui/Input";
+import { useToast } from "./ui/Toast";
 
 export function ProjectPicker({
   value,
   onChange,
-  label = 'Projekt',
+  label = "Projekt",
   allowEmpty = true,
-  emptyLabel = 'Ohne Projekt',
+  emptyLabel = "Ohne Projekt",
 }: {
-  value: string | undefined
-  onChange: (id: string | undefined) => void
-  label?: string
-  allowEmpty?: boolean
-  emptyLabel?: string
+  value: string | undefined;
+  onChange: (id: string | undefined) => void;
+  label?: string;
+  allowEmpty?: boolean;
+  emptyLabel?: string;
 }) {
-  const { projects } = useProjects()
-  const { settings } = useSettings()
-  const [creating, setCreating] = useState(false)
-  const [name, setName] = useState('')
-  const toast = useToast()
+  const { projects } = useProjects();
+  const { settings } = useSettings();
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState("");
+  const toast = useToast();
 
   const options: ComboOption[] = useMemo(
     () =>
@@ -37,26 +37,26 @@ export function ProjectPicker({
         color: p.color,
       })),
     [projects],
-  )
+  );
 
   const handleCreate = async () => {
-    const trimmed = name.trim()
-    if (!trimmed) return
+    const trimmed = name.trim();
+    if (!trimmed) return;
     try {
       const project = await createProject({
         name: trimmed,
         color: pickColor(trimmed) || DEFAULT_PROJECT_COLOR,
         billableDefault: settings.defaultBillable,
         archived: false,
-      })
-      onChange(project.id)
-      setName('')
-      setCreating(false)
-      toast.success(`Projekt „${project.name}“ angelegt`)
+      });
+      onChange(project.id);
+      setName("");
+      setCreating(false);
+      toast.success(`Projekt „${project.name}“ angelegt`);
     } catch (err) {
-      toast.error((err as Error).message)
+      toast.error((err as Error).message);
     }
-  }
+  };
 
   if (creating) {
     return (
@@ -68,12 +68,12 @@ export function ProjectPicker({
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                void handleCreate()
-              } else if (e.key === 'Escape') {
-                setCreating(false)
-                setName('')
+              if (e.key === "Enter") {
+                e.preventDefault();
+                void handleCreate();
+              } else if (e.key === "Escape") {
+                setCreating(false);
+                setName("");
               }
             }}
           />
@@ -83,15 +83,15 @@ export function ProjectPicker({
           <Button
             variant="ghost"
             onClick={() => {
-              setCreating(false)
-              setName('')
+              setCreating(false);
+              setName("");
             }}
           >
             Abbrechen
           </Button>
         </div>
       </Field>
-    )
+    );
   }
 
   return (
@@ -118,5 +118,5 @@ export function ProjectPicker({
         </Button>
       </div>
     </Field>
-  )
+  );
 }

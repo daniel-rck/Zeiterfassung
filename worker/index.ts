@@ -1,5 +1,5 @@
 interface Env {
-  ASSETS: Fetcher
+  ASSETS: Fetcher;
 }
 
 // Content-Security-Policy.
@@ -27,39 +27,39 @@ const CSP = [
   "form-action 'self'",
   "object-src 'none'",
   "frame-ancestors 'none'",
-].join('; ')
+].join("; ");
 
 const SECURITY_HEADERS: Record<string, string> = {
-  'Content-Security-Policy': CSP,
-  'X-Content-Type-Options': 'nosniff',
-  'X-Frame-Options': 'DENY',
-  'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'geolocation=(), microphone=(), camera=()',
-  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-}
+  "Content-Security-Policy": CSP,
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+};
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url)
+    const url = new URL(request.url);
 
-    if (url.pathname === '/healthz') {
-      return new Response('ok', {
+    if (url.pathname === "/healthz") {
+      return new Response("ok", {
         status: 200,
         headers: {
-          'content-type': 'text/plain; charset=utf-8',
-          'cache-control': 'no-cache',
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-cache",
           ...SECURITY_HEADERS,
         },
-      })
+      });
     }
 
-    const assetResponse = await env.ASSETS.fetch(request)
+    const assetResponse = await env.ASSETS.fetch(request);
     // Clone so we can attach security headers (the original headers are
     // immutable on the response returned by the assets binding).
-    const response = new Response(assetResponse.body, assetResponse)
+    const response = new Response(assetResponse.body, assetResponse);
     for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-      response.headers.set(name, value)
+      response.headers.set(name, value);
     }
-    return response
+    return response;
   },
-} satisfies ExportedHandler<Env>
+} satisfies ExportedHandler<Env>;

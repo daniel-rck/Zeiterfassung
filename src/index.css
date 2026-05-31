@@ -1,17 +1,15 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
-@variant dark (&:where(.dark, .dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* === Typography (Geist) === */
   --font-sans:
-    'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
-    Arial, sans-serif;
-  --font-display:
-    'Geist Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    "Geist Variable", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Geist Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono:
-    'Geist Mono Variable', ui-monospace, SFMono-Regular, 'SF Mono', Menlo,
-    Consolas, 'Liberation Mono', monospace;
+    "Geist Mono Variable", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 
   /* === Brand (Vercel-Blue, Hue 230° OKLCH) === */
   --color-brand-50: oklch(97% 0.015 230);
@@ -58,12 +56,9 @@
 
   /* === Shadows === */
   --shadow-xs: 0 1px 1px 0 oklch(20% 0.01 230 / 0.04);
-  --shadow-sm:
-    0 1px 2px 0 oklch(20% 0.01 230 / 0.06),
-    0 1px 1px 0 oklch(20% 0.01 230 / 0.04);
+  --shadow-sm: 0 1px 2px 0 oklch(20% 0.01 230 / 0.06), 0 1px 1px 0 oklch(20% 0.01 230 / 0.04);
   --shadow-md:
-    0 4px 12px -2px oklch(20% 0.01 230 / 0.08),
-    0 2px 4px -1px oklch(20% 0.01 230 / 0.06);
+    0 4px 12px -2px oklch(20% 0.01 230 / 0.08), 0 2px 4px -1px oklch(20% 0.01 230 / 0.06);
 
   /* === Motion === */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -97,8 +92,8 @@ body {
   color: var(--color-text-1);
   font-family: var(--font-sans);
   font-feature-settings:
-    'ss01' 1,
-    'cv11' 1;
+    "ss01" 1,
+    "cv11" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -106,8 +101,8 @@ body {
 
 .tnum {
   font-feature-settings:
-    'tnum' 1,
-    'cv11' 1;
+    "tnum" 1,
+    "cv11" 1;
   font-variant-numeric: tabular-nums;
 }
 
@@ -120,30 +115,13 @@ body {
   }
 }
 
-:where(
-  button,
-  a,
-  [role='button'],
-  [role='menuitem'],
-  input,
-  select,
-  textarea
-):focus-visible {
+:where(button, a, [role="button"], [role="menuitem"], input, select, textarea):focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-.dark
-  :where(
-    button,
-    a,
-    [role='button'],
-    [role='menuitem'],
-    input,
-    select,
-    textarea
-  ):focus-visible {
+.dark :where(button, a, [role="button"], [role="menuitem"], input, select, textarea):focus-visible {
   outline-color: var(--color-brand-400);
 }
 
@@ -177,7 +155,7 @@ body {
 }
 
 @media (pointer: coarse) {
-  :where(button, a, [role='button']):not(.no-min-tap) {
+  :where(button, a, [role="button"]):not(.no-min-tap) {
     min-height: 44px;
   }
 }

@@ -4,5 +4,5 @@
 // sums add up consistently across the app: amounts are rounded per entry/line
 // up front, then totals are derived from the already-rounded numbers.
 export function roundCents(value: number): number {
-  return Math.round(value * 100) / 100
+  return Math.round(value * 100) / 100;
 }

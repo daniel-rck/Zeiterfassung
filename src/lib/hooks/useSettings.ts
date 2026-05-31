@@ -1,26 +1,26 @@
-import { useCallback, useEffect, useState } from 'react'
-import type { Settings } from '../types'
-import { readSettings } from '../db/settings'
-import { subscribe } from '../db/broadcast'
+import { useCallback, useEffect, useState } from "react";
+import { subscribe } from "../db/broadcast";
+import { readSettings } from "../db/settings";
+import type { Settings } from "../types";
 
 export function useSettings(): {
-  settings: Settings
-  reload: () => void
+  settings: Settings;
+  reload: () => void;
 } {
-  const [settings, setSettings] = useState<Settings>(() => readSettings())
+  const [settings, setSettings] = useState<Settings>(() => readSettings());
 
   const reload = useCallback(() => {
-    setSettings(readSettings())
-  }, [])
+    setSettings(readSettings());
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribe((message) => {
-      if (message.type === 'settings-changed' || message.type === 'db-cleared') {
-        reload()
+      if (message.type === "settings-changed" || message.type === "db-cleared") {
+        reload();
       }
-    })
-    return unsubscribe
-  }, [reload])
+    });
+    return unsubscribe;
+  }, [reload]);
 
-  return { settings, reload }
+  return { settings, reload };
 }

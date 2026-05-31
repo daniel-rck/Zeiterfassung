@@ -1,29 +1,29 @@
-import { cloneElement, isValidElement, useId, type ReactElement, type ReactNode } from 'react'
+import { cloneElement, isValidElement, type ReactElement, type ReactNode, useId } from "react";
 
 export function Tooltip({
   content,
   children,
-  side = 'top',
+  side = "top",
 }: {
-  content: ReactNode
-  children: ReactNode
-  side?: 'top' | 'bottom' | 'left' | 'right'
+  content: ReactNode;
+  children: ReactNode;
+  side?: "top" | "bottom" | "left" | "right";
 }) {
-  const id = useId()
+  const id = useId();
   const positionClass =
-    side === 'top'
-      ? 'bottom-full left-1/2 mb-2 -translate-x-1/2'
-      : side === 'bottom'
-        ? 'top-full left-1/2 mt-2 -translate-x-1/2'
-        : side === 'left'
-          ? 'right-full top-1/2 mr-2 -translate-y-1/2'
-          : 'left-full top-1/2 ml-2 -translate-y-1/2'
+    side === "top"
+      ? "bottom-full left-1/2 mb-2 -translate-x-1/2"
+      : side === "bottom"
+        ? "top-full left-1/2 mt-2 -translate-x-1/2"
+        : side === "left"
+          ? "right-full top-1/2 mr-2 -translate-y-1/2"
+          : "left-full top-1/2 ml-2 -translate-y-1/2";
 
   const trigger = isValidElement(children)
-    ? cloneElement(children as ReactElement<{ 'aria-describedby'?: string }>, {
-        'aria-describedby': id,
+    ? cloneElement(children as ReactElement<{ "aria-describedby"?: string }>, {
+        "aria-describedby": id,
       })
-    : children
+    : children;
 
   return (
     <span className="group relative inline-flex">
@@ -36,5 +36,5 @@ export function Tooltip({
         {content}
       </span>
     </span>
-  )
+  );
 }

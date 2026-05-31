@@ -1,10 +1,10 @@
-import '@testing-library/jest-dom/vitest'
-import 'fake-indexeddb/auto'
-import { afterEach, vi } from 'vitest'
-import { cleanup } from '@testing-library/react'
-import { _resetDBForTests, getDB } from '../lib/db'
+import "@testing-library/jest-dom/vitest";
+import "fake-indexeddb/auto";
+import { cleanup } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
+import { _resetDBForTests, getDB } from "../lib/db";
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   configurable: true,
   value: vi.fn().mockImplementation((query: string) => ({
@@ -17,24 +17,21 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: vi.fn(),
     dispatchEvent: vi.fn(),
   })),
-})
+});
 
 afterEach(async () => {
-  cleanup()
+  cleanup();
   try {
-    const db = await getDB()
-    const tx = db.transaction(
-      ['projects', 'tags', 'time_entries', 'invoices'],
-      'readwrite',
-    )
-    await tx.objectStore('projects').clear()
-    await tx.objectStore('tags').clear()
-    await tx.objectStore('time_entries').clear()
-    await tx.objectStore('invoices').clear()
-    await tx.done
+    const db = await getDB();
+    const tx = db.transaction(["projects", "tags", "time_entries", "invoices"], "readwrite");
+    await tx.objectStore("projects").clear();
+    await tx.objectStore("tags").clear();
+    await tx.objectStore("time_entries").clear();
+    await tx.objectStore("invoices").clear();
+    await tx.done;
   } catch {
     // ignore — DB may not exist yet
   }
-  await _resetDBForTests()
-  window.localStorage.clear()
-})
+  await _resetDBForTests();
+  window.localStorage.clear();
+});

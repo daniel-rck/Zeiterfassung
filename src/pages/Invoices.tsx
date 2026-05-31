@@ -1,17 +1,17 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Download, Trash2, FileText } from 'lucide-react'
-import { Link } from 'react-router-dom'
-import type { StoredInvoice } from '../lib/types'
-import { deleteInvoice, listInvoices } from '../lib/db/invoices'
-import { downloadInvoicePdf } from '../lib/invoice/pdf'
-import { useSettings } from '../lib/hooks/useSettings'
-import { Button } from '../components/ui/Button'
-import { useToast } from '../components/ui/Toast'
-import { useConfirm } from '../components/ui/Confirm'
-import { Skeleton } from '../components/ui/Skeleton'
-import { formatDate, formatMoney } from '../lib/format'
-import { subscribe } from '../lib/db/broadcast'
-import type { ComposedInvoice } from '../lib/invoice/compose'
+import { Download, FileText, Trash2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "../components/ui/Button";
+import { useConfirm } from "../components/ui/Confirm";
+import { Skeleton } from "../components/ui/Skeleton";
+import { useToast } from "../components/ui/Toast";
+import { subscribe } from "../lib/db/broadcast";
+import { deleteInvoice, listInvoices } from "../lib/db/invoices";
+import { formatDate, formatMoney } from "../lib/format";
+import { useSettings } from "../lib/hooks/useSettings";
+import type { ComposedInvoice } from "../lib/invoice/compose";
+import { downloadInvoicePdf } from "../lib/invoice/pdf";
+import type { StoredInvoice } from "../lib/types";
 
 function storedToComposed(record: StoredInvoice): ComposedInvoice {
   return {
@@ -27,61 +27,57 @@ function storedToComposed(record: StoredInvoice): ComposedInvoice {
     taxRate: record.taxRate,
     taxAmount: record.taxAmount,
     total: record.total,
-  }
+  };
 }
 
 export function InvoicesPage() {
-  const { settings } = useSettings()
-  const toast = useToast()
-  const confirm = useConfirm()
-  const [invoices, setInvoices] = useState<StoredInvoice[]>([])
-  const [loading, setLoading] = useState(true)
+  const { settings } = useSettings();
+  const toast = useToast();
+  const confirm = useConfirm();
+  const [invoices, setInvoices] = useState<StoredInvoice[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const reload = useCallback(async () => {
     try {
-      const data = await listInvoices()
-      setInvoices(data)
+      const data = await listInvoices();
+      setInvoices(data);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    void reload()
+    void reload();
     return subscribe((m) => {
-      if (
-        m.type === 'invoice-changed' ||
-        m.type === 'invoice-deleted' ||
-        m.type === 'db-cleared'
-      ) {
-        void reload()
+      if (m.type === "invoice-changed" || m.type === "invoice-deleted" || m.type === "db-cleared") {
+        void reload();
       }
-    })
-  }, [reload])
+    });
+  }, [reload]);
 
   const handleDownload = async (record: StoredInvoice) => {
     try {
       const filename = record.number
         ? `Rechnung-${record.number}.pdf`
-        : `Rechnung-${new Date(record.date).toISOString().slice(0, 10)}.pdf`
-      await downloadInvoicePdf(storedToComposed(record), settings.locale, filename)
+        : `Rechnung-${new Date(record.date).toISOString().slice(0, 10)}.pdf`;
+      await downloadInvoicePdf(storedToComposed(record), settings.locale, filename);
     } catch (err) {
-      toast.error((err as Error).message)
+      toast.error((err as Error).message);
     }
-  }
+  };
 
   const handleDelete = async (record: StoredInvoice) => {
     const ok = await confirm.confirm({
-      title: 'Rechnung aus Archiv entfernen?',
+      title: "Rechnung aus Archiv entfernen?",
       description:
-        'Der Eintrag wird gelöscht. Bereits heruntergeladene PDFs bleiben auf deinem Gerät.',
-      tone: 'danger',
-      confirmLabel: 'Entfernen',
-    })
-    if (!ok) return
-    await deleteInvoice(record.id)
-    toast.success('Aus Archiv entfernt')
-  }
+        "Der Eintrag wird gelöscht. Bereits heruntergeladene PDFs bleiben auf deinem Gerät.",
+      tone: "danger",
+      confirmLabel: "Entfernen",
+    });
+    if (!ok) return;
+    await deleteInvoice(record.id);
+    toast.success("Aus Archiv entfernt");
+  };
 
   return (
     <div className="space-y-5">
@@ -91,7 +87,7 @@ export function InvoicesPage() {
             Rechnungs-Archiv
           </h1>
           <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
-            {loading ? 'Lädt …' : `${invoices.length} Rechnungen`}
+            {loading ? "Lädt …" : `${invoices.length} Rechnungen`}
           </p>
         </div>
         <Link to="/invoice">
@@ -109,8 +105,8 @@ export function InvoicesPage() {
         </div>
       ) : invoices.length === 0 ? (
         <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
-          Noch keine Rechnungen erstellt. Erzeuge eine PDF auf der Rechnungs-Seite,
-          dann landet sie hier.
+          Noch keine Rechnungen erstellt. Erzeuge eine PDF auf der Rechnungs-Seite, dann landet sie
+          hier.
         </div>
       ) : (
         <ul className="space-y-1.5">
@@ -119,18 +115,15 @@ export function InvoicesPage() {
               key={record.id}
               className="group flex flex-wrap items-center gap-3 rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3 py-2.5 transition-colors hover:bg-[color:var(--color-surface-2)]"
             >
-              <FileText
-                size={14}
-                className="flex-shrink-0 text-[color:var(--color-text-3)]"
-              />
+              <FileText size={14} className="flex-shrink-0 text-[color:var(--color-text-3)]" />
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-medium text-[color:var(--color-text-1)]">
-                  {record.number ? `Rechnung ${record.number}` : 'Rechnung'}{' '}
-                  · {record.recipient.name}
+                  {record.number ? `Rechnung ${record.number}` : "Rechnung"} ·{" "}
+                  {record.recipient.name}
                 </div>
                 <div className="truncate text-xs text-[color:var(--color-text-3)]">
                   {formatDate(record.date, settings.locale)}
-                  {record.projectName ? ` · ${record.projectName}` : ''}
+                  {record.projectName ? ` · ${record.projectName}` : ""}
                 </div>
               </div>
               <span className="tnum text-sm font-medium text-[color:var(--color-text-1)]">
@@ -159,5 +152,5 @@ export function InvoicesPage() {
         </ul>
       )}
     </div>
-  )
+  );
 }
