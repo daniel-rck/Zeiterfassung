@@ -3,7 +3,7 @@
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/dist", "!**/node_modules", "!**/.wrangler"]
+    "includes": ["**", "!**/dist", "!**/node_modules", "!**/.wrangler", "!**/src/lib/ui"]
   },
   "assist": {
     "enabled": true,

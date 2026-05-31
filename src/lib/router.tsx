@@ -1,8 +1,8 @@
 import { createBrowserRouter, Outlet } from "react-router-dom";
-import { AppShell } from "../components/AppShell";
 import { GlobalShortcuts } from "../components/GlobalShortcuts";
 import { Onboarding } from "../components/Onboarding";
 import { SwUpdateNotifier } from "../components/SwUpdateNotifier";
+import { AppShellContainer } from "../features/shell/AppShellContainer";
 // Today and Welcome are the first-paint routes → keep eager. The remaining
 // pages are code-split so the initial bundle stays lean (Reports pulls in the
 // charts, Invoice/Invoices pull in jspdf via a further dynamic import).
@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
     children: [
       { path: ROUTES.welcome, element: <WelcomePage /> },
       {
-        element: <AppShell />,
+        element: <AppShellContainer />,
         children: [
           { index: true, element: <TodayPage /> },
           {
