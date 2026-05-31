@@ -1,1 +1,1 @@
-export { EntryRow as EntryCard } from './EntryRow'
+export { EntryRow as EntryCard } from "./EntryRow";

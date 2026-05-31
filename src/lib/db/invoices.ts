@@ -1,8 +1,7 @@
-import type { StoredInvoice } from '../types'
-import type { ComposedInvoice } from '../invoice/compose'
-import { newId } from '../ids'
-import { getDB } from './index'
-import { broadcast } from './broadcast'
+import { newId } from "../ids";
+import type { ComposedInvoice } from "../invoice/compose";
+import type { StoredInvoice } from "../types";
+import { getDB, notifyMutation } from "./db";
 
 export async function saveInvoice(
   composed: ComposedInvoice,
@@ -24,26 +23,26 @@ export async function saveInvoice(
     taxAmount: composed.taxAmount,
     total: composed.total,
     createdAt: Date.now(),
-  }
-  const db = await getDB()
-  await db.add('invoices', record)
-  broadcast({ type: 'invoice-changed', id: record.id })
-  return record
+  };
+  const db = await getDB();
+  await db.add("invoices", record);
+  notifyMutation("invoices");
+  return record;
 }
 
 export async function listInvoices(): Promise<StoredInvoice[]> {
-  const db = await getDB()
-  const all = await db.getAll('invoices')
-  return all.sort((a, b) => b.date - a.date)
+  const db = await getDB();
+  const all = await db.getAll("invoices");
+  return all.sort((a, b) => b.date - a.date);
 }
 
 export async function getInvoice(id: string): Promise<StoredInvoice | undefined> {
-  const db = await getDB()
-  return db.get('invoices', id)
+  const db = await getDB();
+  return db.get("invoices", id);
 }
 
 export async function deleteInvoice(id: string): Promise<void> {
-  const db = await getDB()
-  await db.delete('invoices', id)
-  broadcast({ type: 'invoice-deleted', id })
+  const db = await getDB();
+  await db.delete("invoices", id);
+  notifyMutation("invoices");
 }

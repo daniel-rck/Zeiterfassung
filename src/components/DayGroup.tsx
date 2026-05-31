@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
-import { formatRelativeDay } from '../lib/format'
+import type { ReactNode } from "react";
+import { formatRelativeDay } from "../lib/format";
 
 export function DayGroup({
   dayTimestamp,
@@ -9,14 +9,14 @@ export function DayGroup({
   locale,
   children,
 }: {
-  dayTimestamp: number
-  totalSec: number
-  amount?: number
-  currency?: string
-  locale: string
-  children: ReactNode
+  dayTimestamp: number;
+  totalSec: number;
+  amount?: number;
+  currency?: string;
+  locale: string;
+  children: ReactNode;
 }) {
-  const hours = (totalSec / 3600).toFixed(2)
+  const hours = (totalSec / 3600).toFixed(2);
   return (
     <section className="space-y-2">
       <header className="flex items-baseline justify-between border-b border-[color:var(--color-border-subtle)] pb-1.5">
@@ -28,7 +28,7 @@ export function DayGroup({
           {amount != null && amount > 0 && currency && (
             <span className="tnum font-mono text-[color:var(--color-success-600)] dark:text-[color:var(--color-success-500)]">
               {new Intl.NumberFormat(locale, {
-                style: 'currency',
+                style: "currency",
                 currency,
               }).format(amount)}
             </span>
@@ -37,5 +37,5 @@ export function DayGroup({
       </header>
       <div className="space-y-1.5">{children}</div>
     </section>
-  )
+  );
 }

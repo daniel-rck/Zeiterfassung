@@ -1,8 +1,12 @@
-import { useState } from 'react'
-import { Plus, Archive, ArchiveRestore, Trash2, Pencil } from 'lucide-react'
-import { useProjects } from '../lib/hooks/useProjects'
-import { useSettings } from '../lib/hooks/useSettings'
-import { useFeature } from '../lib/hooks/useFeature'
+import { Archive, ArchiveRestore, Pencil, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Badge } from "../components/ui/Badge";
+import { Button } from "../components/ui/Button";
+import { useConfirm } from "../components/ui/Confirm";
+import { Checkbox, Field, Input } from "../components/ui/Input";
+import { Sheet } from "../components/ui/Sheet";
+import { useToast } from "../components/ui/Toast";
+import { CATEGORY_COLORS, DEFAULT_PROJECT_COLOR } from "../lib/categoryColors";
 import {
   archiveProject,
   countEntriesForProject,
@@ -10,75 +14,67 @@ import {
   deleteProject,
   restoreProject,
   updateProject,
-} from '../lib/db/projects'
-import type { Project } from '../lib/types'
-import { CATEGORY_COLORS, DEFAULT_PROJECT_COLOR } from '../lib/categoryColors'
-import { Button } from '../components/ui/Button'
-import { Field, Input, Checkbox } from '../components/ui/Input'
-import { Sheet } from '../components/ui/Sheet'
-import { Badge } from '../components/ui/Badge'
-import { useToast } from '../components/ui/Toast'
-import { useConfirm } from '../components/ui/Confirm'
-import { formatMoney } from '../lib/format'
+} from "../lib/db/projects";
+import { formatMoney } from "../lib/format";
+import { useFeature } from "../lib/hooks/useFeature";
+import { useProjects } from "../lib/hooks/useProjects";
+import { useSettings } from "../lib/hooks/useSettings";
+import type { Project } from "../lib/types";
 
 interface ProjectDraft {
-  name: string
-  client: string
-  color: string
-  hourlyRate: string
-  billableDefault: boolean
+  name: string;
+  client: string;
+  color: string;
+  hourlyRate: string;
+  billableDefault: boolean;
 }
 
 function emptyDraft(defaultBillable: boolean): ProjectDraft {
   return {
-    name: '',
-    client: '',
+    name: "",
+    client: "",
     color: DEFAULT_PROJECT_COLOR,
-    hourlyRate: '',
+    hourlyRate: "",
     billableDefault: defaultBillable,
-  }
+  };
 }
 
 export function ProjectsPage() {
-  const { settings } = useSettings()
-  const billingOn = useFeature('billing')
-  const { projects } = useProjects({ includeArchived: true })
-  const toast = useToast()
-  const confirm = useConfirm()
+  const { settings } = useSettings();
+  const billingOn = useFeature("billing");
+  const { projects } = useProjects({ includeArchived: true });
+  const toast = useToast();
+  const confirm = useConfirm();
 
-  const [editing, setEditing] = useState<Project | null>(null)
-  const [open, setOpen] = useState(false)
-  const [draft, setDraft] = useState<ProjectDraft>(() =>
-    emptyDraft(settings.defaultBillable),
-  )
+  const [editing, setEditing] = useState<Project | null>(null);
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<ProjectDraft>(() => emptyDraft(settings.defaultBillable));
 
   const startNew = () => {
-    setEditing(null)
-    setDraft(emptyDraft(settings.defaultBillable))
-    setOpen(true)
-  }
+    setEditing(null);
+    setDraft(emptyDraft(settings.defaultBillable));
+    setOpen(true);
+  };
 
   const startEdit = (project: Project) => {
-    setEditing(project)
+    setEditing(project);
     setDraft({
       name: project.name,
-      client: project.client ?? '',
+      client: project.client ?? "",
       color: project.color,
-      hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : '',
+      hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : "",
       billableDefault: project.billableDefault,
-    })
-    setOpen(true)
-  }
+    });
+    setOpen(true);
+  };
 
   const save = async () => {
     if (!draft.name.trim()) {
-      toast.error('Bitte einen Namen eingeben.')
-      return
+      toast.error("Bitte einen Namen eingeben.");
+      return;
     }
-    const rateNum = draft.hourlyRate
-      ? Number(draft.hourlyRate.replace(',', '.'))
-      : undefined
-    const rate = rateNum != null && Number.isFinite(rateNum) ? rateNum : undefined
+    const rateNum = draft.hourlyRate ? Number(draft.hourlyRate.replace(",", ".")) : undefined;
+    const rate = rateNum != null && Number.isFinite(rateNum) ? rateNum : undefined;
     const payload = {
       name: draft.name.trim(),
       client: draft.client.trim() || undefined,
@@ -86,39 +82,39 @@ export function ProjectsPage() {
       hourlyRate: rate,
       currency: rate != null ? settings.currency : undefined,
       billableDefault: draft.billableDefault,
-    }
+    };
     if (editing) {
-      await updateProject(editing.id, payload)
-      toast.success('Projekt gespeichert')
+      await updateProject(editing.id, payload);
+      toast.success("Projekt gespeichert");
     } else {
-      await createProject({ ...payload, archived: false })
-      toast.success('Projekt angelegt')
+      await createProject({ ...payload, archived: false });
+      toast.success("Projekt angelegt");
     }
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
   const handleDelete = async (project: Project) => {
-    const count = await countEntriesForProject(project.id)
+    const count = await countEntriesForProject(project.id);
     const ok = await confirm.confirm({
       title: `„${project.name}“ löschen?`,
       description:
         count === 0
-          ? 'Es sind keine Einträge mit diesem Projekt verknüpft.'
-          : `${count} Eintr${count === 1 ? 'ag verliert' : 'äge verlieren'} die Projektzuordnung.`,
-      tone: 'danger',
-      confirmLabel: 'Löschen',
-    })
-    if (!ok) return
-    const result = await deleteProject(project.id)
+          ? "Es sind keine Einträge mit diesem Projekt verknüpft."
+          : `${count} Eintr${count === 1 ? "ag verliert" : "äge verlieren"} die Projektzuordnung.`,
+      tone: "danger",
+      confirmLabel: "Löschen",
+    });
+    if (!ok) return;
+    const result = await deleteProject(project.id);
     toast.success(
       result.cleaned > 0
-        ? `Gelöscht (${result.cleaned} Eintr${result.cleaned === 1 ? 'ag' : 'äge'} entkoppelt)`
-        : 'Gelöscht',
-    )
-  }
+        ? `Gelöscht (${result.cleaned} Eintr${result.cleaned === 1 ? "ag" : "äge"} entkoppelt)`
+        : "Gelöscht",
+    );
+  };
 
-  const active = projects.filter((p) => !p.archived)
-  const archived = projects.filter((p) => p.archived)
+  const active = projects.filter((p) => !p.archived);
+  const archived = projects.filter((p) => p.archived);
 
   return (
     <div className="space-y-5">
@@ -132,12 +128,7 @@ export function ProjectsPage() {
             {archived.length > 0 && ` · ${archived.length} archiviert`}
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="sm"
-          icon={<Plus size={14} />}
-          onClick={startNew}
-        >
+        <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={startNew}>
           Neues Projekt
         </Button>
       </div>
@@ -177,7 +168,7 @@ export function ProjectsPage() {
                   {project.client && <span>{project.client}</span>}
                   {billingOn && project.hourlyRate != null && (
                     <span>
-                      {project.client ? ' · ' : ''}
+                      {project.client ? " · " : ""}
                       <span className="tnum font-mono">
                         {formatMoney(
                           project.hourlyRate,
@@ -257,7 +248,7 @@ export function ProjectsPage() {
       <Sheet
         open={open}
         onClose={() => setOpen(false)}
-        title={editing ? 'Projekt bearbeiten' : 'Neues Projekt'}
+        title={editing ? "Projekt bearbeiten" : "Neues Projekt"}
       >
         <div className="space-y-4">
           <Field label="Name">
@@ -267,10 +258,7 @@ export function ProjectsPage() {
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           </Field>
-          <Field
-            label="Kunde"
-            hint="Optional. Erscheint in Reports und auf Rechnungen."
-          >
+          <Field label="Kunde" hint="Optional. Erscheint in Reports und auf Rechnungen.">
             <Input
               value={draft.client}
               onChange={(e) => setDraft({ ...draft, client: e.target.value })}
@@ -285,8 +273,8 @@ export function ProjectsPage() {
                   onClick={() => setDraft({ ...draft, color: c.value })}
                   className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
                     draft.color === c.value
-                      ? 'ring-[color:var(--color-text-1)]'
-                      : 'ring-transparent'
+                      ? "ring-[color:var(--color-text-1)]"
+                      : "ring-transparent"
                   }`}
                   style={{ backgroundColor: c.value }}
                   aria-label={c.name}
@@ -305,18 +293,14 @@ export function ProjectsPage() {
                   type="text"
                   inputMode="decimal"
                   value={draft.hourlyRate}
-                  onChange={(e) =>
-                    setDraft({ ...draft, hourlyRate: e.target.value })
-                  }
+                  onChange={(e) => setDraft({ ...draft, hourlyRate: e.target.value })}
                   placeholder="z. B. 90"
                 />
               </Field>
               <Checkbox
                 label="Standardmäßig abrechenbar"
                 checked={draft.billableDefault}
-                onChange={(billableDefault) =>
-                  setDraft({ ...draft, billableDefault })
-                }
+                onChange={(billableDefault) => setDraft({ ...draft, billableDefault })}
               />
             </>
           )}
@@ -331,5 +315,5 @@ export function ProjectsPage() {
         </div>
       </Sheet>
     </div>
-  )
+  );
 }

@@ -1,66 +1,45 @@
-# Beitragen zu Zeiterfassung
+# Contributing
 
-Schön, dass du beitragen willst! Dieses Dokument fasst zusammen, wie wir hier arbeiten — kurz und pragmatisch.
+Thanks for your interest in this project. It's a personal web app, but
+contributions are welcome where they make sense.
 
-## Vor dem ersten Beitrag
+## Branch strategy
 
-1. Schau in [PLAN.md](./PLAN.md). Dort steht die lebende Roadmap mit den Phasen 0–6 (alle ✅) und der Liste der **Out-of-Scope**-Themen. Ideen, die explizit Out-of-Scope sind (kein Cloud-Sync, keine Team-Features, keine native App), werden in der Regel nicht angenommen.
-2. Lies den [Code of Conduct](./CODE_OF_CONDUCT.md).
-3. Bei größeren Änderungen lohnt sich ein Issue **vor** dem Code, damit wir Scope und Ansatz vorab klären können.
+- `main` is the deployed branch. Cloudflare Workers Builds deploys from it.
+- Feature work lives on short-lived branches (`feat/...`, `fix/...`,
+  `refactor/...`, `chore/...`).
+- Open a PR against `main`. CI must be green before merge.
 
-## Lokales Setup
+## Commit messages
 
-Voraussetzungen: [Bun](https://bun.sh/) (aktuelle Version).
+Conventional commits:
+
+- `feat: ...` — new feature
+- `fix: ...` — bug fix
+- `chore: ...` — tooling, deps, no behavior change
+- `docs: ...` — documentation only
+- `refactor: ...` — code change with no functional difference
+- `test: ...` — adding or adjusting tests
+
+Keep the subject line under 72 characters. Use the body for the *why*.
+
+## PR checklist
+
+- [ ] `bun run lint` passes
+- [ ] `bun run typecheck` passes
+- [ ] `bun run test` passes (if tests exist for the area you touched)
+- [ ] User-facing strings are German; identifiers and comments are English
+- [ ] No new dependencies added without a reason in the PR description
+
+## Local development
 
 ```bash
-git clone https://github.com/daniel-rck/Zeiterfassung.git
-cd Zeiterfassung
 bun install
-bun run dev
+bun run dev          # Vite dev server
+bun run worker:dev   # Cloudflare Worker, if applicable
 ```
 
-Damit läuft die App auf `http://localhost:5173`.
+## Architecture
 
-## Branch- und Commit-Konventionen
-
-- **Branches**: `feature/<kurzbeschreibung>`, `fix/<kurzbeschreibung>`, `docs/<kurzbeschreibung>`, `refactor/<kurzbeschreibung>`.
-- **Commits**: Imperativ und auf Deutsch oder Englisch, kurz und beschreibend. Beispiel: `fix: Timer stoppt nicht nach Mitternacht` oder `feat: CSV-Export für Reports`. Conventional Commits sind nicht zwingend, aber gerne gesehen.
-- **Eine logische Änderung pro PR.** Lieber zwei kleine PRs als ein großer.
-
-## Was vor dem Push grün sein muss
-
-```bash
-bun run lint
-bun run typecheck
-bun run test
-bun run build
-```
-
-Genau diese vier Schritte laufen auch in CI (siehe `.github/workflows/ci.yml`). Wenn die lokal grün sind, sollte auch CI grün sein.
-
-## Tests
-
-- Logik-Tests gehören neben den Quelldateien in `__tests__/`-Ordner (siehe z. B. `src/lib/__tests__/`).
-- Für DB-bezogene Tests gibt es das Setup in `src/test/setup.ts` mit `fake-indexeddb` — kein Mocken nötig.
-- Neue Komponenten mit nicht-trivialem Verhalten brauchen einen Smoke-Test mit Testing Library.
-
-## PR-Checkliste
-
-Wenn du den PR öffnest, hilft uns Folgendes (das PR-Template fragt das auch ab):
-
-- [ ] CI ist grün (Lint, Typecheck, Test, Build).
-- [ ] Wenn UI geändert wurde: Screenshots im PR.
-- [ ] Wenn ein neues Feature: kurz in [PLAN.md](./PLAN.md) erwähnt oder in [CHANGELOG.md](./CHANGELOG.md) unter `## [Unreleased]` eingetragen.
-- [ ] Keine Cloud-/Server-Abhängigkeiten eingeführt — die App bleibt **client-only**.
-
-## Code-Stil
-
-- ESLint und TypeScript sind die Wahrheit. Lokale Regeln per Inline-Disable nur mit Kommentar, warum.
-- Keine neuen `any`-Stellen.
-- Tailwind-Klassen direkt im JSX, keine eigenen CSS-Dateien (außer `src/index.css` für globale Tokens).
-- Komponenten in `src/components/ui/` sind die Bausteine — bitte wiederverwenden statt neu erfinden.
-- Imports aufgeräumt (ESLint sortiert das nicht automatisch, aber bitte gruppieren: extern → intern → relativ).
-
-## Fragen?
-
-→ [Issue eröffnen](https://github.com/daniel-rck/Zeiterfassung/issues/new/choose) mit Label `question`.
+See `docs/specs/` for the app's architecture decisions. Living documents — if
+your change shifts a design decision, update the matching spec in the same PR.

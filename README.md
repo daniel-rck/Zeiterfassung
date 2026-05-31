@@ -41,8 +41,11 @@ Eine schlanke, lokale Browser-PWA für Zeiterfassung. Timer starten, Projekten z
 | PWA | `vite-plugin-pwa` (`injectManifest`) |
 | Storage | IndexedDB via `idb` + `localStorage` |
 | Tests | Vitest + Testing Library |
+| Lint/Format | Biome |
 | Hosting | Cloudflare Workers + Static Assets |
 | Package Manager | Bun |
+
+> Aufgebaut auf der [`daniel-rck/web-base`](https://github.com/daniel-rck/web-base)-Foundation. Architektur und sanktionierte Abweichungen: [`docs/specs/`](./docs/specs/00-overview.md).
 
 ### Quickstart
 
@@ -58,7 +61,8 @@ bun run build        # Production Build nach dist/
 bun run preview      # gebauten Stand lokal ausliefern
 bun run test         # Vitest einmalig
 bun run test:watch   # Vitest watch mode
-bun run lint         # ESLint
+bun run lint         # Biome (check)
+bun run format       # Biome (format --write)
 bun run typecheck    # tsc -b --noEmit
 bun run worker:dev   # lokaler Cloudflare Worker
 bun run worker:deploy
@@ -67,9 +71,9 @@ bun run worker:deploy
 ### Architektur in 30 Sekunden
 
 - **Keine Backend-Logik.** Der Worker (`worker/index.ts`) liefert nur Static Assets aus und hält einen `/healthz`-Endpoint bereit.
-- **Storage**: IndexedDB (`src/lib/db/`) für Domain-Daten, `localStorage` für Settings, `BroadcastChannel` für Multi-Tab-Sync.
+- **Storage**: IndexedDB (`src/lib/db/`) für Domain-Daten, `localStorage` für Settings. Reaktiv über `useLiveQuery` + `notifyMutation` (Multi-Tab-Sync via `BroadcastChannel`).
 - **Features per Detail-Stufe**: `useDetailLevel()` + `<Gated level="pro">` (`src/components/Gated.tsx`) blenden Felder dynamisch ein/aus, ohne Daten zu verlieren.
-- **Routing**: `react-router-dom` v7, Layout in `src/components/AppShell.tsx`, Pages in `src/pages/`.
+- **Routing**: `react-router-dom` v7 (`createBrowserRouter`) in `src/lib/router.tsx`. Layout über die kanonische `src/lib/ui/AppShell`, verdrahtet in `src/features/shell/`, Pages in `src/pages/`.
 
 Mehr Kontext: [PLAN.md](./PLAN.md) (Roadmap, Datenmodell, Out-of-Scope) · [SETUP.md](./SETUP.md) (Cloudflare-Deployment).
 

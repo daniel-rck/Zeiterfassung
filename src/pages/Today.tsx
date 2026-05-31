@@ -1,187 +1,167 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Plus, X, Database } from 'lucide-react'
-import { TimerHero } from '../components/TimerHero'
-import { EntryRow } from '../components/EntryRow'
-import { HoursAccountCard } from '../components/HoursAccountCard'
-import { useEntries } from '../lib/hooks/useEntries'
-import { useProjects } from '../lib/hooks/useProjects'
-import { useTags } from '../lib/hooks/useTags'
-import { useSettings } from '../lib/hooks/useSettings'
-import { deleteEntry, restoreEntry } from '../lib/db/timeEntries'
-import { dayKey } from '../lib/db'
-import { getRange } from '../lib/reports/range'
-import { Button } from '../components/ui/Button'
-import { MetricCard } from '../components/ui/MetricCard'
-import { useConfirm } from '../components/ui/Confirm'
-import { useToast } from '../components/ui/Toast'
-import { useFeature } from '../lib/hooks/useFeature'
-import { downloadSnapshot } from '../lib/io/exportJson'
-import { patchSettings } from '../lib/db/settings'
-import {
-  formatDecimalHours,
-  formatDuration,
-  formatMoney,
-  formatRelativeDay,
-} from '../lib/format'
+import { Database, Plus, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { EntryRow } from "../components/EntryRow";
+import { HoursAccountCard } from "../components/HoursAccountCard";
+import { TimerHero } from "../components/TimerHero";
+import { Button } from "../components/ui/Button";
+import { useConfirm } from "../components/ui/Confirm";
+import { MetricCard } from "../components/ui/MetricCard";
+import { useToast } from "../components/ui/Toast";
+import { dayKey } from "../lib/db";
+import { patchSettings } from "../lib/db/settings";
+import { deleteEntry, restoreEntry } from "../lib/db/timeEntries";
+import { formatDecimalHours, formatDuration, formatMoney, formatRelativeDay } from "../lib/format";
+import { useEntries } from "../lib/hooks/useEntries";
+import { useFeature } from "../lib/hooks/useFeature";
+import { useProjects } from "../lib/hooks/useProjects";
+import { useSettings } from "../lib/hooks/useSettings";
+import { useTags } from "../lib/hooks/useTags";
+import { downloadSnapshot } from "../lib/io/exportJson";
+import { getRange } from "../lib/reports/range";
 
-const BACKUP_REMINDER_DAYS = 14
-const BACKUP_DISMISS_KEY = 'zeiterfassung:backup-banner-dismissed'
+const BACKUP_REMINDER_DAYS = 14;
+const BACKUP_DISMISS_KEY = "zeiterfassung:backup-banner-dismissed";
 
 export function TodayPage() {
-  const { settings } = useSettings()
-  const { entries } = useEntries({ includeRunning: true })
-  const { projects } = useProjects()
-  const { tags } = useTags()
-  const billingOn = useFeature('billing')
-  const hoursAccountOn = useFeature('hoursAccount')
-  const confirm = useConfirm()
-  const toast = useToast()
+  const { settings } = useSettings();
+  const { entries } = useEntries({ includeRunning: true });
+  const { projects } = useProjects();
+  const { tags } = useTags();
+  const billingOn = useFeature("billing");
+  const hoursAccountOn = useFeature("hoursAccount");
+  const confirm = useConfirm();
+  const toast = useToast();
 
-  const projectMap = useMemo(
-    () => new Map(projects.map((p) => [p.id, p])),
-    [projects],
-  )
-  const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags])
+  const projectMap = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
+  const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
 
   const [todayStart, setTodayStart] = useState(() => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d.getTime()
-  })
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.getTime();
+  });
 
   // Roll the page over to the new day at midnight when the app stays open.
   useEffect(() => {
     const tick = () => {
-      const d = new Date()
-      d.setHours(0, 0, 0, 0)
-      const next = d.getTime()
-      setTodayStart((current) => (current === next ? current : next))
-    }
-    const id = window.setInterval(tick, 60_000)
-    return () => window.clearInterval(id)
-  }, [])
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      const next = d.getTime();
+      setTodayStart((current) => (current === next ? current : next));
+    };
+    const id = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(id);
+  }, []);
 
-  const today = useMemo(() => new Date(todayStart), [todayStart])
-  const todayKey = dayKey(todayStart)
-  const todays = entries.filter((e) => dayKey(e.startedAt) === todayKey)
-  const todayTotalSec = todays.reduce((s, e) => s + e.durationSec, 0)
+  const today = useMemo(() => new Date(todayStart), [todayStart]);
+  const todayKey = dayKey(todayStart);
+  const todays = entries.filter((e) => dayKey(e.startedAt) === todayKey);
+  const todayTotalSec = todays.reduce((s, e) => s + e.durationSec, 0);
 
-  const weekRange = useMemo(
-    () => getRange('thisWeek', settings.weekStart),
-    [settings.weekStart],
-  )
-  const monthRange = useMemo(() => getRange('thisMonth', settings.weekStart), [
-    settings.weekStart,
-  ])
+  const weekRange = useMemo(() => getRange("thisWeek", settings.weekStart), [settings.weekStart]);
+  const monthRange = useMemo(() => getRange("thisMonth", settings.weekStart), [settings.weekStart]);
 
   const weekSec = useMemo(() => {
-    if (!weekRange) return 0
+    if (!weekRange) return 0;
     return entries
       .filter((e) => e.startedAt >= weekRange.from && e.startedAt <= weekRange.to)
-      .reduce((s, e) => s + e.durationSec, 0)
-  }, [entries, weekRange])
+      .reduce((s, e) => s + e.durationSec, 0);
+  }, [entries, weekRange]);
 
   const monthSec = useMemo(() => {
-    if (!monthRange) return 0
+    if (!monthRange) return 0;
     return entries
-      .filter(
-        (e) => e.startedAt >= monthRange.from && e.startedAt <= monthRange.to,
-      )
-      .reduce((s, e) => s + e.durationSec, 0)
-  }, [entries, monthRange])
+      .filter((e) => e.startedAt >= monthRange.from && e.startedAt <= monthRange.to)
+      .reduce((s, e) => s + e.durationSec, 0);
+  }, [entries, monthRange]);
 
   const billableAmount = useMemo(() => {
-    if (!billingOn || !monthRange) return 0
+    if (!billingOn || !monthRange) return 0;
     return entries
-      .filter(
-        (e) =>
-          e.billable &&
-          e.startedAt >= monthRange.from &&
-          e.startedAt <= monthRange.to,
-      )
+      .filter((e) => e.billable && e.startedAt >= monthRange.from && e.startedAt <= monthRange.to)
       .reduce((sum, e) => {
         const rate =
           e.hourlyRateSnapshot ??
-          (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-        if (rate == null) return sum
-        return sum + (e.durationSec / 3600) * rate
-      }, 0)
-  }, [entries, monthRange, projectMap, billingOn])
+          (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined);
+        if (rate == null) return sum;
+        return sum + (e.durationSec / 3600) * rate;
+      }, 0);
+  }, [entries, monthRange, projectMap, billingOn]);
 
   const todayAmount = billingOn
     ? todays.reduce((sum, e) => {
-        if (!e.billable) return sum
+        if (!e.billable) return sum;
         const rate =
           e.hourlyRateSnapshot ??
-          (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined)
-        if (rate == null) return sum
-        return sum + (e.durationSec / 3600) * rate
+          (e.projectId ? projectMap.get(e.projectId)?.hourlyRate : undefined);
+        if (rate == null) return sum;
+        return sum + (e.durationSec / 3600) * rate;
       }, 0)
-    : 0
+    : 0;
 
   const [backupDismissed, setBackupDismissed] = useState(() => {
-    if (typeof window === 'undefined') return false
-    return window.localStorage.getItem(BACKUP_DISMISS_KEY) === '1'
-  })
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem(BACKUP_DISMISS_KEY) === "1";
+  });
 
   const dismissBackup = () => {
-    setBackupDismissed(true)
+    setBackupDismissed(true);
     try {
-      window.localStorage.setItem(BACKUP_DISMISS_KEY, '1')
+      window.localStorage.setItem(BACKUP_DISMISS_KEY, "1");
     } catch {
       // ignore
     }
-  }
+  };
 
   const handleBackupNow = async () => {
     try {
-      await downloadSnapshot()
-      patchSettings({ lastBackupAt: Date.now() })
+      await downloadSnapshot();
+      patchSettings({ lastBackupAt: Date.now() });
       try {
-        window.localStorage.removeItem(BACKUP_DISMISS_KEY)
+        window.localStorage.removeItem(BACKUP_DISMISS_KEY);
       } catch {
         // ignore
       }
-      setBackupDismissed(false)
-      toast.success('Backup heruntergeladen')
+      setBackupDismissed(false);
+      toast.success("Backup heruntergeladen");
     } catch (err) {
-      toast.error((err as Error).message)
+      toast.error((err as Error).message);
     }
-  }
+  };
 
   const backupAgeDays =
     settings.lastBackupAt != null
       ? Math.floor((Date.now() - settings.lastBackupAt) / 86_400_000)
-      : null
+      : null;
   const showBackupBanner =
     !backupDismissed &&
     entries.length > 0 &&
-    (settings.lastBackupAt == null || (backupAgeDays ?? 0) >= BACKUP_REMINDER_DAYS)
+    (settings.lastBackupAt == null || (backupAgeDays ?? 0) >= BACKUP_REMINDER_DAYS);
 
   const handleDelete = async (id: string) => {
-    const snapshot = entries.find((e) => e.id === id)
+    const snapshot = entries.find((e) => e.id === id);
     const ok = await confirm.confirm({
-      title: 'Eintrag löschen?',
-      description: 'Dieser Eintrag wird endgültig entfernt.',
-      tone: 'danger',
-      confirmLabel: 'Löschen',
-    })
-    if (!ok) return
-    await deleteEntry(id)
-    toast.success('Gelöscht', {
+      title: "Eintrag löschen?",
+      description: "Dieser Eintrag wird endgültig entfernt.",
+      tone: "danger",
+      confirmLabel: "Löschen",
+    });
+    if (!ok) return;
+    await deleteEntry(id);
+    toast.success("Gelöscht", {
       action: snapshot
         ? {
-            label: 'Rückgängig',
+            label: "Rückgängig",
             onClick: () => {
-              void restoreEntry(snapshot)
+              void restoreEntry(snapshot);
             },
           }
         : undefined,
-    })
-  }
+    });
+  };
 
-  const hoursAccountTarget = (settings.targetHoursPerWeek ?? 0) * 3600
+  const hoursAccountTarget = (settings.targetHoursPerWeek ?? 0) * 3600;
 
   return (
     <div className="space-y-6">
@@ -197,9 +177,9 @@ export function TodayPage() {
           <div className="flex-1 text-[color:var(--color-text-2)]">
             <strong className="font-semibold text-[color:var(--color-text-1)]">
               Backup empfohlen.
-            </strong>{' '}
+            </strong>{" "}
             {settings.lastBackupAt == null
-              ? 'Du hast noch kein Backup angelegt — deine Einträge liegen nur in diesem Browser.'
+              ? "Du hast noch kein Backup angelegt — deine Einträge liegen nur in diesem Browser."
               : `Dein letztes Backup ist ${backupAgeDays} Tage alt.`}
           </div>
           <div className="flex flex-shrink-0 items-center gap-1">
@@ -225,10 +205,10 @@ export function TodayPage() {
           </h1>
           <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
             {new Intl.DateTimeFormat(settings.locale, {
-              weekday: 'long',
-              day: '2-digit',
-              month: 'long',
-              year: 'numeric',
+              weekday: "long",
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
             }).format(today)}
           </p>
         </div>
@@ -244,7 +224,7 @@ export function TodayPage() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <MetricCard
           label="Heute"
-          value={formatDuration(todayTotalSec, 'short')}
+          value={formatDuration(todayTotalSec, "short")}
           hint={`${formatDecimalHours(todayTotalSec, settings.locale)} h`}
         />
         <MetricCard
@@ -253,14 +233,14 @@ export function TodayPage() {
           hint={
             hoursAccountTarget > 0
               ? `${Math.round((weekSec / hoursAccountTarget) * 100)}% von Soll`
-              : 'Diese Woche'
+              : "Diese Woche"
           }
         />
         <MetricCard
           label="Monat"
           value={`${formatDecimalHours(monthSec, settings.locale)} h`}
           hint={new Intl.DateTimeFormat(settings.locale, {
-            month: 'long',
+            month: "long",
           }).format(today)}
         />
         {billingOn ? (
@@ -271,11 +251,7 @@ export function TodayPage() {
             accent="success"
           />
         ) : (
-          <MetricCard
-            label="Einträge"
-            value={String(todays.length)}
-            hint="heute"
-          />
+          <MetricCard label="Einträge" value={String(todays.length)} hint="heute" />
         )}
       </div>
 
@@ -294,9 +270,7 @@ export function TodayPage() {
         </div>
         {todays.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center">
-            <p className="text-sm text-[color:var(--color-text-2)]">
-              Noch keine Einträge heute.
-            </p>
+            <p className="text-sm text-[color:var(--color-text-2)]">Noch keine Einträge heute.</p>
             <p className="mt-1 text-xs text-[color:var(--color-text-3)]">
               Tippe oben auf <strong>Start</strong> oder drücke die Leertaste.
             </p>
@@ -307,14 +281,8 @@ export function TodayPage() {
               <EntryRow
                 key={entry.id}
                 entry={entry}
-                project={
-                  entry.projectId ? projectMap.get(entry.projectId) : undefined
-                }
-                tags={
-                  entry.tagIds
-                    .map((id) => tagMap.get(id))
-                    .filter(Boolean) as typeof tags
-                }
+                project={entry.projectId ? projectMap.get(entry.projectId) : undefined}
+                tags={entry.tagIds.map((id) => tagMap.get(id)).filter(Boolean) as typeof tags}
                 locale={settings.locale}
                 onDelete={(id) => void handleDelete(id)}
               />
@@ -323,5 +291,5 @@ export function TodayPage() {
         )}
       </section>
     </div>
-  )
+  );
 }

@@ -1,34 +1,34 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
-import { Search, X } from 'lucide-react'
-import { Kbd } from './Kbd'
+import { Search, X } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Kbd } from "./Kbd";
 
 export interface CommandItem {
-  id: string
-  label: string
-  description?: string
-  hint?: string
-  icon?: ReactNode
-  kbd?: string
-  section: string
-  keywords?: string[]
-  onSelect: () => void
+  id: string;
+  label: string;
+  description?: string;
+  hint?: string;
+  icon?: ReactNode;
+  kbd?: string;
+  section: string;
+  keywords?: string[];
+  onSelect: () => void;
 }
 
 function fuzzyScore(query: string, target: string): number {
-  if (!query) return 0
-  const q = query.toLowerCase()
-  const t = target.toLowerCase()
-  if (t === q) return 1000
-  if (t.startsWith(q)) return 500
-  if (t.includes(q)) return 200
+  if (!query) return 0;
+  const q = query.toLowerCase();
+  const t = target.toLowerCase();
+  if (t === q) return 1000;
+  if (t.startsWith(q)) return 500;
+  if (t.includes(q)) return 200;
   // Subsequence match
-  let qi = 0
+  let qi = 0;
   for (let i = 0; i < t.length && qi < q.length; i++) {
-    if (t[i] === q[qi]) qi++
+    if (t[i] === q[qi]) qi++;
   }
-  if (qi === q.length) return 100 - (t.length - q.length)
-  return -1
+  if (qi === q.length) return 100 - (t.length - q.length);
+  return -1;
 }
 
 export function CommandPalette({
@@ -36,75 +36,71 @@ export function CommandPalette({
   onClose,
   commands,
 }: {
-  open: boolean
-  onClose: () => void
-  commands: CommandItem[]
+  open: boolean;
+  onClose: () => void;
+  commands: CommandItem[];
 }) {
-  const [query, setQuery] = useState('')
-  const [highlight, setHighlight] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const listRef = useRef<HTMLDivElement>(null)
+  const [query, setQuery] = useState("");
+  const [highlight, setHighlight] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) {
-      setQuery('')
-      setHighlight(0)
-      return
+      setQuery("");
+      setHighlight(0);
+      return;
     }
-    inputRef.current?.focus()
-    document.body.style.overflow = 'hidden'
+    inputRef.current?.focus();
+    document.body.style.overflow = "hidden";
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [open])
+      document.body.style.overflow = "";
+    };
+  }, [open]);
 
   const scored = useMemo(() => {
-    const q = query.trim()
-    if (!q) return commands.map((c) => ({ cmd: c, score: 0 }))
+    const q = query.trim();
+    if (!q) return commands.map((c) => ({ cmd: c, score: 0 }));
     return commands
       .map((c) => {
-        const labelScore = fuzzyScore(q, c.label)
-        const descScore = c.description ? fuzzyScore(q, c.description) : -1
-        const kwScore = c.keywords
-          ? Math.max(...c.keywords.map((k) => fuzzyScore(q, k)), -1)
-          : -1
-        const score = Math.max(labelScore, descScore * 0.7, kwScore * 0.6)
-        return { cmd: c, score }
+        const labelScore = fuzzyScore(q, c.label);
+        const descScore = c.description ? fuzzyScore(q, c.description) : -1;
+        const kwScore = c.keywords ? Math.max(...c.keywords.map((k) => fuzzyScore(q, k)), -1) : -1;
+        const score = Math.max(labelScore, descScore * 0.7, kwScore * 0.6);
+        return { cmd: c, score };
       })
       .filter((x) => x.score >= 0)
-      .sort((a, b) => b.score - a.score)
-  }, [commands, query])
+      .sort((a, b) => b.score - a.score);
+  }, [commands, query]);
 
   const sections = useMemo(() => {
-    const map = new Map<string, CommandItem[]>()
+    const map = new Map<string, CommandItem[]>();
     scored.forEach(({ cmd }) => {
-      const arr = map.get(cmd.section) ?? []
-      arr.push(cmd)
-      map.set(cmd.section, arr)
-    })
-    return Array.from(map.entries())
-  }, [scored])
+      const arr = map.get(cmd.section) ?? [];
+      arr.push(cmd);
+      map.set(cmd.section, arr);
+    });
+    return Array.from(map.entries());
+  }, [scored]);
 
-  const flat = scored.map((s) => s.cmd)
-
-  useEffect(() => {
-    setHighlight(0)
-  }, [query])
+  const flat = scored.map((s) => s.cmd);
 
   useEffect(() => {
-    if (!open) return
-    const el = listRef.current?.querySelector<HTMLElement>(
-      `[data-cmd-index="${highlight}"]`,
-    )
-    el?.scrollIntoView({ block: 'nearest' })
-  }, [highlight, open])
+    setHighlight(0);
+  }, [query]);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = listRef.current?.querySelector<HTMLElement>(`[data-cmd-index="${highlight}"]`);
+    el?.scrollIntoView({ block: "nearest" });
+  }, [highlight, open]);
 
   const select = (cmd: CommandItem) => {
-    onClose()
-    setTimeout(() => cmd.onSelect(), 0)
-  }
+    onClose();
+    setTimeout(() => cmd.onSelect(), 0);
+  };
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div
@@ -113,20 +109,20 @@ export function CommandPalette({
       aria-label="Befehlsmenü"
       className="fixed inset-0 z-[70] flex items-start justify-center px-4 pt-[15vh]"
       onKeyDown={(e) => {
-        if (e.key === 'Escape') {
-          onClose()
-          return
+        if (e.key === "Escape") {
+          onClose();
+          return;
         }
-        if (e.key === 'ArrowDown') {
-          e.preventDefault()
-          setHighlight((h) => Math.min(h + 1, flat.length - 1))
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault()
-          setHighlight((h) => Math.max(h - 1, 0))
-        } else if (e.key === 'Enter') {
-          e.preventDefault()
-          const cmd = flat[highlight]
-          if (cmd) select(cmd)
+        if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setHighlight((h) => Math.min(h + 1, flat.length - 1));
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setHighlight((h) => Math.max(h - 1, 0));
+        } else if (e.key === "Enter") {
+          e.preventDefault();
+          const cmd = flat[highlight];
+          if (cmd) select(cmd);
         }
       }}
     >
@@ -137,10 +133,7 @@ export function CommandPalette({
       />
       <div className="page-fade relative z-10 w-full max-w-xl overflow-hidden rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md">
         <div className="flex items-center gap-3 border-b border-[color:var(--color-border-subtle)] px-4">
-          <Search
-            size={16}
-            className="flex-shrink-0 text-[color:var(--color-text-3)]"
-          />
+          <Search size={16} className="flex-shrink-0 text-[color:var(--color-text-3)]" />
           <input
             ref={inputRef}
             type="text"
@@ -170,8 +163,8 @@ export function CommandPalette({
                   {section}
                 </div>
                 {items.map((cmd) => {
-                  const idx = flat.indexOf(cmd)
-                  const active = idx === highlight
+                  const idx = flat.indexOf(cmd);
+                  const active = idx === highlight;
                   return (
                     <button
                       key={cmd.id}
@@ -180,18 +173,14 @@ export function CommandPalette({
                       onMouseEnter={() => setHighlight(idx)}
                       onClick={() => select(cmd)}
                       className={`flex w-full items-center gap-3 px-3 py-2 text-left text-sm transition-colors no-min-tap ${
-                        active
-                          ? 'bg-[color:var(--color-surface-2)]'
-                          : ''
+                        active ? "bg-[color:var(--color-surface-2)]" : ""
                       }`}
                     >
                       <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md bg-[color:var(--color-surface-2)] text-[color:var(--color-text-2)]">
                         {cmd.icon}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[color:var(--color-text-1)]">
-                          {cmd.label}
-                        </span>
+                        <span className="block text-[color:var(--color-text-1)]">{cmd.label}</span>
                         {cmd.description && (
                           <span className="block truncate text-xs text-[color:var(--color-text-3)]">
                             {cmd.description}
@@ -199,13 +188,11 @@ export function CommandPalette({
                         )}
                       </span>
                       {cmd.hint && (
-                        <span className="text-xs text-[color:var(--color-text-3)]">
-                          {cmd.hint}
-                        </span>
+                        <span className="text-xs text-[color:var(--color-text-3)]">{cmd.hint}</span>
                       )}
                       {cmd.kbd && <Kbd>{cmd.kbd}</Kbd>}
                     </button>
-                  )
+                  );
                 })}
               </div>
             ))
@@ -227,5 +214,5 @@ export function CommandPalette({
         </div>
       </div>
     </div>
-  )
+  );
 }
