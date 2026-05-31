@@ -1,7 +1,6 @@
 import { newId } from "../ids";
 import type { Break } from "../types";
-import { broadcast } from "./broadcast";
-import { getDB } from "./index";
+import { getDB, notifyMutation } from "./db";
 
 export async function startBreak(entryId: string): Promise<Break> {
   const db = await getDB();
@@ -24,7 +23,7 @@ export async function startBreak(entryId: string): Promise<Break> {
   };
   await store.add(value);
   await tx.done;
-  broadcast({ type: "breaks-changed" });
+  notifyMutation("breaks");
   return value;
 }
 
@@ -46,7 +45,7 @@ export async function endBreak(breakId: string): Promise<Break | null> {
   };
   await store.put(updated);
   await tx.done;
-  broadcast({ type: "breaks-changed" });
+  notifyMutation("breaks");
   return updated;
 }
 
@@ -69,7 +68,7 @@ export async function endRunningBreakFor(entryId: string): Promise<Break | null>
   };
   await store.put(updated);
   await tx.done;
-  broadcast({ type: "breaks-changed" });
+  notifyMutation("breaks");
   return updated;
 }
 
@@ -82,7 +81,7 @@ export async function listBreaksByEntry(entryId: string): Promise<Break[]> {
 export async function deleteBreak(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("breaks", id);
-  broadcast({ type: "breaks-changed" });
+  notifyMutation("breaks");
 }
 
 export async function listBreaksInRange(from: number, to: number): Promise<Break[]> {

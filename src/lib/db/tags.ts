@@ -1,7 +1,6 @@
 import { newId } from "../ids";
 import type { Tag } from "../types";
-import { broadcast } from "./broadcast";
-import { getDB } from "./index";
+import { getDB, notifyMutation } from "./db";
 
 export type NewTag = Omit<Tag, "id" | "createdAt" | "updatedAt">;
 
@@ -15,7 +14,7 @@ export async function createTag(input: NewTag): Promise<Tag> {
   };
   const db = await getDB();
   await db.add("tags", tag);
-  broadcast({ type: "tag-changed", id: tag.id });
+  notifyMutation("tags");
   return tag;
 }
 
@@ -34,7 +33,7 @@ export async function updateTag(
     updatedAt: Date.now(),
   };
   await db.put("tags", updated);
-  broadcast({ type: "tag-changed", id });
+  notifyMutation("tags");
   return updated;
 }
 
@@ -76,10 +75,8 @@ export async function deleteTag(id: string): Promise<DeleteTagResult> {
     });
   }
   await tx.done;
-  broadcast({ type: "tag-deleted", id });
-  for (const entry of linked) {
-    broadcast({ type: "entry-changed", id: entry.id });
-  }
+  notifyMutation("tags");
+  if (linked.length > 0) notifyMutation("time_entries");
   return { cleaned: linked.length };
 }
 

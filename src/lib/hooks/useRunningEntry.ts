@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { subscribe } from "../db/broadcast";
+import { useEffect, useState } from "react";
+import { useLiveQuery } from "../db";
 import { getRunningEntry } from "../db/timeEntries";
 import type { TimeEntry } from "../types";
 
@@ -7,36 +7,10 @@ export function useRunningEntry(): {
   entry: TimeEntry | null;
   liveDurationSec: number;
   loading: boolean;
-  reload: () => Promise<void>;
 } {
-  const [entry, setEntry] = useState<TimeEntry | null>(null);
+  const { data, loading } = useLiveQuery("time_entries", getRunningEntry, []);
+  const entry = data ?? null;
   const [liveDurationSec, setLiveDurationSec] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const reload = useCallback(async () => {
-    try {
-      const data = await getRunningEntry();
-      setEntry(data ?? null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void reload();
-    const unsubscribe = subscribe((message) => {
-      if (
-        message.type === "timer-started" ||
-        message.type === "timer-stopped" ||
-        message.type === "entry-changed" ||
-        message.type === "entry-deleted" ||
-        message.type === "db-cleared"
-      ) {
-        void reload();
-      }
-    });
-    return unsubscribe;
-  }, [reload]);
 
   const entryStartedAt = entry?.startedAt;
   useEffect(() => {
@@ -54,5 +28,5 @@ export function useRunningEntry(): {
     // identity changes (broadcasts) don't tear down and rebuild the 1s tick.
   }, [entry?.id, entryStartedAt]);
 
-  return { entry, liveDurationSec, loading, reload };
+  return { entry, liveDurationSec, loading };
 }

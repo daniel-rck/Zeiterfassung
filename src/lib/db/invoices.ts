@@ -1,8 +1,7 @@
 import { newId } from "../ids";
 import type { ComposedInvoice } from "../invoice/compose";
 import type { StoredInvoice } from "../types";
-import { broadcast } from "./broadcast";
-import { getDB } from "./index";
+import { getDB, notifyMutation } from "./db";
 
 export async function saveInvoice(
   composed: ComposedInvoice,
@@ -27,7 +26,7 @@ export async function saveInvoice(
   };
   const db = await getDB();
   await db.add("invoices", record);
-  broadcast({ type: "invoice-changed", id: record.id });
+  notifyMutation("invoices");
   return record;
 }
 
@@ -45,5 +44,5 @@ export async function getInvoice(id: string): Promise<StoredInvoice | undefined>
 export async function deleteInvoice(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("invoices", id);
-  broadcast({ type: "invoice-deleted", id });
+  notifyMutation("invoices");
 }

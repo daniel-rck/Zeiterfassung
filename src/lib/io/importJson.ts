@@ -1,5 +1,4 @@
-import { DB_VERSION, dayKey, getDB } from "../db";
-import { broadcast } from "../db/broadcast";
+import { DB_VERSION, dayKey, getDB, notifyMutation } from "../db";
 import { writeSettings } from "../db/settings";
 import type { DBSnapshot } from "../types";
 
@@ -113,7 +112,7 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
     throw new Error(`Import fehlgeschlagen: ${(err as Error).message}`);
   }
   writeSettings(parsed.settings);
-  broadcast({ type: "db-cleared" });
+  notifyMutation("*");
   return {
     projects: parsed.projects.length,
     tags: parsed.tags.length,

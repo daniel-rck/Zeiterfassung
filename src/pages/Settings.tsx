@@ -32,8 +32,7 @@ import { Kbd } from "../components/ui/Kbd";
 import { type TabItem, Tabs } from "../components/ui/Tabs";
 import { useToast } from "../components/ui/Toast";
 import { Toggle } from "../components/ui/Toggle";
-import { getDB } from "../lib/db";
-import { broadcast } from "../lib/db/broadcast";
+import { getDB, notifyMutation } from "../lib/db";
 import { patchSettings, presetFromLevel } from "../lib/db/settings";
 import { formatRelativeDay } from "../lib/format";
 import { useDetailLevel } from "../lib/hooks/useDetailLevel";
@@ -233,7 +232,7 @@ export function SettingsPage() {
     await tx.objectStore("breaks").clear();
     await tx.done;
     window.localStorage.removeItem("zeiterfassung:settings");
-    broadcast({ type: "db-cleared" });
+    notifyMutation("*");
     toast.success("Alles gelöscht");
   };
 

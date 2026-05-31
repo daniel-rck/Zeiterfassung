@@ -1,11 +1,10 @@
 import { Download, FileText, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
 import { useConfirm } from "../components/ui/Confirm";
 import { Skeleton } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/Toast";
-import { subscribe } from "../lib/db/broadcast";
+import { useLiveQuery } from "../lib/db";
 import { deleteInvoice, listInvoices } from "../lib/db/invoices";
 import { formatDate, formatMoney } from "../lib/format";
 import { useSettings } from "../lib/hooks/useSettings";
@@ -34,26 +33,8 @@ export function InvoicesPage() {
   const { settings } = useSettings();
   const toast = useToast();
   const confirm = useConfirm();
-  const [invoices, setInvoices] = useState<StoredInvoice[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const reload = useCallback(async () => {
-    try {
-      const data = await listInvoices();
-      setInvoices(data);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void reload();
-    return subscribe((m) => {
-      if (m.type === "invoice-changed" || m.type === "invoice-deleted" || m.type === "db-cleared") {
-        void reload();
-      }
-    });
-  }, [reload]);
+  const { data, loading } = useLiveQuery("invoices", listInvoices, []);
+  const invoices = data ?? [];
 
   const handleDownload = async (record: StoredInvoice) => {
     try {

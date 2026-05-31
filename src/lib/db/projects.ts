@@ -1,7 +1,6 @@
 import { newId } from "../ids";
 import type { Project } from "../types";
-import { broadcast } from "./broadcast";
-import { getDB } from "./index";
+import { getDB, notifyMutation } from "./db";
 
 export type NewProject = Omit<Project, "id" | "createdAt" | "updatedAt">;
 
@@ -15,7 +14,7 @@ export async function createProject(input: NewProject): Promise<Project> {
   };
   const db = await getDB();
   await db.add("projects", project);
-  broadcast({ type: "project-changed", id: project.id });
+  notifyMutation("projects");
   return project;
 }
 
@@ -34,7 +33,7 @@ export async function updateProject(
     updatedAt: Date.now(),
   };
   await db.put("projects", updated);
-  broadcast({ type: "project-changed", id });
+  notifyMutation("projects");
   return updated;
 }
 
@@ -75,10 +74,8 @@ export async function deleteProject(id: string): Promise<DeleteProjectResult> {
     await tx.objectStore("time_entries").put(rest as typeof entry);
   }
   await tx.done;
-  broadcast({ type: "project-deleted", id });
-  for (const entry of linked) {
-    broadcast({ type: "entry-changed", id: entry.id });
-  }
+  notifyMutation("projects");
+  if (linked.length > 0) notifyMutation("time_entries");
   return { cleaned: linked.length };
 }
 

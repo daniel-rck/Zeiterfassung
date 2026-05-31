@@ -1,7 +1,6 @@
 import { newId } from "../ids";
 import type { TimeEntry } from "../types";
-import { broadcast } from "./broadcast";
-import { dayKey, getDB, type StoredTimeEntry } from "./index";
+import { dayKey, getDB, notifyMutation, type StoredTimeEntry } from "./db";
 import { getProject } from "./projects";
 
 export type NewTimeEntry = Omit<TimeEntry, "id" | "createdAt" | "updatedAt" | "durationSec"> & {
@@ -71,7 +70,7 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
   };
   const db = await getDB();
   await db.add("time_entries", toStored(entry));
-  broadcast({ type: "timer-started", id: entry.id });
+  notifyMutation("time_entries");
   return entry;
 }
 
@@ -90,7 +89,7 @@ export async function stopTimer(): Promise<TimeEntry | null> {
     updatedAt: now,
   };
   await db.put("time_entries", toStored(updated));
-  broadcast({ type: "timer-stopped", id: updated.id });
+  notifyMutation("time_entries");
   return updated;
 }
 
@@ -112,7 +111,7 @@ export async function createEntry(input: NewTimeEntry): Promise<TimeEntry> {
   };
   const db = await getDB();
   await db.add("time_entries", toStored(entry));
-  broadcast({ type: "entry-changed", id: entry.id });
+  notifyMutation("time_entries");
   return entry;
 }
 
@@ -135,7 +134,7 @@ export async function updateEntry(
       patch.durationSec ?? calcDuration(merged.startedAt, merged.endedAt, merged.durationSec);
   }
   await db.put("time_entries", toStored(merged));
-  broadcast({ type: "entry-changed", id });
+  notifyMutation("time_entries");
   return merged;
 }
 
@@ -188,13 +187,13 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
 export async function deleteEntry(id: string): Promise<void> {
   const db = await getDB();
   await db.delete("time_entries", id);
-  broadcast({ type: "entry-deleted", id });
+  notifyMutation("time_entries");
 }
 
 // Re-insert an entry snapshot under its original id. Used by undo-toasts.
 export async function restoreEntry(entry: TimeEntry): Promise<TimeEntry> {
   const db = await getDB();
   await db.put("time_entries", toStored(entry));
-  broadcast({ type: "entry-changed", id: entry.id });
+  notifyMutation("time_entries");
   return entry;
 }

@@ -1,6 +1,6 @@
 import type { DetailLevel, FeatureFlags, InvoiceProfile, Settings } from "../types";
 import { DETAIL_LEVEL_ORDER } from "../types";
-import { broadcast } from "./broadcast";
+import { notifyMutation } from "./db";
 
 const KEY = "zeiterfassung:settings";
 
@@ -60,7 +60,7 @@ export function writeSettings(settings: Settings): void {
   const ls = safeStorage();
   if (!ls) return;
   ls.setItem(KEY, JSON.stringify(settings));
-  broadcast({ type: "settings-changed" });
+  notifyMutation("settings");
 }
 
 export function patchSettings(patch: Partial<Settings>): Settings {
