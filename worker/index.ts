@@ -1,4 +1,4 @@
-interface Env {
+export interface Env {
   ASSETS: Fetcher;
 }
 
@@ -16,7 +16,7 @@ interface Env {
 // so connect/font/manifest/worker all stay on 'self'.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'sha256-nyMb31s7yvT8b/d98Zu3uGrzFnuNITIamia0wvAqK+A='",
+  "script-src 'self' 'sha256-e3tJSdVAi42SMB/ewLy/YKXTzQjDws6fMSzZaWxkISc='",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",
@@ -29,6 +29,8 @@ const CSP = [
   "frame-ancestors 'none'",
 ].join("; ");
 
+// App-specific deviation from the canonical web-base worker: this app injects a
+// strict CSP + security headers on every response (documented in docs/specs).
 const SECURITY_HEADERS: Record<string, string> = {
   "Content-Security-Policy": CSP,
   "X-Content-Type-Options": "nosniff",
@@ -38,28 +40,32 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
 };
 
+function withSecurityHeaders(response: Response): Response {
+  const next = new Response(response.body, response);
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    next.headers.set(name, value);
+  }
+  return next;
+}
+
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === "/healthz") {
-      return new Response("ok", {
-        status: 200,
-        headers: {
-          "content-type": "text/plain; charset=utf-8",
-          "cache-control": "no-cache",
-          ...SECURITY_HEADERS,
-        },
-      });
+      return withSecurityHeaders(Response.json({ ok: true }));
     }
 
-    const assetResponse = await env.ASSETS.fetch(request);
-    // Clone so we can attach security headers (the original headers are
-    // immutable on the response returned by the assets binding).
-    const response = new Response(assetResponse.body, assetResponse);
-    for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
-      response.headers.set(name, value);
+    if (url.pathname.startsWith("/api/")) {
+      return withSecurityHeaders(await handleApi(request, env, ctx));
     }
-    return response;
+
+    // Fall through to Workers Assets (static SPA bundle), then attach security
+    // headers (the assets binding returns immutable headers, so clone first).
+    return withSecurityHeaders(await env.ASSETS.fetch(request));
   },
 } satisfies ExportedHandler<Env>;
+
+async function handleApi(_request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
+  return Response.json({ error: "not_found" }, { status: 404 });
+}
