@@ -70,9 +70,9 @@ export function EntryEditPage() {
   });
 
   useEffect(() => {
-    if (isNew) return;
+    if (isNew || !id) return;
     void (async () => {
-      const entry = await getEntry(id!);
+      const entry = await getEntry(id);
       if (!entry) {
         toast.error("Eintrag nicht gefunden");
         navigate("/entries");
@@ -103,7 +103,7 @@ export function EntryEditPage() {
       const endedAt = startedAt + form.durationSec * 1000;
       const project = form.projectId ? projectMap.get(form.projectId) : undefined;
 
-      if (isNew) {
+      if (isNew || !id) {
         await createEntry({
           description: form.description,
           projectId: form.projectId,
@@ -117,7 +117,7 @@ export function EntryEditPage() {
         });
         toast.success("Eintrag angelegt");
       } else {
-        await updateEntry(id!, {
+        await updateEntry(id, {
           description: form.description,
           projectId: form.projectId,
           startedAt,

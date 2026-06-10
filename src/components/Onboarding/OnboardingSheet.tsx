@@ -412,7 +412,7 @@ export function OnboardingSheet({
                         ...config,
                         invoiceProfile: {
                           ...config.invoiceProfile,
-                          taxRate: Number.isFinite(n!) ? n : undefined,
+                          taxRate: n != null && Number.isFinite(n) ? n : undefined,
                         },
                       });
                     }}

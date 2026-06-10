@@ -4,7 +4,7 @@ import { composeInvoice } from "../compose";
 
 function entry(over: Partial<TimeEntry>): TimeEntry {
   return {
-    id: "e" + Math.random(),
+    id: `e${Math.random()}`,
     description: "",
     startedAt: new Date("2026-05-10T09:00:00Z").getTime(),
     endedAt: new Date("2026-05-10T10:00:00Z").getTime(),

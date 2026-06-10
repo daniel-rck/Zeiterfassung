@@ -68,7 +68,8 @@ export function entriesToCsv(entries: TimeEntry[], projects: Project[], tags: Ta
 }
 
 export function downloadCsv(filename: string, content: string): void {
-  const blob = new Blob(["﻿" + content], { type: "text/csv;charset=utf-8" });
+  // ﻿ = UTF-8 BOM so Excel detects the encoding.
+  const blob = new Blob([`﻿${content}`], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

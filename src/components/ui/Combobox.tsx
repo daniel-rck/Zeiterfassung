@@ -44,16 +44,9 @@ export function Combobox({
     const q = query.trim().toLowerCase();
     if (!q) return options;
     return options.filter(
-      (o) => o.label.toLowerCase().includes(q) || (o.hint && o.hint.toLowerCase().includes(q)),
+      (o) => o.label.toLowerCase().includes(q) || o.hint?.toLowerCase().includes(q),
     );
   }, [options, query]);
-
-  // Reset the highlight to the first match whenever the query narrows the
-  // list, so the highlighted index can never point past the end of `filtered`
-  // (which would make Enter select nothing).
-  useEffect(() => {
-    setHighlight(0);
-  }, [query]);
 
   useEffect(() => {
     if (!open) return;
@@ -141,7 +134,13 @@ export function Combobox({
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                // Reset the highlight to the first match whenever the query
+                // narrows the list, so the highlighted index can never point
+                // past the end of `filtered` (Enter would select nothing).
+                setHighlight(0);
+              }}
               onKeyDown={onKeyDown}
               placeholder="Suchen…"
               className="w-full bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"

@@ -171,11 +171,12 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
   // Range filter: include entries whose interval overlaps [from, to].
   // For running entries (endedAt == null), treat "ended" as +Infinity so they
   // are kept as long as they started before `to`.
-  if (filter.from != null) {
-    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= filter.from!);
+  const { from, to } = filter;
+  if (from != null) {
+    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= from);
   }
-  if (filter.to != null) {
-    result = result.filter((e) => e.startedAt <= filter.to!);
+  if (to != null) {
+    result = result.filter((e) => e.startedAt <= to);
   }
   if (filter.projectId === null) {
     result = result.filter((e) => !e.projectId);

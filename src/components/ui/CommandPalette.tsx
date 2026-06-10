@@ -86,10 +86,6 @@ export function CommandPalette({
   const flat = scored.map((s) => s.cmd);
 
   useEffect(() => {
-    setHighlight(0);
-  }, [query]);
-
-  useEffect(() => {
     if (!open) return;
     const el = listRef.current?.querySelector<HTMLElement>(`[data-cmd-index="${highlight}"]`);
     el?.scrollIntoView({ block: "nearest" });
@@ -138,7 +134,11 @@ export function CommandPalette({
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              // Keep the highlight on the first match while the query changes.
+              setHighlight(0);
+            }}
             placeholder="Befehl suchen oder eintippen…"
             className="h-12 flex-1 bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"
           />

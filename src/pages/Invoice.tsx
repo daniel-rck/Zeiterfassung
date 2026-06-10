@@ -393,11 +393,10 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             {invoice.issuer.bankName && <p>{invoice.issuer.bankName}</p>}
             {invoice.issuer.iban && <p>IBAN: {invoice.issuer.iban}</p>}
             {invoice.issuer.bic && <p>BIC: {invoice.issuer.bic}</p>}
-            {invoice.issuer.paymentNote &&
-              invoice.issuer.paymentNote
-                .split("\n")
-                // biome-ignore lint/suspicious/noArrayIndexKey: static payment-note lines, fixed order
-                .map((line, i) => <p key={i}>{line}</p>)}
+            {invoice.issuer.paymentNote?.split("\n").map((line, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static payment-note lines, fixed order
+              <p key={i}>{line}</p>
+            ))}
           </div>
         </section>
       )}

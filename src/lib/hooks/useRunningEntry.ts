@@ -13,6 +13,7 @@ export function useRunningEntry(): {
   const [liveDurationSec, setLiveDurationSec] = useState(0);
 
   const entryStartedAt = entry?.startedAt;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the entry id on purpose, see comment below
   useEffect(() => {
     if (entryStartedAt == null) {
       setLiveDurationSec(0);

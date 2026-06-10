@@ -312,7 +312,10 @@ export function SettingsPage() {
                       onChange={(e) => {
                         const v = e.target.value.replace(",", ".");
                         const n = v === "" ? undefined : Number(v);
-                        updateField("targetHoursPerWeek", Number.isFinite(n!) ? n : undefined);
+                        updateField(
+                          "targetHoursPerWeek",
+                          n != null && Number.isFinite(n) ? n : undefined,
+                        );
                       }}
                     />
                   </Field>
@@ -441,7 +444,10 @@ export function SettingsPage() {
                           onChange={(e) => {
                             const v = e.target.value.replace(",", ".");
                             const n = v === "" ? undefined : Number(v);
-                            updateField("defaultHourlyRate", Number.isFinite(n!) ? n : undefined);
+                            updateField(
+                              "defaultHourlyRate",
+                              n != null && Number.isFinite(n) ? n : undefined,
+                            );
                           }}
                         />
                       </Field>
@@ -497,7 +503,7 @@ export function SettingsPage() {
                           const v = e.target.value.replace(",", ".");
                           const n = v === "" ? undefined : Number(v);
                           updateInvoiceProfile({
-                            taxRate: Number.isFinite(n!) ? n : undefined,
+                            taxRate: n != null && Number.isFinite(n) ? n : undefined,
                           });
                         }}
                       />
