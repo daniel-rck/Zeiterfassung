@@ -38,11 +38,6 @@ export interface StartTimerInput {
 }
 
 export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry> {
-  const running = await getRunningEntry();
-  if (running) {
-    throw new Error("Es läuft bereits ein Timer.");
-  }
-  const now = Date.now();
   let billable = input.billable;
   let hourlyRate: number | undefined;
   let currency: string | undefined;
@@ -54,6 +49,7 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
       currency = project.currency;
     }
   }
+  const now = Date.now();
   const entry: TimeEntry = {
     id: newId(),
     projectId: input.projectId,
@@ -70,7 +66,17 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
     updatedAt: now,
   };
   const db = await getDB();
-  await db.add("time_entries", toStored(entry));
+  // Check-and-add inside one readwrite transaction: IndexedDB serializes
+  // readwrite transactions on the store, so two tabs starting simultaneously
+  // cannot both pass the running-check (a split check would let them).
+  const tx = db.transaction("time_entries", "readwrite");
+  const running = await tx.store.index("byRunning").get(1);
+  if (running) {
+    await tx.done;
+    throw new Error("Es läuft bereits ein Timer.");
+  }
+  await tx.store.add(toStored(entry));
+  await tx.done;
   notifyMutation("time_entries");
   return entry;
 }
