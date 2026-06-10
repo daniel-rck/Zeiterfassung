@@ -63,9 +63,6 @@ export function TimerHero() {
 
   const handleStop = async () => {
     try {
-      if (entry) {
-        await endRunningBreakFor(entry.id);
-      }
       const stopped = await stopTimer();
       if (stopped) {
         toast.success(`Eintrag gestoppt: ${formatDuration(stopped.durationSec, "long")}`);

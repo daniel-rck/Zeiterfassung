@@ -1,5 +1,6 @@
 import { newId } from "../ids";
 import type { TimeEntry } from "../types";
+import { endRunningBreakFor } from "./breaks";
 import { dayKey, getDB, notifyMutation, type StoredTimeEntry } from "./db";
 import { getProject } from "./projects";
 
@@ -77,6 +78,10 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
 export async function stopTimer(): Promise<TimeEntry | null> {
   const running = await getRunningEntry();
   if (!running) return null;
+  // A break that is still open would otherwise stay running forever and its
+  // time would count as work — every stop path (hero button, Space shortcut,
+  // command palette) must settle it first.
+  await endRunningBreakFor(running.id);
   const now = Date.now();
   const db = await getDB();
   const breaks = await db.getAllFromIndex("breaks", "byEntryId", running.id);
