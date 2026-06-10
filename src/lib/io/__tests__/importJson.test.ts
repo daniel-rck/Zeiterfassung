@@ -136,4 +136,12 @@ describe("importSnapshot", () => {
     };
     await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/entryId/);
   });
+
+  it("rejects breaks with invalid durationSec or endedAt", async () => {
+    const base = { id: "b1", entryId: "e1", startedAt: 1, createdAt: 0, updatedAt: 0 };
+    const badDuration = { ...VALID_SNAPSHOT, breaks: [{ ...base, durationSec: "5" }] };
+    await expect(importSnapshot(JSON.stringify(badDuration))).rejects.toThrow(/Dauer/);
+    const badEnded = { ...VALID_SNAPSHOT, breaks: [{ ...base, durationSec: 5, endedAt: "x" }] };
+    await expect(importSnapshot(JSON.stringify(badEnded))).rejects.toThrow(/Endzeitpunkt/);
+  });
 });

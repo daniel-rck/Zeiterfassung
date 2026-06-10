@@ -74,6 +74,20 @@ function validateBreak(b: unknown, i: number): void {
   if (typeof brk.startedAt !== "number" || !Number.isFinite(brk.startedAt)) {
     throw new Error(`Pause #${i + 1}: ungültiger Startzeitpunkt.`);
   }
+  if (
+    brk.endedAt !== undefined &&
+    brk.endedAt !== null &&
+    (typeof brk.endedAt !== "number" || !Number.isFinite(brk.endedAt))
+  ) {
+    throw new Error(`Pause #${i + 1}: ungültiger Endzeitpunkt.`);
+  }
+  if (
+    typeof brk.durationSec !== "number" ||
+    !Number.isFinite(brk.durationSec) ||
+    brk.durationSec < 0
+  ) {
+    throw new Error(`Pause #${i + 1}: ungültige Dauer.`);
+  }
 }
 
 export async function importSnapshot(json: string): Promise<ImportResult> {
