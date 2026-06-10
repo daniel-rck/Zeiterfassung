@@ -1,7 +1,6 @@
 import {
   Banknote,
   BarChart3,
-  Bell,
   CalendarDays,
   Coffee,
   Database,
@@ -17,7 +16,6 @@ import {
   RotateCcw,
   Sun,
   Tags as TagsIcon,
-  Timer,
   Trash2,
   Upload,
   User,
@@ -97,18 +95,6 @@ const ADVANCED_FEATURES: FeatureMeta[] = [
     label: "Pausen",
     description: "Pausen während eines laufenden Eintrags erfassen",
     icon: <Coffee size={15} />,
-  },
-  {
-    name: "pomodoro",
-    label: "Pomodoro",
-    description: "25/5-Modus für den Timer",
-    icon: <Timer size={15} />,
-  },
-  {
-    name: "notifications",
-    label: "Erinnerungen",
-    description: "Web-Benachrichtigungen für tägliche Reminder",
-    icon: <Bell size={15} />,
   },
   {
     name: "hoursAccount",
@@ -330,93 +316,6 @@ export function SettingsPage() {
                       }}
                     />
                   </Field>
-                </Card>
-              )}
-
-              {settings.features.breaks && (
-                <Card padding="md">
-                  <CardHeader
-                    title="Pausen"
-                    description="Automatische Pause nach langer Arbeitszeit."
-                  />
-                  <Field label="Auto-Pause nach (Minuten)" hint="Leer = aus">
-                    <Input
-                      type="number"
-                      value={settings.autoBreakAfterMinutes?.toString() ?? ""}
-                      onChange={(e) => {
-                        const n = e.target.value === "" ? undefined : Number(e.target.value);
-                        updateField("autoBreakAfterMinutes", Number.isFinite(n!) ? n : undefined);
-                      }}
-                    />
-                  </Field>
-                </Card>
-              )}
-
-              {settings.features.pomodoro && (
-                <Card padding="md">
-                  <CardHeader title="Pomodoro" description="Intervalle in Minuten." />
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <Field label="Arbeit">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={(settings.pomodoro?.workMinutes ?? 25).toString()}
-                        onChange={(e) =>
-                          updateField("pomodoro", {
-                            workMinutes: Number(e.target.value) || 25,
-                            breakMinutes: settings.pomodoro?.breakMinutes ?? 5,
-                            longBreakMinutes: settings.pomodoro?.longBreakMinutes ?? 15,
-                            setsBeforeLongBreak: settings.pomodoro?.setsBeforeLongBreak ?? 4,
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field label="Pause">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={(settings.pomodoro?.breakMinutes ?? 5).toString()}
-                        onChange={(e) =>
-                          updateField("pomodoro", {
-                            workMinutes: settings.pomodoro?.workMinutes ?? 25,
-                            breakMinutes: Number(e.target.value) || 5,
-                            longBreakMinutes: settings.pomodoro?.longBreakMinutes ?? 15,
-                            setsBeforeLongBreak: settings.pomodoro?.setsBeforeLongBreak ?? 4,
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field label="Lange Pause">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={(settings.pomodoro?.longBreakMinutes ?? 15).toString()}
-                        onChange={(e) =>
-                          updateField("pomodoro", {
-                            workMinutes: settings.pomodoro?.workMinutes ?? 25,
-                            breakMinutes: settings.pomodoro?.breakMinutes ?? 5,
-                            longBreakMinutes: Number(e.target.value) || 15,
-                            setsBeforeLongBreak: settings.pomodoro?.setsBeforeLongBreak ?? 4,
-                          })
-                        }
-                      />
-                    </Field>
-                    <Field label="Sets bis lange Pause">
-                      <Input
-                        type="number"
-                        min={1}
-                        value={(settings.pomodoro?.setsBeforeLongBreak ?? 4).toString()}
-                        onChange={(e) =>
-                          updateField("pomodoro", {
-                            workMinutes: settings.pomodoro?.workMinutes ?? 25,
-                            breakMinutes: settings.pomodoro?.breakMinutes ?? 5,
-                            longBreakMinutes: settings.pomodoro?.longBreakMinutes ?? 15,
-                            setsBeforeLongBreak: Number(e.target.value) || 4,
-                          })
-                        }
-                      />
-                    </Field>
-                  </div>
                 </Card>
               )}
             </>
