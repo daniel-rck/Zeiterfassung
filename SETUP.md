@@ -32,7 +32,7 @@ Die `wrangler.toml` enthält bereits:
 ```toml
 name = "zeiterfassung"
 main = "worker/index.ts"
-compatibility_date = "2025-10-01"
+compatibility_date = "2026-05-31"
 compatibility_flags = ["nodejs_compat"]
 
 [assets]

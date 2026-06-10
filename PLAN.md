@@ -1,134 +1,87 @@
-# Zeiterfassung — Lebende Roadmap
+# Deep Fixup — Session-Plan (2026-06-10)
 
-## Naming
+> Ausführungs-Plan und Protokoll der Deep-Fixup-Session. Die lebende
+> Produkt-Roadmap ist nach [docs/ROADMAP.md](./docs/ROADMAP.md) umgezogen.
 
-| | |
-|---|---|
-| App-Name (UI) | Zeiterfassung |
-| Repo | `daniel-rck/Zeiterfassung` |
-| Worker | `zeiterfassung` |
-| Domain | `zeiterfassung.daniel-rck.workers.dev` |
-| DB-Name (IndexedDB) | `zeiterfassung` |
-| Settings-Key (localStorage) | `zeiterfassung:settings` |
-| BroadcastChannel | `zeiterfassung-db` |
+**Baseline bei Start:** Build ✅ · 52/52 Tests ✅ · Typecheck ✅ · Lint ✅ (28 Warnungen)
 
-## Designprinzip
+**Verifikation (gesamte Session):**
 
-Eine einzige App, vier Tiefen-Stufen. Der User wählt im Onboarding, wie weit er erfassen will — und kann die Stufe jederzeit ändern. Ausgeblendete Felder bleiben in der DB erhalten und tauchen beim Hochstufen wieder auf.
-
-| Stufe | Sichtbar | Versteckt |
-|---|---|---|
-| **Basis** | Timer, Beschreibung, Tagesliste, JSON-Backup | Projekte, Tags, billable, Stundensätze, Reports, Invoice |
-| **Standard** | + Projekte (Name, Farbe), Reports, CSV-Export | Tags, billable, Stundensätze, Invoice, Rundung |
-| **Pro** | + Tags, billable, Stundensätze pro Projekt, Beträge, Rundung | Invoice |
-| **Pro+** | + Rechnungs-Vorschau, PDF-Export, Rechnungs-Profil | – |
-
-Geregelt über `useDetailLevel()` und `<Gated level="pro">…</Gated>` (`src/components/Gated.tsx`).
-
-## Tech-Stack
-
-| Bereich | Wahl |
-|---|---|
-| Framework | React 19 + TypeScript |
-| Build | Vite 7 |
-| Styling | Tailwind CSS 4 mit `@theme`-Block |
-| PWA | `vite-plugin-pwa` (`injectManifest`, eigener Service Worker) |
-| Routing | `react-router-dom` v7 (BrowserRouter) |
-| Storage | IndexedDB via `idb`, Settings in `localStorage`, Multi-Tab-Sync via `BroadcastChannel` |
-| IDs | `ulid` |
-| PDF | `jspdf` (lazy-importiert in `lib/invoice/pdf.ts`) |
-| Icons | `lucide-react` |
-| Tests | Vitest + Testing Library |
-| Hosting | Cloudflare Workers + Static Assets |
-| Package Manager | Bun |
-
-## Datenmodell
-
-```ts
-type DetailLevel = 'basis' | 'standard' | 'pro' | 'proplus'
-
-type Project = {
-  id: string                 // ulid
-  name: string
-  client?: string
-  color: string
-  hourlyRate?: number
-  currency?: string
-  billableDefault: boolean
-  archived: boolean
-  createdAt: number
-  updatedAt: number
-}
-
-type Tag = {
-  id: string
-  name: string
-  color: string
-  archived: boolean
-  createdAt: number
-  updatedAt: number
-}
-
-type TimeEntry = {
-  id: string
-  projectId?: string         // optional → "ohne Projekt"
-  description: string
-  startedAt: number
-  endedAt?: number           // undefined = laufender Timer
-  durationSec: number
-  billable: boolean
-  tagIds: string[]
-  notes?: string
-  hourlyRateSnapshot?: number
-  currencySnapshot?: string
-  createdAt: number
-  updatedAt: number
-}
-
-type Settings = {
-  detailLevel: DetailLevel
-  onboardingCompleted: boolean
-  defaultBillable: boolean
-  defaultHourlyRate?: number
-  currency: string
-  locale: string
-  weekStart: 0 | 1
-  theme: 'system' | 'light' | 'dark'
-  roundTo: 0 | 1 | 5 | 15 | 30
-  invoiceProfile?: { issuerName?: string; issuerAddress?: string; taxRate?: number; taxId?: string; nextInvoiceNumber?: number }
-  lastBackupAt?: number
-}
+```bash
+bun run build && bun run test && bun run typecheck && bun run lint
 ```
 
-**IndexedDB-Schema** (DB `zeiterfassung`, Version 1):
-- `projects` – key `id`, indexes `byName`, `byArchived`
-- `tags` – key `id`, indexes `byName`
-- `time_entries` – key `id`, indexes `byProjectId`, `byStartedAt`, `byStartedAtDay`, `byRunning`
+**Constraints:** `src/lib/ui/*` und `src/lib/db/useLiveQuery.ts` sind byte-identisch
+aus web-base übernommen und bleiben unangetastet (siehe `docs/specs/00-overview.md`).
+Worker-CSP, doppelte Token-Sets und die `!important`-Regeln für
+`prefers-reduced-motion`/Print sind bewusste Entscheidungen.
 
-## Phasen
+## Tasks
 
-- **Phase 0 — Setup** ✅ Vite + React 19 + TS + Tailwind 4 + PWA + Vitest + Worker + CI
-- **Phase 1 — DB & Hooks** ✅ Schema, CRUD-Module (`projects.ts`, `tags.ts`, `timeEntries.ts`, `settings.ts`), `BroadcastChannel`-Sync, Hooks (`useProjects`, `useTags`, `useEntries`, `useRunningEntry`, `useSettings`, `useDetailLevel`, `useTheme`)
-- **Phase 1.5 — Onboarding & Detail-Stufen** ✅ 4-Schritte-Sheet (`OnboardingSheet.tsx`), `<Gated>`-Component, automatisches Öffnen wenn `!onboardingCompleted`, Stufenwechsel in Settings (Hochstufen → Sub-Flow für neue Felder, Runterstufen → Bestätigung, Daten bleiben)
-- **Phase 2 — Timer & Einträge** ✅ `startTimer`/`stopTimer`/`getRunningEntry`, `useRunningEntry` mit Live-Tick, `TimerHero`, `EntryCard`, `DayGroup`, `pages/Today.tsx`, `pages/Entries.tsx`, `pages/EntryEdit.tsx`, `DurationInput` mit Multi-Format-Parser
-- **Phase 3 — Projekte & Tags** ✅ `pages/Projects.tsx` & `pages/Tags.tsx` mit CRUD, Soft-Delete (Archive), Quick-Create im `ProjectPicker`/`TagPicker`
-- **Phase 4 — Reports** ✅ `pages/Reports.tsx`, `ReportFilters`, `ReportChart` (SVG-Bars), Aggregation per Tag/Projekt/Tag-Label, CSV-Export
-- **Phase 5 — Rechnung & PDF** ✅ `pages/Invoice.tsx` mit Vorschau + Print-CSS + jspdf-PDF, `lib/invoice/compose.ts`, fortlaufende Rechnungsnummern in Settings
-- **Phase 6 — Polish** ✅ `lib/keyboard/shortcuts.ts` + `GlobalShortcuts`, A11y-Touch-Targets (44×44), `prefers-reduced-motion`, Skip-Link, Backup-Reminder in Settings (letztes Backup mit Datum)
+- [x] T0: migrate biome.json schema to installed CLI 2.4.16
+      Files: biome.json
+      Change: bun löste `^2.4.15` zu 2.4.16 auf; der alte Schema-Pin ließ `biome check` an der Config scheitern.
+      Verify: `bun run lint`
 
-## Cross-Cutting
+- [x] T1: stopTimer ends a running break (root-cause fix)
+      Files: src/lib/db/timeEntries.ts, src/components/TimerHero.tsx, src/test/setup.ts, src/lib/db/__tests__/breaks.test.ts (neu)
+      Change: Stop über Space-Shortcut oder Command-Palette ließ eine laufende Pause ewig weiterlaufen und zählte ihre Zeit als Arbeit (nur TimerHero beendete sie vorab). `stopTimer()` beendet die laufende Pause jetzt selbst; TimerHero verliert den redundanten Aufruf. Test-Setup leert nun auch den `breaks`-Store.
+      Verify: `bun run test` (neue breaks-Tests, inkl. Stop mitten in der Pause)
 
-- **Privatsphäre**: Keine Cookies, keine Analytics, keine Server-Calls außer für Static Assets. PWA cached die App offline, alle Daten in IndexedDB.
-- **Multi-Tab**: `BroadcastChannel('zeiterfassung-db')` synchronisiert alle offenen Tabs sofort (DB-Schreibvorgänge → Refresh aller Hooks).
-- **iOS PWA**: `viewport-fit=cover`, Touch-Targets ≥ 44px, `injectManifest` lädt Workbox-Precache.
-- **Error-Boundaries**: `useToast()` für UX-Errors, sonst werfen die DB-Calls — UI behandelt mit `try/catch`.
-- **A11y**: Skip-Link, semantisches HTML, ARIA-Labels auf Icon-Buttons, Focus-Visible-Styling.
+- [x] T2: include breaks in JSON backup export/import
+      Files: src/lib/io/exportJson.ts, src/lib/io/importJson.ts, src/lib/io/__tests__/importJson.test.ts
+      Change: Backups verloren Pausen-Daten still (Export ließ `breaks` aus, Import leerte/restaurierte den Store nicht — Re-Import hinterließ veraltete Pausen an wiederhergestellten Eintrags-IDs). Snapshots enthalten jetzt `breaks` (validiert); alte Backups ohne Feld importieren als leer.
+      Verify: `bun run test` (Roundtrip-, Legacy- und Validierungs-Tests)
 
-## Out of Scope
+- [x] T3: make startTimer's running-check atomic
+      Files: src/lib/db/timeEntries.ts
+      Change: Check-then-add lief über zwei Transaktionen — zwei Tabs konnten gleichzeitig starten und zwei laufende Einträge anlegen. Check und Add teilen sich jetzt eine readwrite-Transaktion.
+      Verify: `bun run test` (timer.test.ts „läuft bereits“)
 
-- Keine Accounts, kein Cloud-Sync, keine Server-Persistenz
-- Keine Multi-User-/Team-Funktionen
-- Keine native App
-- Keine Pomodoro-/Idle-Detection (potenzielle Phase 7)
-- Keine Auto-Tracking-Heuristik (App-/Window-Erkennung)
-- Keine integrierten Bezahlungs-/Mahn-Funktionen
+- [x] T4: tighten backup import validation
+      Files: src/lib/io/importJson.ts, src/lib/io/__tests__/importJson.test.ts
+      Change: validateEntry prüft jetzt zusätzlich durationSec (endliche Zahl ≥ 0), description (string) und billable (boolean) — vorher konnte eine defekte Datei `undefined`-Dauern importieren (NaN in allen Summen).
+      Verify: `bun run test` (Negativ-Tests)
+
+- [x] T5: remove dead Pomodoro, reminder, and auto-break settings UI
+      Files: src/pages/Settings.tsx, src/lib/types.ts, src/lib/db/settings.ts
+      Change: Settings bewarb schaltbare Features „Pomodoro“ und „Erinnerungen“ plus „Auto-Pause nach Minuten“ — ohne jegliche Implementierung (Roadmap: out of scope). Toggles, beide Config-Cards und tote Typfelder entfernt; alte Keys in gespeicherten Settings sind harmlos.
+      Verify: `bun run typecheck && bun run test && bun run build`
+
+- [x] T6: delete dead EntryCard alias and unused dependencies
+      Files: src/components/EntryCard.tsx (gelöscht), package.json, bun.lock
+      Change: EntryCard war ein Re-Export ohne Importer; `workbox-window` und `@vitest/ui` wurden nie benutzt.
+      Verify: `bun run build && bun run test`
+
+- [x] T7: implement the "Timer starten" PWA shortcut
+      Files: src/pages/Today.tsx
+      Change: Das Manifest-Shortcut zeigte auf `/?action=start`, aber nichts las den Parameter. TodayPage konsumiert ihn jetzt: URL bereinigen, Timer starten falls keiner läuft.
+      Verify: `bun run build`; manuell `/?action=start` öffnen
+
+- [x] T8: add 404 catch-all route
+      Files: src/lib/router.tsx, src/pages/NotFound.tsx (neu)
+      Change: Unbekannte Pfade zeigten eine leere Seite in der Shell. Wildcard-Route mit Not-Found-Card und Link zur Übersicht ergänzt.
+      Verify: `bun run build`; manuell `/nope` öffnen
+
+- [x] T9: lint hygiene — clear all fixable warnings
+      Files: src/pages/Settings.tsx, src/pages/EntryEdit.tsx, src/pages/Invoice.tsx, src/components/Onboarding/OnboardingSheet.tsx, src/components/ui/Combobox.tsx, src/components/ui/CommandPalette.tsx, src/lib/db/timeEntries.ts, src/lib/io/exportCsv.ts, src/main.tsx, biome.json
+      Change: Non-Null-Assertions durch echte Narrowings ersetzt, Highlight-Reset-Effekte in Event-Handler verlegt, Optional Chains/Template Literals, Root-Element-Guard, `noNonNullAssertion` für Testdateien per Override aus. Übrig: nur die 5 bewussten `!important`-CSS-Warnungen.
+      Verify: `bun run lint`
+
+- [x] T10: sync docs to reality; move roadmap to docs/ROADMAP.md
+      Files: PLAN.md → docs/ROADMAP.md, README.md, CHANGELOG.md, SETUP.md, .github/PULL_REQUEST_TEMPLATE.md, .github/ISSUE_TEMPLATE/feature_request.md
+      Change: Roadmap-Drift behoben (DB v3 mit 5 Stores, `createBrowserRouter`, BroadcastChannel-Namen, Phase 7 mit Pausen/Wochenübersicht/Stundenkonto/Archiv/Feature-Flags), alle Links umgezogen, `compatibility_date` in SETUP.md an wrangler.toml angeglichen, dieses Dokument als Session-Protokoll angelegt.
+      Verify: `grep -rn "PLAN.md" *.md .github/` → nur noch dieses Dokument
+
+## Bewusst nicht gemacht (geprüft, keine Bugs)
+
+- EntryEdit „inkonsistente endedAt/Dauer“: `endedAt` wird beim Speichern immer aus Start + Dauer abgeleitet — Rückwärts-Einträge sind unmöglich.
+- Timer-Tick-Drift: der Effekt ist absichtlich auf die Entry-ID gekeyt.
+- Onboarding-Skip: `patchSettings` ist synchrones localStorage, kein Fehlerpfad.
+- `key={i}` in der Rechnungsvorschau, `!important` für reduced-motion/print: dokumentiert bewusst.
+
+## Not this session
+
+- Recovery-UI für bereits korrupte DBs mit zwei laufenden Einträgen (T3 verhindert neue Fälle).
+- Live-Pausenzeit in Reports/Woche (laufende Einträge zählen designgemäß mit 0s).
+- E2E-/Browser-Tests (vitest + jsdom ist für die App-Größe angemessen).

@@ -19,7 +19,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) · Versionssche
 
 ## [0.1.0] — 2026-05-18
 
-Erstveröffentlichung. Alle Roadmap-Phasen 0–6 abgeschlossen (siehe [PLAN.md](./PLAN.md)).
+Erstveröffentlichung. Alle Roadmap-Phasen 0–6 abgeschlossen (siehe [docs/ROADMAP.md](./docs/ROADMAP.md)).
 
 ### Hinzugefügt
 

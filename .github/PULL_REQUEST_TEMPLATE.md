@@ -25,4 +25,4 @@
 - [ ] Bei UI: in Light- **und** Dark-Mode geprüft
 - [ ] Keine Cloud-/Server-Abhängigkeit eingeführt (App bleibt client-only)
 - [ ] Falls relevant: [CHANGELOG.md](../CHANGELOG.md) unter `## [Unreleased]` ergänzt
-- [ ] Falls relevant: [PLAN.md](../PLAN.md) aktualisiert
+- [ ] Falls relevant: [docs/ROADMAP.md](../docs/ROADMAP.md) aktualisiert
