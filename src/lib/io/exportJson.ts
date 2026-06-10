@@ -14,6 +14,7 @@ export async function buildSnapshot(): Promise<DBSnapshot> {
     return rest;
   });
   const invoices = await db.getAll("invoices");
+  const breaks = await db.getAll("breaks");
   return {
     schemaVersion: DB_VERSION,
     exportedAt: Date.now(),
@@ -22,6 +23,7 @@ export async function buildSnapshot(): Promise<DBSnapshot> {
     tags,
     timeEntries,
     invoices,
+    breaks,
     settings: readSettings(),
   };
 }

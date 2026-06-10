@@ -52,6 +52,17 @@ function validateEntry(e: unknown, i: number): void {
   }
 }
 
+function validateBreak(b: unknown, i: number): void {
+  if (!b || typeof b !== "object") throw new Error(`Pause #${i + 1}: ungültiger Typ.`);
+  const brk = b as Record<string, unknown>;
+  if (typeof brk.entryId !== "string" || brk.entryId === "") {
+    throw new Error(`Pause #${i + 1}: entryId fehlt.`);
+  }
+  if (typeof brk.startedAt !== "number" || !Number.isFinite(brk.startedAt)) {
+    throw new Error(`Pause #${i + 1}: ungültiger Startzeitpunkt.`);
+  }
+}
+
 export async function importSnapshot(json: string): Promise<ImportResult> {
   let parsed: unknown;
   try {
@@ -75,14 +86,22 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
   parsed.timeEntries.forEach(validateEntry);
   const invoiceList = parsed.invoices ?? [];
   findDuplicateIds(invoiceList, "Rechnungen");
+  // Older backups (pre breaks) have no `breaks` field — import them as empty.
+  const breakList = parsed.breaks ?? [];
+  findDuplicateIds(breakList, "Pausen");
+  breakList.forEach(validateBreak);
 
   const db = await getDB();
-  const tx = db.transaction(["projects", "tags", "time_entries", "invoices"], "readwrite");
+  const tx = db.transaction(
+    ["projects", "tags", "time_entries", "invoices", "breaks"],
+    "readwrite",
+  );
   try {
     await tx.objectStore("projects").clear();
     await tx.objectStore("tags").clear();
     await tx.objectStore("time_entries").clear();
     await tx.objectStore("invoices").clear();
+    await tx.objectStore("breaks").clear();
     for (const project of parsed.projects) {
       await tx.objectStore("projects").put(project);
     }
@@ -98,6 +117,9 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
     }
     for (const invoice of invoiceList) {
       await tx.objectStore("invoices").put(invoice);
+    }
+    for (const brk of breakList) {
+      await tx.objectStore("breaks").put(brk);
     }
     await tx.done;
   } catch (err) {

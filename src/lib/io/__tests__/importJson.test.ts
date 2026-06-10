@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { listBreaksByEntry, startBreak } from "../../db/breaks";
 import { listProjects } from "../../db/projects";
-import { listEntries } from "../../db/timeEntries";
+import { listEntries, startTimer, stopTimer } from "../../db/timeEntries";
+import { buildSnapshot } from "../exportJson";
 import { importSnapshot } from "../importJson";
 
 const VALID_SNAPSHOT = {
@@ -78,5 +80,36 @@ describe("importSnapshot", () => {
     const entries = await listEntries();
     expect(entries).toHaveLength(1);
     expect(entries[0].description).toBe("test");
+  });
+
+  it("roundtrips breaks through export and import", async () => {
+    const entry = await startTimer({ description: "work" });
+    await startBreak(entry.id);
+    await stopTimer();
+    const snapshot = await buildSnapshot();
+    expect(snapshot.breaks).toHaveLength(1);
+
+    await importSnapshot(JSON.stringify(snapshot));
+    const breaks = await listBreaksByEntry(entry.id);
+    expect(breaks).toHaveLength(1);
+    expect(breaks[0]?.endedAt).toBeDefined();
+  });
+
+  it("clears stale breaks when importing a backup without breaks", async () => {
+    const entry = await startTimer({ description: "work" });
+    await startBreak(entry.id);
+    await stopTimer();
+    expect(await listBreaksByEntry(entry.id)).toHaveLength(1);
+
+    await importSnapshot(JSON.stringify(VALID_SNAPSHOT));
+    expect(await listBreaksByEntry(entry.id)).toHaveLength(0);
+  });
+
+  it("rejects breaks without entryId", async () => {
+    const bad = {
+      ...VALID_SNAPSHOT,
+      breaks: [{ id: "b1", startedAt: 1, durationSec: 0, createdAt: 0, updatedAt: 0 }],
+    };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/entryId/);
   });
 });
