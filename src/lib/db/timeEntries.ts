@@ -1,5 +1,6 @@
 import { newId } from "../ids";
 import type { TimeEntry } from "../types";
+import { endRunningBreakFor } from "./breaks";
 import { dayKey, getDB, notifyMutation, type StoredTimeEntry } from "./db";
 import { getProject } from "./projects";
 
@@ -37,11 +38,6 @@ export interface StartTimerInput {
 }
 
 export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry> {
-  const running = await getRunningEntry();
-  if (running) {
-    throw new Error("Es läuft bereits ein Timer.");
-  }
-  const now = Date.now();
   let billable = input.billable;
   let hourlyRate: number | undefined;
   let currency: string | undefined;
@@ -53,6 +49,7 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
       currency = project.currency;
     }
   }
+  const now = Date.now();
   const entry: TimeEntry = {
     id: newId(),
     projectId: input.projectId,
@@ -69,7 +66,17 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
     updatedAt: now,
   };
   const db = await getDB();
-  await db.add("time_entries", toStored(entry));
+  // Check-and-add inside one readwrite transaction: IndexedDB serializes
+  // readwrite transactions on the store, so two tabs starting simultaneously
+  // cannot both pass the running-check (a split check would let them).
+  const tx = db.transaction("time_entries", "readwrite");
+  const running = await tx.store.index("byRunning").get(1);
+  if (running) {
+    await tx.done;
+    throw new Error("Es läuft bereits ein Timer.");
+  }
+  await tx.store.add(toStored(entry));
+  await tx.done;
   notifyMutation("time_entries");
   return entry;
 }
@@ -77,6 +84,10 @@ export async function startTimer(input: StartTimerInput = {}): Promise<TimeEntry
 export async function stopTimer(): Promise<TimeEntry | null> {
   const running = await getRunningEntry();
   if (!running) return null;
+  // A break that is still open would otherwise stay running forever and its
+  // time would count as work — every stop path (hero button, Space shortcut,
+  // command palette) must settle it first.
+  await endRunningBreakFor(running.id);
   const now = Date.now();
   const db = await getDB();
   const breaks = await db.getAllFromIndex("breaks", "byEntryId", running.id);
@@ -160,11 +171,12 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
   // Range filter: include entries whose interval overlaps [from, to].
   // For running entries (endedAt == null), treat "ended" as +Infinity so they
   // are kept as long as they started before `to`.
-  if (filter.from != null) {
-    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= filter.from!);
+  const { from, to } = filter;
+  if (from != null) {
+    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= from);
   }
-  if (filter.to != null) {
-    result = result.filter((e) => e.startedAt <= filter.to!);
+  if (to != null) {
+    result = result.filter((e) => e.startedAt <= to);
   }
   if (filter.projectId === null) {
     result = result.filter((e) => !e.projectId);

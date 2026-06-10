@@ -27,4 +27,4 @@ assignees: ''
 
 ## Zusatz-Infos
 
-<!-- Mockups, Links, verwandte Issues. Hinweis: Bitte vorab in PLAN.md prüfen, ob die Idee unter "Out of Scope" steht. -->
+<!-- Mockups, Links, verwandte Issues. Hinweis: Bitte vorab in docs/ROADMAP.md prüfen, ob die Idee unter "Out of Scope" steht. -->

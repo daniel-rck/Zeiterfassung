@@ -20,6 +20,7 @@ export function useBreaksForEntry(entryId: string | undefined): {
   const runningBreak = breaks.find((b) => b.endedAt == null) ?? null;
 
   const runningStartedAt = runningBreak?.startedAt;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the break id so reload-driven object identity changes don't rebuild the 1s tick
   useEffect(() => {
     if (runningStartedAt == null) {
       setLiveBreakSec(0);

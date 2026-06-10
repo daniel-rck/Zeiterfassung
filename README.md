@@ -75,7 +75,7 @@ bun run worker:deploy
 - **Features per Detail-Stufe**: `useDetailLevel()` + `<Gated level="pro">` (`src/components/Gated.tsx`) blenden Felder dynamisch ein/aus, ohne Daten zu verlieren.
 - **Routing**: `react-router-dom` v7 (`createBrowserRouter`) in `src/lib/router.tsx`. Layout über die kanonische `src/lib/ui/AppShell`, verdrahtet in `src/features/shell/`, Pages in `src/pages/`.
 
-Mehr Kontext: [PLAN.md](./PLAN.md) (Roadmap, Datenmodell, Out-of-Scope) · [SETUP.md](./SETUP.md) (Cloudflare-Deployment).
+Mehr Kontext: [docs/ROADMAP.md](./docs/ROADMAP.md) (Roadmap, Datenmodell, Out-of-Scope) · [SETUP.md](./SETUP.md) (Cloudflare-Deployment).
 
 ## Beitragen
 

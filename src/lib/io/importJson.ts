@@ -50,6 +50,44 @@ function validateEntry(e: unknown, i: number): void {
   if (!Array.isArray(entry.tagIds)) {
     throw new Error(`Eintrag #${i + 1}: tagIds fehlt.`);
   }
+  if (
+    typeof entry.durationSec !== "number" ||
+    !Number.isFinite(entry.durationSec) ||
+    entry.durationSec < 0
+  ) {
+    throw new Error(`Eintrag #${i + 1}: ungültige Dauer.`);
+  }
+  if (typeof entry.description !== "string") {
+    throw new Error(`Eintrag #${i + 1}: Beschreibung fehlt.`);
+  }
+  if (typeof entry.billable !== "boolean") {
+    throw new Error(`Eintrag #${i + 1}: ungültiger abrechenbar-Wert.`);
+  }
+}
+
+function validateBreak(b: unknown, i: number): void {
+  if (!b || typeof b !== "object") throw new Error(`Pause #${i + 1}: ungültiger Typ.`);
+  const brk = b as Record<string, unknown>;
+  if (typeof brk.entryId !== "string" || brk.entryId === "") {
+    throw new Error(`Pause #${i + 1}: entryId fehlt.`);
+  }
+  if (typeof brk.startedAt !== "number" || !Number.isFinite(brk.startedAt)) {
+    throw new Error(`Pause #${i + 1}: ungültiger Startzeitpunkt.`);
+  }
+  if (
+    brk.endedAt !== undefined &&
+    brk.endedAt !== null &&
+    (typeof brk.endedAt !== "number" || !Number.isFinite(brk.endedAt))
+  ) {
+    throw new Error(`Pause #${i + 1}: ungültiger Endzeitpunkt.`);
+  }
+  if (
+    typeof brk.durationSec !== "number" ||
+    !Number.isFinite(brk.durationSec) ||
+    brk.durationSec < 0
+  ) {
+    throw new Error(`Pause #${i + 1}: ungültige Dauer.`);
+  }
 }
 
 export async function importSnapshot(json: string): Promise<ImportResult> {
@@ -75,14 +113,22 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
   parsed.timeEntries.forEach(validateEntry);
   const invoiceList = parsed.invoices ?? [];
   findDuplicateIds(invoiceList, "Rechnungen");
+  // Older backups (pre breaks) have no `breaks` field — import them as empty.
+  const breakList = parsed.breaks ?? [];
+  findDuplicateIds(breakList, "Pausen");
+  breakList.forEach(validateBreak);
 
   const db = await getDB();
-  const tx = db.transaction(["projects", "tags", "time_entries", "invoices"], "readwrite");
+  const tx = db.transaction(
+    ["projects", "tags", "time_entries", "invoices", "breaks"],
+    "readwrite",
+  );
   try {
     await tx.objectStore("projects").clear();
     await tx.objectStore("tags").clear();
     await tx.objectStore("time_entries").clear();
     await tx.objectStore("invoices").clear();
+    await tx.objectStore("breaks").clear();
     for (const project of parsed.projects) {
       await tx.objectStore("projects").put(project);
     }
@@ -98,6 +144,9 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
     }
     for (const invoice of invoiceList) {
       await tx.objectStore("invoices").put(invoice);
+    }
+    for (const brk of breakList) {
+      await tx.objectStore("breaks").put(brk);
     }
     await tx.done;
   } catch (err) {

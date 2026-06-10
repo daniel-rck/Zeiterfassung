@@ -13,8 +13,6 @@ export function presetFromLevel(level: DetailLevel): FeatureFlags {
     billing: order >= DETAIL_LEVEL_ORDER.pro,
     invoicing: order >= DETAIL_LEVEL_ORDER.proplus,
     breaks: false,
-    pomodoro: false,
-    notifications: false,
     hoursAccount: false,
     weeklyView: false,
   };

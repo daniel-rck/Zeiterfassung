@@ -75,29 +75,11 @@ export interface FeatureFlags {
   billing: boolean;
   invoicing: boolean;
   breaks: boolean;
-  pomodoro: boolean;
-  notifications: boolean;
   hoursAccount: boolean;
   weeklyView: boolean;
 }
 
 export type FeatureName = keyof FeatureFlags;
-
-export interface ReminderRule {
-  id: string;
-  kind: "daily" | "idle";
-  enabled: boolean;
-  timeOfDay?: string;
-  afterMinutes?: number;
-  label?: string;
-}
-
-export interface PomodoroConfig {
-  workMinutes: number;
-  breakMinutes: number;
-  longBreakMinutes: number;
-  setsBeforeLongBreak: number;
-}
 
 export interface Settings {
   detailLevel: DetailLevel;
@@ -113,9 +95,6 @@ export interface Settings {
   lastBackupAt?: number;
   features: FeatureFlags;
   targetHoursPerWeek?: number;
-  reminderRules?: ReminderRule[];
-  pomodoro?: PomodoroConfig;
-  autoBreakAfterMinutes?: number;
 }
 
 export interface StoredInvoiceLineItem {
