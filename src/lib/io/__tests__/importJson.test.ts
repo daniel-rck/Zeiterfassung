@@ -74,6 +74,30 @@ describe("importSnapshot", () => {
     await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/Startzeitpunkt/);
   });
 
+  it("rejects entries with missing or invalid durationSec", async () => {
+    const bad = {
+      ...VALID_SNAPSHOT,
+      timeEntries: [{ ...VALID_SNAPSHOT.timeEntries[0], durationSec: undefined }],
+    };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/Dauer/);
+  });
+
+  it("rejects entries with non-string description", async () => {
+    const bad = {
+      ...VALID_SNAPSHOT,
+      timeEntries: [{ ...VALID_SNAPSHOT.timeEntries[0], description: 42 }],
+    };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/Beschreibung/);
+  });
+
+  it("rejects entries with non-boolean billable", async () => {
+    const bad = {
+      ...VALID_SNAPSHOT,
+      timeEntries: [{ ...VALID_SNAPSHOT.timeEntries[0], billable: "ja" }],
+    };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/abrechenbar/);
+  });
+
   it("imports a valid snapshot end-to-end", async () => {
     const result = await importSnapshot(JSON.stringify(VALID_SNAPSHOT));
     expect(result).toEqual({ projects: 1, tags: 0, timeEntries: 1 });

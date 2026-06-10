@@ -50,6 +50,19 @@ function validateEntry(e: unknown, i: number): void {
   if (!Array.isArray(entry.tagIds)) {
     throw new Error(`Eintrag #${i + 1}: tagIds fehlt.`);
   }
+  if (
+    typeof entry.durationSec !== "number" ||
+    !Number.isFinite(entry.durationSec) ||
+    entry.durationSec < 0
+  ) {
+    throw new Error(`Eintrag #${i + 1}: ungültige Dauer.`);
+  }
+  if (typeof entry.description !== "string") {
+    throw new Error(`Eintrag #${i + 1}: Beschreibung fehlt.`);
+  }
+  if (typeof entry.billable !== "boolean") {
+    throw new Error(`Eintrag #${i + 1}: ungültiger abrechenbar-Wert.`);
+  }
 }
 
 function validateBreak(b: unknown, i: number): void {
