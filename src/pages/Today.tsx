@@ -1,6 +1,6 @@
 import { Database, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { EntryRow } from "../components/EntryRow";
 import { HoursAccountCard } from "../components/HoursAccountCard";
 import { TimerHero } from "../components/TimerHero";
@@ -10,7 +10,7 @@ import { MetricCard } from "../components/ui/MetricCard";
 import { useToast } from "../components/ui/Toast";
 import { dayKey } from "../lib/db";
 import { patchSettings } from "../lib/db/settings";
-import { deleteEntry, restoreEntry } from "../lib/db/timeEntries";
+import { deleteEntry, getRunningEntry, restoreEntry, startTimer } from "../lib/db/timeEntries";
 import { formatDecimalHours, formatDuration, formatMoney, formatRelativeDay } from "../lib/format";
 import { useEntries } from "../lib/hooks/useEntries";
 import { useFeature } from "../lib/hooks/useFeature";
@@ -35,6 +35,23 @@ export function TodayPage() {
 
   const projectMap = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
   const tagMap = useMemo(() => new Map(tags.map((t) => [t.id, t])), [tags]);
+
+  // PWA app shortcut "Timer starten" opens /?action=start.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const wantsStart = searchParams.get("action") === "start";
+  useEffect(() => {
+    if (!wantsStart) return;
+    setSearchParams({}, { replace: true });
+    void (async () => {
+      try {
+        if (await getRunningEntry()) return;
+        await startTimer({});
+        toast.success("Timer gestartet");
+      } catch (err) {
+        toast.error((err as Error).message);
+      }
+    })();
+  }, [wantsStart, setSearchParams, toast]);
 
   const [todayStart, setTodayStart] = useState(() => {
     const d = new Date();
