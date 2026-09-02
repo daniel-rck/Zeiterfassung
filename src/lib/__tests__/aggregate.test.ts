@@ -77,8 +77,8 @@ describe("aggregate", () => {
   it("groups by day", () => {
     const buckets = groupByDay(entries, [project], { roundToMinutes: 0 });
     expect(buckets).toHaveLength(2);
-    expect(buckets[0].durationSec).toBe(9000);
-    expect(buckets[1].durationSec).toBe(1800);
+    expect(buckets[0]!.durationSec).toBe(9000);
+    expect(buckets[1]!.durationSec).toBe(1800);
   });
 
   it("groups by project, separates ohne Projekt", () => {

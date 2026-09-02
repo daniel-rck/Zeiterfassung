@@ -89,7 +89,6 @@ export interface Settings {
   currency: string;
   locale: string;
   weekStart: 0 | 1;
-  theme: "system" | "light" | "dark";
   roundTo: 0 | 1 | 5 | 15 | 30;
   invoiceProfile?: InvoiceProfile;
   lastBackupAt?: number;

@@ -1,6 +1,7 @@
 import { ArrowRight, Check, Lock, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { patchSettings, presetFromLevel } from "../../lib/db/settings";
+import { useTheme } from "../../lib/hooks/useTheme";
 import type { DetailLevel, InvoiceProfile, Settings } from "../../lib/types";
 import { DETAIL_LEVEL_ORDER } from "../../lib/types";
 import { Button } from "../ui/Button";
@@ -59,11 +60,11 @@ interface ConfigDraft {
   invoiceProfile: InvoiceProfile;
 }
 
-function defaultConfig(settings: Settings): ConfigDraft {
+function defaultConfig(settings: Settings, theme: ConfigDraft["theme"]): ConfigDraft {
   return {
     locale: settings.locale,
     weekStart: settings.weekStart,
-    theme: settings.theme,
+    theme,
     defaultBillable: settings.defaultBillable,
     defaultHourlyRate: settings.defaultHourlyRate != null ? String(settings.defaultHourlyRate) : "",
     currency: settings.currency,
@@ -92,14 +93,15 @@ export function OnboardingSheet({
   const isUpgrade = upgradeFrom != null;
   const [step, setStep] = useState(isUpgrade ? 1 : 0);
   const [level, setLevel] = useState<DetailLevel>(initialLevel ?? initialSettings.detailLevel);
-  const [config, setConfig] = useState<ConfigDraft>(() => defaultConfig(initialSettings));
+  const { theme, setTheme } = useTheme();
+  const [config, setConfig] = useState<ConfigDraft>(() => defaultConfig(initialSettings, theme));
   const toast = useToast();
 
   useEffect(() => {
     if (open) {
       setStep(isUpgrade ? 1 : 0);
       setLevel(initialLevel ?? initialSettings.detailLevel);
-      setConfig(defaultConfig(initialSettings));
+      setConfig(defaultConfig(initialSettings, theme));
     }
   }, [open, isUpgrade, initialLevel, initialSettings]);
 
@@ -111,9 +113,11 @@ export function OnboardingSheet({
       onboardingCompleted: true,
       locale: config.locale,
       weekStart: config.weekStart,
-      theme: config.theme,
       features: presetFromLevel(level),
     };
+    // The theme is not part of Settings any more — it has its own key so the
+    // pre-paint script can read it synchronously.
+    setTheme(config.theme);
     if (DETAIL_LEVEL_ORDER[level] >= DETAIL_LEVEL_ORDER.pro) {
       patch.defaultBillable = config.defaultBillable;
       patch.currency = config.currency;

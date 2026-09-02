@@ -1,7 +1,5 @@
 @import "./lib/ui/theme.css";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @theme {
   /* === Typography (Geist) === */
   --font-sans:
@@ -68,43 +66,27 @@
   --duration-slow: 300ms;
 }
 
-/* Dark-mode surface overrides */
-.dark {
-  --color-surface-0: oklch(13% 0.005 230);
-  --color-surface-1: oklch(17% 0.006 230);
-  --color-surface-2: oklch(21% 0.008 230);
-  --color-surface-3: oklch(25% 0.01 230);
-  --color-border-subtle: oklch(25% 0.01 230);
-  --color-border-strong: oklch(32% 0.012 230);
-  --color-text-1: oklch(96% 0.005 230);
-  --color-text-2: oklch(75% 0.008 230);
-  --color-text-3: oklch(58% 0.01 230);
+/* Dark-mode surface overrides. `@variant dark` expands the definition that
+ * theme.css supplies, so the media-query branch and the forced
+ * [data-theme="dark"] branch stay in sync by construction. */
+:root {
+  @variant dark {
+    --color-surface-0: oklch(13% 0.005 230);
+    --color-surface-1: oklch(17% 0.006 230);
+    --color-surface-2: oklch(21% 0.008 230);
+    --color-surface-3: oklch(25% 0.01 230);
+    --color-border-subtle: oklch(25% 0.01 230);
+    --color-border-strong: oklch(32% 0.012 230);
+    --color-text-1: oklch(96% 0.005 230);
+    --color-text-2: oklch(75% 0.008 230);
+    --color-text-3: oklch(58% 0.01 230);
+  }
 }
 
-/*
- * Bridge the canonical lib/ui tokens (theme.css) to the app's class-based
- * theme toggle. theme.css drives them via prefers-color-scheme; these blocks
- * make them follow the `.dark` class instead, so the lib/ui shell matches the
- * explicit light/dark/system choice (and never disagrees with the app tokens).
- */
-:root:not(.dark) {
-  --color-surface: oklch(1 0 0);
-  --color-surface-muted: oklch(0.97 0 0);
-  --color-surface-sunken: oklch(0.94 0 0);
-  --color-border: oklch(0.88 0 0);
-  --color-fg: oklch(0.18 0 0);
-  --color-fg-muted: oklch(0.45 0 0);
-  --color-fg-subtle: oklch(0.6 0 0);
-}
-.dark {
-  --color-surface: oklch(0.18 0 0);
-  --color-surface-muted: oklch(0.22 0 0);
-  --color-surface-sunken: oklch(0.14 0 0);
-  --color-border: oklch(0.3 0 0);
-  --color-fg: oklch(0.95 0 0);
-  --color-fg-muted: oklch(0.7 0 0);
-  --color-fg-subtle: oklch(0.55 0 0);
-}
+/* The lib/ui surface tokens used to be re-declared here, because a stale
+ * theme.css drove them from prefers-color-scheme only and disagreed with the
+ * app's class toggle. The current theme.css resolves them from `data-theme`
+ * itself, so the bridge is gone. */
 
 html,
 body,
@@ -146,8 +128,10 @@ body {
   border-radius: 4px;
 }
 
-.dark :where(button, a, [role="button"], [role="menuitem"], input, select, textarea):focus-visible {
-  outline-color: var(--color-brand-400);
+:where(button, a, [role="button"], [role="menuitem"], input, select, textarea):focus-visible {
+  @variant dark {
+    outline-color: var(--color-brand-400);
+  }
 }
 
 .sr-only {

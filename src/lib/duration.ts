@@ -1,3 +1,5 @@
+import { at } from "./at.ts";
+
 export function parseDuration(input: string): number | null {
   const trimmed = input.trim().toLowerCase();
   if (!trimmed) return null;
@@ -25,7 +27,7 @@ export function parseDuration(input: string): number | null {
   // Plain decimal hours: "1.5", "0,75", "2"
   const decimalMatch = trimmed.match(/^(\d+(?:[.,]\d+)?)$/);
   if (decimalMatch) {
-    const hours = parseFloat(decimalMatch[1].replace(",", "."));
+    const hours = parseFloat(at(decimalMatch, 1).replace(",", "."));
     return Math.round(hours * 3600);
   }
 

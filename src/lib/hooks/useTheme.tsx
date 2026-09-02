@@ -1,61 +1,22 @@
-import { createContext, type ReactNode, useContext, useEffect, useMemo } from "react";
-import { patchSettings } from "../db/settings";
-import { useSettings } from "./useSettings";
+import type { ReactNode } from "react";
+import { type Theme, type UseThemeResult, useTheme as useBaseTheme } from "../ui/useTheme.ts";
 
-interface ThemeContextValue {
-  theme: "system" | "light" | "dark";
-  resolvedTheme: "light" | "dark";
-  setTheme: (theme: "system" | "light" | "dark") => void;
-}
+export type { Theme, UseThemeResult };
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
-
-function resolve(theme: "system" | "light" | "dark"): "light" | "dark" {
-  if (theme !== "system") return theme;
-  if (typeof window === "undefined") return "light";
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-}
-
+/**
+ * Kept as a provider-shaped API so existing call sites don't change, but the
+ * state now lives entirely in the web-base hook.
+ *
+ * This used to hold the theme in the app's settings blob and express it as a
+ * `.dark` class on <html>. Both were forks: a class cannot say "follow the OS"
+ * without JavaScript, so a forced choice always flashed the wrong colors until
+ * React mounted, and the fleet ended up with three different places to remember
+ * a theme. The base hook uses `data-theme`, which CSS alone can resolve.
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const { settings } = useSettings();
-  const theme = settings.theme;
-
-  const resolvedTheme = useMemo(() => resolve(theme), [theme]);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (resolvedTheme === "dark") root.classList.add("dark");
-    else root.classList.remove("dark");
-  }, [resolvedTheme]);
-
-  useEffect(() => {
-    if (theme !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = () => {
-      const root = document.documentElement;
-      if (mq.matches) root.classList.add("dark");
-      else root.classList.remove("dark");
-    };
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, [theme]);
-
-  const value = useMemo<ThemeContextValue>(
-    () => ({
-      theme,
-      resolvedTheme,
-      setTheme: (next) => {
-        patchSettings({ theme: next });
-      },
-    }),
-    [theme, resolvedTheme],
-  );
-
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return <>{children}</>;
 }
 
-export function useTheme(): ThemeContextValue {
-  const ctx = useContext(ThemeContext);
-  if (!ctx) throw new Error("useTheme must be used within ThemeProvider");
-  return ctx;
+export function useTheme(): UseThemeResult {
+  return useBaseTheme();
 }

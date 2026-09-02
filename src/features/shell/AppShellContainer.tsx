@@ -55,8 +55,6 @@ const NAV: NavConfig[] = [
   { to: ROUTES.settings, label: "Einstellungen", icon: SettingsIcon },
 ];
 
-const THEME_ICON = { light: Sun, dark: Moon, system: Laptop } as const;
-
 /** App-specific shell: feeds the canonical lib/ui AppShell via props and keeps
  *  the command palette, theme toggle, live-timer badge and quick-add FAB. */
 export function AppShellContainer() {
@@ -186,9 +184,6 @@ export function AppShellContainer() {
     return list;
   }, [entry, visible, theme, navigate, setTheme, toast]);
 
-  const ThemeIcon = THEME_ICON[theme];
-  const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
-
   const headerActions: ReactNode = (
     <>
       {entry && location.pathname !== ROUTES.home ? (
@@ -200,14 +195,6 @@ export function AppShellContainer() {
           <span className="tnum font-mono">{formatDuration(liveDurationSec, "short")}</span>
         </Link>
       ) : null}
-      <button
-        type="button"
-        onClick={() => setTheme(nextTheme)}
-        aria-label={`Thema wechseln (aktuell: ${theme})`}
-        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-sunken hover:text-fg no-min-tap"
-      >
-        <ThemeIcon size={16} aria-hidden="true" />
-      </button>
       <button
         type="button"
         onClick={() => setCommandOpen(true)}

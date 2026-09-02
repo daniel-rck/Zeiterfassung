@@ -1,3 +1,5 @@
+import { at } from "./at.ts";
+
 export const CATEGORY_COLORS: { name: string; value: string }[] = [
   { name: "Teal", value: "#0d9488" },
   { name: "Blau", value: "#2563eb" },
@@ -13,8 +15,8 @@ export const CATEGORY_COLORS: { name: string; value: string }[] = [
   { name: "Stein", value: "#57534e" },
 ];
 
-export const DEFAULT_PROJECT_COLOR = CATEGORY_COLORS[0].value;
-export const DEFAULT_TAG_COLOR = CATEGORY_COLORS[1].value;
+export const DEFAULT_PROJECT_COLOR = at(CATEGORY_COLORS, 0).value;
+export const DEFAULT_TAG_COLOR = at(CATEGORY_COLORS, 1).value;
 
 export function pickColor(seed: string): string {
   let hash = 0;
@@ -22,5 +24,5 @@ export function pickColor(seed: string): string {
     hash = (hash * 31 + seed.charCodeAt(i)) | 0;
   }
   const index = Math.abs(hash) % CATEGORY_COLORS.length;
-  return CATEGORY_COLORS[index].value;
+  return at(CATEGORY_COLORS, index).value;
 }
