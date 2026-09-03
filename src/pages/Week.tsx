@@ -6,6 +6,7 @@ import { Card } from "../components/ui/Card";
 import { useConfirm } from "../components/ui/Confirm";
 import { ProgressBar } from "../components/ui/ProgressBar";
 import { useToast } from "../components/ui/Toast";
+import { at } from "../lib/at.ts";
 import { dayKey } from "../lib/db";
 import { deleteEntry, restoreEntry } from "../lib/db/timeEntries";
 import { formatDecimalHours, formatDuration } from "../lib/format";
@@ -94,7 +95,7 @@ export function WeekPage() {
   };
 
   const rangeLabel = `${longFmt.format(weekStartDate).replace(/, \d+ .*/, "")} – ${longFmt
-    .format(days[6].date)
+    .format(at(days, 6).date)
     .replace(/^\w+,\s*/, "")}`;
 
   const maxDaySec = Math.max(1, ...days.map((d) => d.sec));

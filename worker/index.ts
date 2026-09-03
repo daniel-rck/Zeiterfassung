@@ -4,11 +4,11 @@ export interface Env {
 
 // Content-Security-Policy.
 //
-// `script-src` allows our own bundles ('self'), the vite-plugin-pwa
-// registration script (/registerSW.js, also 'self') and the single inline
-// theme-bootstrap script in index.html via its sha256 hash. The hash is taken
-// over the exact text content of that <script> element; it only changes if the
-// bootstrap snippet itself changes.
+// `script-src` is plain 'self': our own bundles, the vite-plugin-pwa
+// registration script (/registerSW.js) and the pre-paint theme bootstrap
+// (/theme-init.js) are all same-origin files. The bootstrap used to be inline
+// and allowed via a sha256 hash — a hash that would break the theme silently
+// the moment the snippet changed, with nothing to catch it.
 //
 // `style-src` needs 'unsafe-inline' because several components render inline
 // style={{…}} attributes (e.g. project colours in Combobox/Badge). `img-src`
@@ -16,7 +16,7 @@ export interface Env {
 // so connect/font/manifest/worker all stay on 'self'.
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'sha256-e3tJSdVAi42SMB/ewLy/YKXTzQjDws6fMSzZaWxkISc='",
+  "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "font-src 'self'",

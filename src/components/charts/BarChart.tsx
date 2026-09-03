@@ -32,7 +32,8 @@ export function BarChart({
 
   const max = Math.max(1, ...data.map((d) => d.value));
   const ticks = niceTicks(max, 4);
-  const yMax = ticks[ticks.length - 1];
+  // `ticks` is never empty — buildTicks always emits at least 0 and a max.
+  const yMax = ticks[ticks.length - 1] ?? 1;
 
   const padLeft = 36;
   const padTop = 12;
@@ -152,8 +153,8 @@ export function BarChart({
       {hovered &&
         (() => {
           const i = data.findIndex((d) => d.key === hovered);
-          if (i < 0) return null;
           const d = data[i];
+          if (i < 0 || !d) return null;
           const xPct = ((padLeft + i * slot + slot / 2) / totalWidth) * 100;
           const isRight = xPct > 70;
           return (

@@ -10,21 +10,7 @@
       content="Zeiterfassung — Timer, Projekte und Reports im Browser. Lokale Daten, kein Account, DSGVO-konform."
     />
     <title>Zeiterfassung</title>
-    <script>
-      // Apply the theme before React mounts so the dark/light background does
-      // not flash on every page load.
-      (() => {
-        try {
-          const raw = localStorage.getItem('zeiterfassung:settings')
-          const theme = raw ? JSON.parse(raw).theme : 'system'
-          const dark =
-            theme === 'dark' ||
-            (theme === 'system' &&
-              window.matchMedia('(prefers-color-scheme: dark)').matches)
-          if (dark) document.documentElement.classList.add('dark')
-        } catch (_) {}
-      })()
-    </script>
+    <script src="/theme-init.js"></script>
   </head>
   <body>
     <a href="#main" class="skip-link">Zum Hauptinhalt springen</a>

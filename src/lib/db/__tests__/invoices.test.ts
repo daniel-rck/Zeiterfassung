@@ -26,7 +26,7 @@ describe("invoices store", () => {
     const later = await saveInvoice(composed({ date: 2, number: "B" }), {});
     const all = await listInvoices();
     expect(all.map((r) => r.id)).toEqual([later.id, earlier.id]);
-    expect(all[0].total).toBe(119);
+    expect(all[0]!.total).toBe(119);
   });
 
   it("deletes an archived invoice", async () => {

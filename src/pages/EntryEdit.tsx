@@ -40,6 +40,11 @@ function toTimeInput(timestamp: number): string {
 function combineDateTime(date: string, time: string): number {
   const [year, month, day] = date.split("-").map(Number);
   const [hour, minute] = time.split(":").map(Number);
+  // The inputs are <input type="date"> / <input type="time">, so the shape is
+  // browser-enforced; a malformed one should surface as NaN rather than
+  // silently become an Invalid Date.
+  if (year === undefined || month === undefined || day === undefined) return Number.NaN;
+  if (hour === undefined || minute === undefined) return Number.NaN;
   return new Date(year, month - 1, day, hour, minute).getTime();
 }
 

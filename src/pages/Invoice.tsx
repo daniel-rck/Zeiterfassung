@@ -4,6 +4,7 @@ import { Button } from "../components/ui/Button";
 import { Card, CardHeader } from "../components/ui/Card";
 import { Field, Input, Select, Textarea } from "../components/ui/Input";
 import { useToast } from "../components/ui/Toast";
+import { at } from "../lib/at.ts";
 import { saveInvoice } from "../lib/db/invoices";
 import { bumpInvoiceNumberTo } from "../lib/db/settings";
 import { formatDate, formatMoney } from "../lib/format";
@@ -37,7 +38,7 @@ export function InvoicePage() {
 
   useEffect(() => {
     if (!projectId && projects.length > 0) {
-      setProjectId(projects[0].id);
+      setProjectId(at(projects, 0).id);
     }
   }, [projects, projectId]);
 

@@ -103,7 +103,7 @@ describe("importSnapshot", () => {
     expect(result).toEqual({ projects: 1, tags: 0, timeEntries: 1 });
     const entries = await listEntries();
     expect(entries).toHaveLength(1);
-    expect(entries[0].description).toBe("test");
+    expect(entries[0]!.description).toBe("test");
   });
 
   it("roundtrips breaks through export and import", async () => {

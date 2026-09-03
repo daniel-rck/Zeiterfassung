@@ -7,6 +7,7 @@ import { type ReportFilterState, ReportFilters } from "../components/ReportFilte
 import { Button } from "../components/ui/Button";
 import { Card, CardHeader } from "../components/ui/Card";
 import { MetricCard } from "../components/ui/MetricCard";
+import { at } from "../lib/at.ts";
 import { formatDecimalHours, formatDuration, formatMoney } from "../lib/format";
 import { useEntries } from "../lib/hooks/useEntries";
 import { useFeatures } from "../lib/hooks/useFeature";
@@ -127,7 +128,7 @@ export function ReportsPage() {
       key: b.projectId ?? "none",
       label: b.projectName,
       value: b.durationSec,
-      color: proj?.color ?? FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+      color: proj?.color ?? at(FALLBACK_COLORS, i % FALLBACK_COLORS.length),
       display: `${formatDecimalHours(b.durationSec, settings.locale)} h`,
     };
   });

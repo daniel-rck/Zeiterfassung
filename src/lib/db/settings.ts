@@ -25,7 +25,6 @@ export const DEFAULT_SETTINGS: Settings = {
   currency: "EUR",
   locale: "de-DE",
   weekStart: 1,
-  theme: "system",
   roundTo: 0,
   features: presetFromLevel("standard"),
 };

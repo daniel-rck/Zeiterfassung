@@ -1,3 +1,5 @@
+import { at } from "../../lib/at.ts";
+
 export function Sparkline({
   values,
   width = 80,
@@ -27,7 +29,7 @@ export function Sparkline({
 
   const lastIdx = values.length - 1;
   const lastX = lastIdx * step;
-  const lastY = height - ((values[lastIdx] - min) / range) * height;
+  const lastY = height - ((at(values, lastIdx) - min) / range) * height;
 
   return (
     <svg
