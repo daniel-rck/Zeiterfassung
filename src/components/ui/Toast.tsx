@@ -93,7 +93,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: string) => void }) {
   const [paused, setPaused] = useState(false);
-  const startedAt = useRef(Date.now());
+  // Set by the effect below before it is ever read.
+  const startedAt = useRef(0);
   const remaining = useRef(item.duration);
   const dismiss = () => onDismiss(item.id);
 
@@ -119,7 +120,6 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: stri
         : "text-brand-500";
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: status/alert region pauses auto-dismiss on hover/focus, no click affordance
     <div
       className="page-fade pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3.5 py-3 shadow-md"
       role={item.tone === "error" ? "alert" : "status"}

@@ -46,7 +46,7 @@ export function readSettings(): Settings {
   try {
     const parsed = JSON.parse(raw) as Partial<Settings>;
     const level = parsed.detailLevel ?? DEFAULT_SETTINGS.detailLevel;
-    const features: FeatureFlags = { ...presetFromLevel(level), ...(parsed.features ?? {}) };
+    const features: FeatureFlags = { ...presetFromLevel(level), ...parsed.features };
     return { ...DEFAULT_SETTINGS, ...parsed, features };
   } catch {
     return { ...DEFAULT_SETTINGS };

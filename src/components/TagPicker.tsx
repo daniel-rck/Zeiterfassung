@@ -76,7 +76,7 @@ export function TagPicker({
         })}
         {adding ? (
           <input
-            // biome-ignore lint/a11y/noAutofocus: input is mounted on explicit user action (Tag hinzufügen)
+            // oxlint-disable-next-line jsx-a11y/no-autofocus -- input is mounted on explicit user action (Tag hinzufügen)
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}

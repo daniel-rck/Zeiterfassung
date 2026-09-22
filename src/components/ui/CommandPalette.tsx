@@ -48,6 +48,7 @@ export function CommandPalette({
 
   useEffect(() => {
     if (!open) {
+      // oxlint-disable-next-line react/set-state-in-effect -- reset query/highlight when the palette closes
       setQuery("");
       setHighlight(0);
       return;
@@ -103,6 +104,7 @@ export function CommandPalette({
   if (!open) return null;
 
   return (
+    // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- the modal owns its keyboard model (arrows, Enter, Escape, Tab trap)
     <div
       role="dialog"
       aria-modal="true"

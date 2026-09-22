@@ -193,7 +193,7 @@ export function TagsPage() {
       >
         <div className="space-y-4">
           <Field label="Name">
-            <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
           <Field label="Farbe" group>
             <div className="flex flex-wrap gap-2">

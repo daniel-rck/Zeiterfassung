@@ -160,7 +160,7 @@ export function SettingsPage() {
 
   const updateInvoiceProfile = (patch: Partial<InvoiceProfile>) => {
     patchSettings({
-      invoiceProfile: { ...(settings.invoiceProfile ?? {}), ...patch },
+      invoiceProfile: { ...settings.invoiceProfile, ...patch },
     });
   };
 

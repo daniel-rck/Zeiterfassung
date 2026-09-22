@@ -276,7 +276,6 @@ export function ProjectsPage() {
         <div className="space-y-4">
           <Field label="Name">
             <Input
-              autoFocus
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />

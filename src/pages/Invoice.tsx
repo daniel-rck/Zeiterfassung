@@ -1,10 +1,9 @@
 import { Download, Printer } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "../components/ui/Button";
 import { Card, CardHeader } from "../components/ui/Card";
 import { Field, Input, Select, Textarea } from "../components/ui/Input";
 import { useToast } from "../components/ui/Toast";
-import { at } from "../lib/at.ts";
 import { saveInvoice } from "../lib/db/invoices";
 import { bumpInvoiceNumberTo } from "../lib/db/settings";
 import { formatDate, formatDecimalHours, formatMoney, formatPercent } from "../lib/format";
@@ -20,7 +19,9 @@ export function InvoicePage() {
   const { projects } = useProjects();
   const toast = useToast();
 
-  const [projectId, setProjectId] = useState<string>("");
+  const [pickedProjectId, setProjectId] = useState<string>("");
+  // Default to the first project until the user picks one.
+  const projectId = pickedProjectId || projects[0]?.id || "";
   const [from, setFrom] = useState(() =>
     formatDateInput(getRange("lastMonth", settings.weekStart)?.from ?? Date.now()),
   );
@@ -35,12 +36,6 @@ export function InvoicePage() {
       : "",
   );
   const [groupBy, setGroupBy] = useState<"entry" | "day">("day");
-
-  useEffect(() => {
-    if (!projectId && projects.length > 0) {
-      setProjectId(at(projects, 0).id);
-    }
-  }, [projects, projectId]);
 
   const range = useMemo(() => {
     if (!from || !to) return null;
@@ -242,7 +237,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             </div>
           )}
           {invoice.issuer.issuerAddress?.split("\n").map((line, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static address lines, fixed order
             <div key={i}>{line}</div>
           ))}
           {invoice.issuer.taxId && <div className="mt-1">Steuer-ID: {invoice.issuer.taxId}</div>}
@@ -257,7 +251,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
           {invoice.recipient.name}
         </p>
         {invoice.recipient.address?.split("\n").map((line, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static address lines, fixed order
           <p key={i} className="text-sm text-[color:var(--color-text-2)] print:text-black">
             {line}
           </p>
@@ -266,7 +259,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
 
       <ul className="space-y-3 sm:hidden print:hidden">
         {invoice.lineItems.map((item, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: composed invoice line items, fixed order
           <li key={i} className="rounded-md border border-[color:var(--color-border-subtle)] p-3">
             <div className="text-sm font-medium text-[color:var(--color-text-1)]">
               {item.description}
@@ -332,7 +324,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
         </thead>
         <tbody>
           {invoice.lineItems.map((item, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: composed invoice line items, fixed order
             <tr key={i} className={rowCls}>
               <td className="py-2">
                 {item.date && (
@@ -408,10 +399,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             {/* Truthiness guard on purpose: an empty string (cleared textarea)
                 must render nothing, not one empty line. */}
             {invoice.issuer.paymentNote
-              ? invoice.issuer.paymentNote.split("\n").map((line, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static payment-note lines, fixed order
-                  <p key={i}>{line}</p>
-                ))
+              ? invoice.issuer.paymentNote.split("\n").map((line, i) => <p key={i}>{line}</p>)
               : null}
           </div>
         </section>

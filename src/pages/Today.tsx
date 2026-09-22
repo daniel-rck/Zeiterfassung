@@ -150,7 +150,8 @@ export function TodayPage() {
 
   const backupAgeDays =
     settings.lastBackupAt != null
-      ? Math.floor((Date.now() - settings.lastBackupAt) / 86_400_000)
+      ? // oxlint-disable-next-line react/purity -- re-read on every render on purpose; backup age is coarse (days)
+        Math.floor((Date.now() - settings.lastBackupAt) / 86_400_000)
       : null;
   const showBackupBanner =
     !backupDismissed &&

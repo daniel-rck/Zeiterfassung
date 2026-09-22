@@ -41,9 +41,10 @@ export function Menu({
         "aria-haspopup": "menu",
       })}
       {open && (
-        // biome-ignore lint/a11y/useKeyWithClickEvents: closes on item activation; Escape/outside-click handled globally above
+        // oxlint-disable-next-line jsx-a11y/click-events-have-key-events -- closes on item activation; Escape/outside-click handled globally above
         <div
           role="menu"
+          tabIndex={-1}
           className={`absolute z-30 mt-1 min-w-[12rem] overflow-hidden rounded-md border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md ${align === "right" ? "right-0" : "left-0"}`}
           onClick={() => setOpen(false)}
         >

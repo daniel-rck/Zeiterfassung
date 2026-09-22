@@ -99,6 +99,7 @@ export function OnboardingSheet({
 
   useEffect(() => {
     if (open) {
+      // oxlint-disable-next-line react/set-state-in-effect -- re-seed the draft each time the sheet opens
       setStep(isUpgrade ? 1 : 0);
       setLevel(initialLevel ?? initialSettings.detailLevel);
       setConfig(defaultConfig(initialSettings, theme));

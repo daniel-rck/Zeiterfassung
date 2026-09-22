@@ -219,6 +219,7 @@ export function EntryEditPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Was hast du gemacht?"
+              // oxlint-disable-next-line jsx-a11y/no-autofocus -- a new entry starts at the description; the page exists only for this form
               autoFocus={isNew}
             />
           </Field>

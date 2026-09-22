@@ -25,14 +25,14 @@ function Harness({
 
 describe("useShortcuts", () => {
   it("fires on the page body", () => {
-    const onSpace = vi.fn();
+    const onSpace = vi.fn<() => void>();
     render(<Harness onSpace={onSpace} onN={() => {}} />);
     fireEvent.keyDown(document.body, { key: " " });
     expect(onSpace).toHaveBeenCalledTimes(1);
   });
 
   it("leaves Space to a focused button and ignores key repeat", () => {
-    const onSpace = vi.fn();
+    const onSpace = vi.fn<() => void>();
     render(<Harness onSpace={onSpace} onN={() => {}} />);
     fireEvent.keyDown(screen.getByRole("button"), { key: " " });
     fireEvent.keyDown(document.body, { key: " ", repeat: true });
@@ -40,7 +40,7 @@ describe("useShortcuts", () => {
   });
 
   it("is inert while a modal dialog is open", () => {
-    const onN = vi.fn();
+    const onN = vi.fn<() => void>();
     render(<Harness onSpace={() => {}} onN={onN} modal />);
     fireEvent.keyDown(document.body, { key: "n" });
     expect(onN).not.toHaveBeenCalled();

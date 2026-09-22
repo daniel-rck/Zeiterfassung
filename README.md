@@ -41,7 +41,7 @@ Eine schlanke, lokale Browser-PWA für Zeiterfassung. Timer starten, Projekten z
 | PWA | `vite-plugin-pwa` (`injectManifest`) |
 | Storage | IndexedDB via `idb` + `localStorage` |
 | Tests | Vitest + Testing Library |
-| Lint/Format | Biome |
+| Lint/Format | oxlint + oxfmt |
 | Hosting | Cloudflare Workers + Static Assets |
 | Package Manager | Bun |
 
@@ -61,8 +61,8 @@ bun run build        # Production Build nach dist/
 bun run preview      # gebauten Stand lokal ausliefern
 bun run test         # Vitest einmalig
 bun run test:watch   # Vitest watch mode
-bun run lint         # Biome (check)
-bun run format       # Biome (format --write)
+bun run lint         # oxlint + oxfmt --check
+bun run format       # oxfmt
 bun run typecheck    # tsc -b --noEmit
 bun run worker:dev   # lokaler Cloudflare Worker
 bun run worker:deploy

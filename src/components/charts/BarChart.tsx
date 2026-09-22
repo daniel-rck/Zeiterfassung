@@ -89,7 +89,6 @@ export function BarChart({
                   opacity: hovered && !active ? 0.5 : 1,
                 }}
               />
-              {/* biome-ignore lint/a11y/noStaticElementInteractions: SVG hover hit-area for tooltip, data is in the accessible figure label */}
               <rect
                 x={padLeft + i * slot}
                 y={padTop}

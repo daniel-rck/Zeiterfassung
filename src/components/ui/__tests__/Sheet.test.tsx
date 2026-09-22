@@ -10,13 +10,7 @@ function Harness({ onClose }: { onClose: () => void }) {
     // Inline arrow on purpose: callers do this everywhere, so the identity
     // changes on every render.
     <Sheet open title="Test" onClose={() => onClose()}>
-      <input
-        // biome-ignore lint/a11y/noAutofocus: mirrors the project/tag sheets
-        autoFocus
-        aria-label="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <input aria-label="Name" value={name} onChange={(e) => setName(e.target.value)} />
     </Sheet>
   );
 }
@@ -38,7 +32,7 @@ describe("Sheet", () => {
     if (original) Object.defineProperty(HTMLElement.prototype, "offsetParent", original);
   });
 
-  it("keeps focus in the field while typing (re-renders must not refocus)", async () => {
+  it("focuses the first body field and keeps it there while typing", async () => {
     const user = userEvent.setup();
     render(<Harness onClose={() => {}} />);
     const input = screen.getByLabelText("Name");
@@ -49,7 +43,7 @@ describe("Sheet", () => {
   });
 
   it("closes on Escape, but not when a nested popup handled it", async () => {
-    const onClose = vi.fn();
+    const onClose = vi.fn<() => void>();
     render(<Harness onClose={onClose} />);
     const handled = new KeyboardEvent("keydown", { key: "Escape", cancelable: true });
     handled.preventDefault();

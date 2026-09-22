@@ -76,6 +76,7 @@ export function WeekPage() {
     day: "numeric",
     month: "long",
   });
+  // oxlint-disable-next-line react/purity -- re-read on every render on purpose so "today" rolls over at midnight
   const todayKey = dayKey(Date.now());
 
   const handleDelete = async (id: string) => {

@@ -10,7 +10,8 @@ PR.
 
 The app adopts the web-base `core` foundation:
 
-- **Tooling** — Biome (`biome.json`), `.editorconfig`, hygiene files, the
+- **Tooling** — oxlint + oxfmt (`oxc` template: `oxlint.base.json`,
+  `.oxfmtrc.json`, per-app `.oxlintrc.json`), `.editorconfig`, hygiene files, the
   reusable CI workflow (`.github/workflows/web-app-ci.yml@main`), package
   metadata + `packageManager: bun@1.3.11`, strict TS with
   `noUncheckedIndexedAccess`.
@@ -58,9 +59,10 @@ app-specific handlers):
    `src/components/ui/*` primitives for app screens, alongside the canonical
    `src/lib/ui` tokens/primitives used by the shell. Both token sets coexist in
    `src/index.css`.
-6. **Biome excludes `src/lib/ui`** — the vendored canonical UI is kept
-   byte-identical and updated via the CLI, so it is excluded from Biome
-   (mirroring how web-base excludes its own `cli/templates`).
+6. **Intentional lint suppressions** — the stricter oxlint React rules
+   (`set-state-in-effect`, `purity`) flag a few deliberate patterns (1 s timer
+   ticks, reset-on-open, "today" re-read per render). Each is suppressed inline
+   with `oxlint-disable-next-line <rule> -- <reason>`, never globally.
 
 ## Domain rules
 

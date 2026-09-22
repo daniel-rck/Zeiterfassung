@@ -15,6 +15,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) · Versionssche
 
 ### Geändert
 
+- Lint/Format von Biome auf oxlint + oxfmt umgestellt (web-base 0.5.0, Template `oxc`).
 - README neu strukturiert: klare Trennung zwischen User-Pitch und Entwickler-Setup, kompakter.
 - CSV-Export mit Dezimalkomma (passend zum `;`-Trenner für deutsches Excel).
 - Laufender Timer zeigt die Arbeitszeit abzüglich Pausen.

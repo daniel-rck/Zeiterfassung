@@ -63,6 +63,7 @@ export function ProjectPicker({
       <Field label={label}>
         <div className="flex gap-2">
           <Input
+            // oxlint-disable-next-line jsx-a11y/no-autofocus -- input is mounted on explicit user action (Projekt anlegen)
             autoFocus
             placeholder="Neues Projekt"
             value={name}

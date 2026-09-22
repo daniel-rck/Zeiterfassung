@@ -39,7 +39,6 @@ export function SkeletonText({
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       {Array.from({ length: lines }).map((_, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: fixed-count decorative placeholders with no identity
         <Skeleton key={i} h={12} w={i === lines - 1 ? "60%" : "100%"} className="block" />
       ))}
     </div>

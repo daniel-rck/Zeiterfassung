@@ -51,6 +51,7 @@ export function Combobox({
   useEffect(() => {
     if (!open) return;
     inputRef.current?.focus();
+    // oxlint-disable-next-line react/set-state-in-effect -- start at the first option each time the popup opens
     setHighlight(0);
     const onClick = (e: MouseEvent) => {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
