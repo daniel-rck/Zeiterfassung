@@ -16,6 +16,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) · Versionssche
 ### Geändert
 
 - README neu strukturiert: klare Trennung zwischen User-Pitch und Entwickler-Setup, kompakter.
+- CSV-Export mit Dezimalkomma (passend zum `;`-Trenner für deutsches Excel).
+- Laufender Timer zeigt die Arbeitszeit abzüglich Pausen.
+- Aktions-Toasts (z. B. „Rückgängig“) bleiben 8 s sichtbar; Archivieren lässt sich rückgängig machen.
+- Höherer Kontrast für Hinweistexte in hellem und dunklem Theme.
+
+### Behoben
+
+- Ein Eintrag über Mitternacht bzw. über eine Wochengrenze wurde in Reports doppelt gezählt.
+- Das Speichern der Beschreibung konnte einen gerade gestoppten Timer wieder „laufen“ lassen.
+- Projektwechsel übernahm den Stundensatz des neuen Projekts nicht.
+- Tagesweise Rechnungen berechneten alle Einträge eines Tages mit dem ersten Stundensatz.
+- Rundung auf Cent rundete manche halben Cent ab (z. B. 1,005 → 1,00).
+- Rechnungs-PDF: Summen und Zahlungsblock konnten über den Seitenrand laufen; USt. mit Nachkommastelle wurde gerundet.
+- Leere Rechnungen oder ein umgekehrter Zeitraum verbrauchten eine Rechnungsnummer.
+- Import prüft jetzt Ende ≥ Start, höchstens einen laufenden Timer und Namen von Projekten/Tags.
+- In Dialogen sprang der Fokus beim Tippen auf „Schließen“.
+- Dezimalzahlen in den Einstellungen („37,5“) wurden zu 375.
+- Tastenkürzel feuerten bei offenen Dialogen oder auf fokussierten Buttons.
+- Aktionen in Listen waren auf Touch-Geräten unsichtbar.
+- Ungültige Dauer oder leeres Datum wurden beim Speichern eines Eintrags ignoriert.
 
 ## [0.1.0] — 2026-05-18
 
