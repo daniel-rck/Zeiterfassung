@@ -72,7 +72,7 @@ function validateEntry(e: unknown, i: number): void {
 // from the store, so a record without a name would crash every list.
 function validateNamed(item: unknown, i: number, label: string): void {
   const rec = item as Record<string, unknown>;
-  if (typeof rec.name !== "string" || typeof rec.color !== "string") {
+  if (typeof rec.name !== "string" || !rec.name.trim() || typeof rec.color !== "string") {
     throw new Error(`${label} #${i + 1}: Name oder Farbe fehlt.`);
   }
 }

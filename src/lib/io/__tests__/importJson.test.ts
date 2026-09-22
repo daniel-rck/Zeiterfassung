@@ -167,6 +167,8 @@ describe("importSnapshot", () => {
     const p = VALID_SNAPSHOT.projects[0]!;
     const bad = { ...VALID_SNAPSHOT, projects: [{ ...p, name: undefined }] };
     await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/Name/);
+    const blank = { ...VALID_SNAPSHOT, projects: [{ ...p, name: "   " }] };
+    await expect(importSnapshot(JSON.stringify(blank))).rejects.toThrow(/Name/);
   });
 
   it("drops breaks whose entry is not in the backup", async () => {

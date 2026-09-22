@@ -31,7 +31,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     resolve: (value: boolean) => void;
   } | null>(null);
 
+  // The element that opened the dialog, captured before the dialog renders:
+  // once it mounts, its autoFocus button is already the active element.
+  const openerRef = useRef<HTMLElement | null>(null);
+
   const confirm = useCallback((options: ConfirmOptions) => {
+    openerRef.current = document.activeElement as HTMLElement | null;
     return new Promise<boolean>((resolve) => {
       setPending({ options, resolve });
     });
@@ -47,13 +52,14 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
 
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Remember the opener once per dialog, not per `close` identity change.
+  // Hand focus back to the opener when the dialog closes.
   const isOpen = pending != null;
   useEffect(() => {
     if (!isOpen) return;
-    const previouslyFocused = document.activeElement as HTMLElement | null;
     return () => {
-      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+      const opener = openerRef.current;
+      openerRef.current = null;
+      if (opener?.isConnected) opener.focus();
     };
   }, [isOpen]);
 

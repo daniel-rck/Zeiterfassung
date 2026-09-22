@@ -133,7 +133,9 @@ export function parseDecimal(raw: string): number | undefined | null {
   if (trimmed === "") return undefined;
   // Accept both "37,5" and "37.5"; reject anything else (units, letters).
   if (!/^-?\d+(?:[.,]\d+)?$/.test(trimmed)) return null;
-  return Number(trimmed.replace(",", "."));
+  const n = Number(trimmed.replace(",", "."));
+  // A long enough digit string overflows to Infinity (JSON writes it as null).
+  return Number.isFinite(n) ? n : null;
 }
 
 /**

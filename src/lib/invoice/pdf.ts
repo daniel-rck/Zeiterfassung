@@ -122,7 +122,10 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
   const profile = invoice.issuer;
   const hasPayment = profile.iban || profile.bic || profile.bankName || profile.paymentNote;
   if (hasPayment) {
-    ensureSpace(15);
+    // Heading plus every fixed line (bank, IBAN, BIC) stays together; the
+    // free-form note below checks its own lines.
+    const fixedLines = [profile.bankName, profile.iban, profile.bic].filter(Boolean).length;
+    ensureSpace(5 + fixedLines * 5 + 5);
     doc.setFont("helvetica", "bold");
     doc.text("Zahlung", margin, y);
     doc.setFont("helvetica", "normal");

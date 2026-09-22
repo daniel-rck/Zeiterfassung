@@ -34,7 +34,9 @@ export function DurationInput({
 
   const evaluate = (raw: string): number | "empty" | null => {
     if (!raw.trim()) return "empty";
-    return parseDuration(raw);
+    const parsed = parseDuration(raw);
+    // A very long digit string parses to Infinity; treat it as unreadable.
+    return parsed != null && Number.isFinite(parsed) ? parsed : null;
   };
 
   // Commit on every change, so Cmd+Enter or a click on "Speichern" without a

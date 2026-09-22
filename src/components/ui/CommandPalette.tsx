@@ -43,6 +43,7 @@ export function CommandPalette({
   const [query, setQuery] = useState("");
   const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
@@ -119,9 +120,12 @@ export function CommandPalette({
           return;
         }
         if (e.key === "Tab") {
-          // Keep focus inside the modal; the list is driven by the arrow keys.
+          // Keep focus inside the modal, cycling between the search input and
+          // the close button; the list itself is driven by the arrow keys.
           e.preventDefault();
-          inputRef.current?.focus();
+          const next =
+            document.activeElement === inputRef.current ? closeRef.current : inputRef.current;
+          next?.focus();
           return;
         }
         if (e.key === "ArrowDown") {
@@ -164,6 +168,7 @@ export function CommandPalette({
             className="h-12 flex-1 bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"
           />
           <button
+            ref={closeRef}
             type="button"
             onClick={onClose}
             aria-label="Schließen"
