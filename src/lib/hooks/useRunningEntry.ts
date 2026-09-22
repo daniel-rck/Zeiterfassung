@@ -13,9 +13,9 @@ export function useRunningEntry(): {
   const [liveDurationSec, setLiveDurationSec] = useState(0);
 
   const entryStartedAt = entry?.startedAt;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the entry id on purpose, see comment below
   useEffect(() => {
     if (entryStartedAt == null) {
+      // oxlint-disable-next-line react/set-state-in-effect -- the tick syncs with the wall clock; reset immediately when the entry changes
       setLiveDurationSec(0);
       return;
     }

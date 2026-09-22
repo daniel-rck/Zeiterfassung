@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 // The real shipped file, not a copy — a copy would drift from what users run.
 import SCRIPT from "../../../public/theme-init.js?raw";
 
@@ -36,7 +36,7 @@ function run(initial: Record<string, string>): {
 }
 
 describe("theme-init", () => {
-  beforeEach(() => {
+  it("reads the legacy settings key", () => {
     expect(SCRIPT).toContain("zeiterfassung:settings");
   });
 

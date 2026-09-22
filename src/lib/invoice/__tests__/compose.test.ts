@@ -74,4 +74,20 @@ describe("composeInvoice", () => {
     expect(invoice.taxAmount).toBe(0);
     expect(invoice.total).toBe(100);
   });
+
+  it("prices same-day entries with different rates separately when grouped by day", () => {
+    const invoice = composeInvoice(
+      [entry({ id: "a", hourlyRateSnapshot: 100 }), entry({ id: "b", hourlyRateSnapshot: 60 })],
+      {
+        groupBy: "day",
+        roundToMinutes: 0,
+        recipient: { name: "Test" },
+        range: { from: 0, to: Date.now() },
+        issuer: {},
+        currency: "EUR",
+      },
+    );
+    expect(invoice.lineItems).toHaveLength(2);
+    expect(invoice.subtotal).toBe(160);
+  });
 });

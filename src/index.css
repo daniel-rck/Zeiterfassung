@@ -31,7 +31,8 @@
   --color-border-strong: oklch(85% 0.007 230);
   --color-text-1: oklch(20% 0.01 230);
   --color-text-2: oklch(42% 0.01 230);
-  --color-text-3: oklch(58% 0.01 230);
+  /* 52 % keeps xs hints at WCAG AA (≥ 4.5:1) on surface-0/1. */
+  --color-text-3: oklch(52% 0.01 230);
 
   /* === Status === */
   --color-success-500: oklch(64% 0.15 155);
@@ -79,7 +80,8 @@
     --color-border-strong: oklch(32% 0.012 230);
     --color-text-1: oklch(96% 0.005 230);
     --color-text-2: oklch(75% 0.008 230);
-    --color-text-3: oklch(58% 0.01 230);
+    /* 58 % was ~3.3:1 on surface-1; 66 % clears AA and stays below text-2. */
+    --color-text-3: oklch(66% 0.01 230);
   }
 }
 
@@ -166,6 +168,15 @@ body {
 @media (pointer: coarse) {
   :where(button, a, [role="button"]):not(.no-min-tap) {
     min-height: 44px;
+  }
+}
+
+/* Row actions (edit/delete/archive) appear on hover — but only on devices
+   that can hover. On touch they stay visible, and keyboard focus inside the
+   row reveals them too, so focus never lands on an invisible button. */
+@media (hover: hover) {
+  .group:not(:hover):not(:focus-within) .row-action {
+    opacity: 0;
   }
 }
 

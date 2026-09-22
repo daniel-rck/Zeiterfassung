@@ -58,7 +58,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const show = useCallback((message: string, options: ToastOptions = {}) => {
     const id = newId();
     const tone: Tone = options.tone ?? "info";
-    const duration = options.duration ?? DEFAULT_DURATION[tone];
+    // A toast with an action (e.g. "Rückgängig") needs time to be read and
+    // reached; 3.5 s is too short for undo.
+    const duration =
+      options.duration ?? Math.max(DEFAULT_DURATION[tone], options.action ? 8000 : 0);
     setItems((current) =>
       [...current, { id, message, tone, duration, action: options.action }].slice(-MAX_VISIBLE),
     );
@@ -78,7 +81,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
       <section
         aria-label="Benachrichtigungen"
-        className="pointer-events-none fixed inset-x-0 bottom-20 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6 sm:right-6 sm:left-auto sm:items-end sm:px-0"
+        className="pointer-events-none fixed inset-x-0 bottom-36 z-[60] flex flex-col items-center gap-2 px-4 sm:bottom-6 sm:right-6 sm:left-auto sm:items-end sm:px-0"
       >
         {items.map((item) => (
           <ToastEntry key={item.id} item={item} onDismiss={dismiss} />
@@ -90,7 +93,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: string) => void }) {
   const [paused, setPaused] = useState(false);
-  const startedAt = useRef(Date.now());
+  // Set by the effect below before it is ever read.
+  const startedAt = useRef(0);
   const remaining = useRef(item.duration);
   const dismiss = () => onDismiss(item.id);
 
@@ -116,7 +120,6 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: stri
         : "text-brand-500";
 
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: status/alert region pauses auto-dismiss on hover/focus, no click affordance
     <div
       className="page-fade pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] px-3.5 py-3 shadow-md"
       role={item.tone === "error" ? "alert" : "status"}
@@ -135,7 +138,7 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: stri
             item.action?.onClick();
             dismiss();
           }}
-          className="flex-shrink-0 rounded-md px-2 py-1 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/40 no-min-tap"
+          className="-my-1.5 flex-shrink-0 rounded-md px-2.5 py-2 text-xs font-semibold text-brand-600 transition-colors hover:bg-brand-50 dark:text-brand-400 dark:hover:bg-brand-950/40 no-min-tap"
         >
           {item.action.label}
         </button>
@@ -144,7 +147,7 @@ function ToastEntry({ item, onDismiss }: { item: ToastItem; onDismiss: (id: stri
         type="button"
         onClick={dismiss}
         aria-label="Schließen"
-        className="flex-shrink-0 rounded p-0.5 text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
+        className="-my-1.5 -mr-1.5 inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
       >
         <X size={14} />
       </button>

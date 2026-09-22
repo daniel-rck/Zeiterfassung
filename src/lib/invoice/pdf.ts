@@ -1,4 +1,4 @@
-import { formatDate, formatMoney } from "../format";
+import { formatDate, formatDecimalHours, formatMoney, formatPercent } from "../format";
 import type { ComposedInvoice } from "./compose";
 
 export async function generateInvoicePdf(invoice: ComposedInvoice, locale: string): Promise<Blob> {
@@ -68,6 +68,14 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
   doc.line(margin, y, margin + 175, y);
   y += 4;
 
+  // A4 is 297 mm tall; keep a bottom margin so nothing is clipped.
+  const ensureSpace = (height: number) => {
+    if (y + height > 280) {
+      doc.addPage();
+      y = margin;
+    }
+  };
+
   doc.setFont("helvetica", "normal");
   for (const item of invoice.lineItems) {
     if (y > 260) {
@@ -77,7 +85,7 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
     const desc = item.date ? `${item.date} – ${item.description}` : item.description;
     const descLines = doc.splitTextToSize(desc, 95);
     doc.text(descLines, margin, y);
-    doc.text(item.hours.toFixed(2), margin + 110, y, { align: "right" });
+    doc.text(formatDecimalHours(item.hours * 3600, locale), margin + 110, y, { align: "right" });
     doc.text(formatMoney(item.rate, invoice.currency, locale), margin + 140, y, { align: "right" });
     doc.text(formatMoney(item.amount, invoice.currency, locale), margin + 175, y, {
       align: "right",
@@ -85,6 +93,8 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
     y += Math.max(5, descLines.length * 5);
   }
 
+  // Totals block: rule + subtotal + tax + total.
+  ensureSpace(30);
   y += 4;
   doc.line(margin + 110, y, margin + 175, y);
   y += 5;
@@ -95,7 +105,7 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
   });
   y += 5;
   if (invoice.taxRate != null && invoice.taxRate > 0) {
-    doc.text(`USt. ${invoice.taxRate.toFixed(0)}%`, margin + 110, y);
+    doc.text(`USt. ${formatPercent(invoice.taxRate, locale)}`, margin + 110, y);
     doc.text(formatMoney(invoice.taxAmount, invoice.currency, locale), margin + 175, y, {
       align: "right",
     });
@@ -112,6 +122,10 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
   const profile = invoice.issuer;
   const hasPayment = profile.iban || profile.bic || profile.bankName || profile.paymentNote;
   if (hasPayment) {
+    // Heading plus every fixed line (bank, IBAN, BIC) stays together; the
+    // free-form note below checks its own lines.
+    const fixedLines = [profile.bankName, profile.iban, profile.bic].filter(Boolean).length;
+    ensureSpace(5 + fixedLines * 5 + 5);
     doc.setFont("helvetica", "bold");
     doc.text("Zahlung", margin, y);
     doc.setFont("helvetica", "normal");
@@ -130,6 +144,7 @@ export async function generateInvoicePdf(invoice: ComposedInvoice, locale: strin
     }
     if (profile.paymentNote) {
       for (const line of doc.splitTextToSize(profile.paymentNote, 175) as string[]) {
+        ensureSpace(5);
         doc.text(line, margin, y);
         y += 5;
       }

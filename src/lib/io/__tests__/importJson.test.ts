@@ -144,4 +144,44 @@ describe("importSnapshot", () => {
     const badEnded = { ...VALID_SNAPSHOT, breaks: [{ ...base, durationSec: 5, endedAt: "x" }] };
     await expect(importSnapshot(JSON.stringify(badEnded))).rejects.toThrow(/Endzeitpunkt/);
   });
+
+  it("rejects entries that end before they start", async () => {
+    const e = VALID_SNAPSHOT.timeEntries[0]!;
+    const bad = { ...VALID_SNAPSHOT, timeEntries: [{ ...e, endedAt: e.startedAt - 1 }] };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/vor dem Start/);
+  });
+
+  it("rejects more than one running entry", async () => {
+    const e = VALID_SNAPSHOT.timeEntries[0]!;
+    const bad = {
+      ...VALID_SNAPSHOT,
+      timeEntries: [
+        { ...e, id: "r1", endedAt: undefined },
+        { ...e, id: "r2", endedAt: undefined },
+      ],
+    };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/mehrere laufende/);
+  });
+
+  it("rejects projects without a name", async () => {
+    const p = VALID_SNAPSHOT.projects[0]!;
+    const bad = { ...VALID_SNAPSHOT, projects: [{ ...p, name: undefined }] };
+    await expect(importSnapshot(JSON.stringify(bad))).rejects.toThrow(/Name/);
+    const blank = { ...VALID_SNAPSHOT, projects: [{ ...p, name: "   " }] };
+    await expect(importSnapshot(JSON.stringify(blank))).rejects.toThrow(/Name/);
+  });
+
+  it("drops breaks whose entry is not in the backup", async () => {
+    const orphan = {
+      id: "b1",
+      entryId: "missing",
+      startedAt: 1,
+      endedAt: 2,
+      durationSec: 1,
+      createdAt: 0,
+      updatedAt: 0,
+    };
+    await importSnapshot(JSON.stringify({ ...VALID_SNAPSHOT, breaks: [orphan] }));
+    expect(await listBreaksByEntry("missing")).toHaveLength(0);
+  });
 });

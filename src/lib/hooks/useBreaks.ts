@@ -20,9 +20,9 @@ export function useBreaksForEntry(entryId: string | undefined): {
   const runningBreak = breaks.find((b) => b.endedAt == null) ?? null;
 
   const runningStartedAt = runningBreak?.startedAt;
-  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the break id so reload-driven object identity changes don't rebuild the 1s tick
   useEffect(() => {
     if (runningStartedAt == null) {
+      // oxlint-disable-next-line react/set-state-in-effect -- the tick syncs with the wall clock; reset immediately when the break changes
       setLiveBreakSec(0);
       return;
     }

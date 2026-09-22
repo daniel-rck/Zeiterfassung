@@ -7,15 +7,15 @@ import { _resetDBForTests, getDB } from "../lib/db";
 Object.defineProperty(window, "matchMedia", {
   writable: true,
   configurable: true,
-  value: vi.fn().mockImplementation((query: string) => ({
+  value: vi.fn<(query: string) => MediaQueryList>().mockImplementation((query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
+    addListener: vi.fn<MediaQueryList["addListener"]>(),
+    removeListener: vi.fn<MediaQueryList["removeListener"]>(),
+    addEventListener: vi.fn<MediaQueryList["addEventListener"]>(),
+    removeEventListener: vi.fn<MediaQueryList["removeEventListener"]>(),
+    dispatchEvent: vi.fn<MediaQueryList["dispatchEvent"]>(),
   })),
 });
 

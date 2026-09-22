@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useLayoutEffect, useRef } from "react";
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), textarea:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
@@ -21,7 +21,16 @@ export function Sheet({
   size?: "sm" | "md" | "lg";
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
+  // Callers pass inline arrows, so `onClose` changes identity on every render.
+  // Keeping it out of the effect's deps stops the effect from re-running per
+  // keystroke — which used to restore focus behind the dialog and then move it
+  // to the header close button while the user was typing.
+  const onCloseRef = useRef(onClose);
+  useLayoutEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -32,17 +41,26 @@ export function Sheet({
         (el) => el.offsetParent !== null || el === document.activeElement,
       );
 
-    const initial = focusables();
-    const firstInitial = initial[0];
-    if (firstInitial) {
-      firstInitial.focus();
-    } else {
-      dialogRef.current?.focus();
+    // Respect a field that already took focus (React `autoFocus` runs before
+    // effects); otherwise start at the first control in the body rather than
+    // the header close button.
+    if (!dialogRef.current?.contains(document.activeElement)) {
+      const bodyFirst = Array.from(
+        bodyRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [],
+      ).find((el) => el.offsetParent !== null);
+      const target = bodyFirst ?? focusables()[0];
+      if (target) {
+        target.focus();
+      } else {
+        dialogRef.current?.focus();
+      }
     }
 
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && closeable) {
-        onClose();
+      // A nested popup (combobox, palette) that handled Escape itself marks
+      // the event; don't close the sheet underneath as well.
+      if (e.key === "Escape" && closeable && !e.defaultPrevented) {
+        onCloseRef.current();
         return;
       }
       if (e.key !== "Tab") return;
@@ -70,7 +88,7 @@ export function Sheet({
       document.body.style.overflow = "";
       previouslyFocused?.focus?.();
     };
-  }, [open, onClose, closeable]);
+  }, [open, closeable]);
 
   if (!open) return null;
 
@@ -98,7 +116,7 @@ export function Sheet({
         className={`relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md outline-none sm:max-h-[85vh] sm:rounded-lg ${sizeClass}`}
       >
         {(title || closeable) && (
-          <div className="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-5 py-3">
+          <div className="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-5 py-1.5">
             <div id={titleId} className="text-sm font-semibold text-[color:var(--color-text-1)]">
               {title}
             </div>
@@ -106,7 +124,7 @@ export function Sheet({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-md p-1 text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
+                className="-mr-2 inline-flex h-10 w-10 items-center justify-center rounded-md text-[color:var(--color-text-3)] transition-colors hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
                 aria-label="Schließen"
               >
                 <X size={16} />
@@ -114,7 +132,9 @@ export function Sheet({
             )}
           </div>
         )}
-        <div className="flex-1 overflow-y-auto px-5 py-4">{children}</div>
+        <div ref={bodyRef} className="flex-1 overflow-y-auto px-5 py-4">
+          {children}
+        </div>
       </div>
     </div>
   );

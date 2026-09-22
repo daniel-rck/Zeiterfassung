@@ -1,13 +1,12 @@
 import { Download, Printer } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "../components/ui/Button";
 import { Card, CardHeader } from "../components/ui/Card";
 import { Field, Input, Select, Textarea } from "../components/ui/Input";
 import { useToast } from "../components/ui/Toast";
-import { at } from "../lib/at.ts";
 import { saveInvoice } from "../lib/db/invoices";
 import { bumpInvoiceNumberTo } from "../lib/db/settings";
-import { formatDate, formatMoney } from "../lib/format";
+import { formatDate, formatDecimalHours, formatMoney, formatPercent } from "../lib/format";
 import { useEntries } from "../lib/hooks/useEntries";
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
@@ -20,7 +19,9 @@ export function InvoicePage() {
   const { projects } = useProjects();
   const toast = useToast();
 
-  const [projectId, setProjectId] = useState<string>("");
+  const [pickedProjectId, setProjectId] = useState<string>("");
+  // Default to the first project until the user picks one.
+  const projectId = pickedProjectId || projects[0]?.id || "";
   const [from, setFrom] = useState(() =>
     formatDateInput(getRange("lastMonth", settings.weekStart)?.from ?? Date.now()),
   );
@@ -35,12 +36,6 @@ export function InvoicePage() {
       : "",
   );
   const [groupBy, setGroupBy] = useState<"entry" | "day">("day");
-
-  useEffect(() => {
-    if (!projectId && projects.length > 0) {
-      setProjectId(at(projects, 0).id);
-    }
-  }, [projects, projectId]);
 
   const range = useMemo(() => {
     if (!from || !to) return null;
@@ -93,6 +88,15 @@ export function InvoicePage() {
   const handlePdf = async () => {
     if (!invoice) {
       toast.error("Bitte Empfänger und Zeitraum ausfüllen.");
+      return;
+    }
+    // Don't archive an empty invoice and burn an invoice number on it.
+    if (range && range.from > range.to) {
+      toast.error("Der Zeitraum endet vor seinem Beginn.");
+      return;
+    }
+    if (invoice.lineItems.length === 0) {
+      toast.error("Im Zeitraum gibt es keine abrechenbaren Einträge.");
       return;
     }
     const filename = invoice.number
@@ -233,7 +237,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             </div>
           )}
           {invoice.issuer.issuerAddress?.split("\n").map((line, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: static address lines, fixed order
             <div key={i}>{line}</div>
           ))}
           {invoice.issuer.taxId && <div className="mt-1">Steuer-ID: {invoice.issuer.taxId}</div>}
@@ -248,7 +251,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
           {invoice.recipient.name}
         </p>
         {invoice.recipient.address?.split("\n").map((line, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: static address lines, fixed order
           <p key={i} className="text-sm text-[color:var(--color-text-2)] print:text-black">
             {line}
           </p>
@@ -257,7 +259,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
 
       <ul className="space-y-3 sm:hidden print:hidden">
         {invoice.lineItems.map((item, i) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: composed invoice line items, fixed order
           <li key={i} className="rounded-md border border-[color:var(--color-border-subtle)] p-3">
             <div className="text-sm font-medium text-[color:var(--color-text-1)]">
               {item.description}
@@ -268,7 +269,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
               <div>
                 <dt className="text-[color:var(--color-text-3)]">Stunden</dt>
-                <dd className="tnum font-mono">{item.hours.toFixed(2)}</dd>
+                <dd className="tnum font-mono">{formatDecimalHours(item.hours * 3600, locale)}</dd>
               </div>
               <div>
                 <dt className="text-[color:var(--color-text-3)]">Satz</dt>
@@ -297,7 +298,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
         {invoice.taxRate != null && invoice.taxRate > 0 && (
           <div className="flex justify-between">
             <dt className="text-[color:var(--color-text-2)]">
-              USt. {invoice.taxRate.toFixed(0)} %
+              USt. {formatPercent(invoice.taxRate, locale)}
             </dt>
             <dd className="tnum font-mono">
               {formatMoney(invoice.taxAmount, invoice.currency, locale)}
@@ -323,7 +324,6 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
         </thead>
         <tbody>
           {invoice.lineItems.map((item, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: composed invoice line items, fixed order
             <tr key={i} className={rowCls}>
               <td className="py-2">
                 {item.date && (
@@ -333,7 +333,9 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
                 )}
                 {item.description}
               </td>
-              <td className="tnum py-2 text-right font-mono">{item.hours.toFixed(2)}</td>
+              <td className="tnum py-2 text-right font-mono">
+                {formatDecimalHours(item.hours * 3600, locale)}
+              </td>
               <td className="tnum py-2 text-right font-mono">
                 {formatMoney(item.rate, invoice.currency, locale)}
               </td>
@@ -361,7 +363,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
                 colSpan={3}
                 className="text-right text-sm text-[color:var(--color-text-2)] print:text-black"
               >
-                USt. {invoice.taxRate.toFixed(0)} %
+                USt. {formatPercent(invoice.taxRate, locale)}
               </td>
               <td className="tnum text-right font-mono">
                 {formatMoney(invoice.taxAmount, invoice.currency, locale)}
@@ -397,10 +399,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             {/* Truthiness guard on purpose: an empty string (cleared textarea)
                 must render nothing, not one empty line. */}
             {invoice.issuer.paymentNote
-              ? invoice.issuer.paymentNote.split("\n").map((line, i) => (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: static payment-note lines, fixed order
-                  <p key={i}>{line}</p>
-                ))
+              ? invoice.issuer.paymentNote.split("\n").map((line, i) => <p key={i}>{line}</p>)
               : null}
           </div>
         </section>

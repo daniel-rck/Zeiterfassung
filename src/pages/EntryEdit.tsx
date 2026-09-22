@@ -60,6 +60,7 @@ export function EntryEditPage() {
 
   const [loading, setLoading] = useState(!isNew);
   const [submitting, setSubmitting] = useState(false);
+  const [durationValid, setDurationValid] = useState(true);
   const [form, setForm] = useState<FormState>(() => {
     const now = new Date();
     return {
@@ -97,14 +98,30 @@ export function EntryEditPage() {
     })();
   }, [id, isNew, navigate, toast]);
 
+  // Opened directly (PWA shortcut, bookmark) there is no in-app history, and
+  // navigate(-1) would leave the app.
+  const goBack = useCallback(() => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0;
+    if (idx > 0) navigate(-1);
+    else navigate("/entries", { replace: true });
+  }, [navigate]);
+
   const handleSave = useCallback(async () => {
+    if (!durationValid) {
+      toast.error("Dauer ist ungültig. Beispiele: 1h 30m, 1.5, 90m, 01:30");
+      return;
+    }
     if (form.durationSec <= 0) {
       toast.error("Dauer muss größer als 0 sein.");
       return;
     }
+    const startedAt = combineDateTime(form.date, form.startTime);
+    if (!Number.isFinite(startedAt)) {
+      toast.error("Bitte Datum und Startzeit ausfüllen.");
+      return;
+    }
     setSubmitting(true);
     try {
-      const startedAt = combineDateTime(form.date, form.startTime);
       const endedAt = startedAt + form.durationSec * 1000;
       const project = form.projectId ? projectMap.get(form.projectId) : undefined;
 
@@ -134,13 +151,13 @@ export function EntryEditPage() {
         });
         toast.success("Gespeichert");
       }
-      navigate(-1);
+      goBack();
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
       setSubmitting(false);
     }
-  }, [form, id, isNew, navigate, projectMap, toast]);
+  }, [form, id, isNew, goBack, projectMap, toast, durationValid]);
 
   const handleDelete = async () => {
     if (isNew || !id) return;
@@ -153,7 +170,7 @@ export function EntryEditPage() {
     if (!ok) return;
     await deleteEntry(id);
     toast.success("Gelöscht");
-    navigate(-1);
+    goBack();
   };
 
   // Cmd/Ctrl+Enter saves
@@ -202,6 +219,7 @@ export function EntryEditPage() {
               value={form.description}
               onChange={(e) => setForm({ ...form, description: e.target.value })}
               placeholder="Was hast du gemacht?"
+              // oxlint-disable-next-line jsx-a11y/no-autofocus -- a new entry starts at the description; the page exists only for this form
               autoFocus={isNew}
             />
           </Field>
@@ -231,7 +249,8 @@ export function EntryEditPage() {
             <DurationInput
               label="Dauer"
               valueSec={form.durationSec}
-              onChangeSec={(durationSec) => setForm({ ...form, durationSec })}
+              onChangeSec={(durationSec) => setForm((f) => ({ ...f, durationSec }))}
+              onValidityChange={setDurationValid}
               required
             />
           </div>
@@ -262,7 +281,7 @@ export function EntryEditPage() {
         <span className="mr-auto hidden text-xs text-[color:var(--color-text-3)] sm:inline">
           <Kbd>{modKey()}</Kbd>+<Kbd>Enter</Kbd> zum Speichern
         </span>
-        <Button variant="ghost" onClick={() => navigate(-1)}>
+        <Button variant="ghost" onClick={goBack}>
           Abbrechen
         </Button>
         <Button

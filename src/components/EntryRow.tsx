@@ -96,7 +96,7 @@ export function EntryRow({
       <div className="flex items-center gap-0.5">
         <Link
           to={`/entry/${entry.id}`}
-          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition-all hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition-all hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] no-min-tap"
           aria-label="Eintrag bearbeiten"
         >
           <Pencil size={14} />
@@ -105,7 +105,7 @@ export function EntryRow({
           <button
             type="button"
             onClick={() => onDelete(entry.id)}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition-all hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition-all hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] no-min-tap"
             aria-label="Eintrag löschen"
           >
             <Trash2 size={14} />

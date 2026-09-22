@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronsRight } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import { EntryRow } from "../components/EntryRow";
 import { Button } from "../components/ui/Button";
@@ -76,6 +76,7 @@ export function WeekPage() {
     day: "numeric",
     month: "long",
   });
+  // oxlint-disable-next-line react/purity -- re-read on every render on purpose so "today" rolls over at midnight
   const todayKey = dayKey(Date.now());
 
   const handleDelete = async (id: string) => {
@@ -119,7 +120,7 @@ export function WeekPage() {
           />
           {weekOffset !== 0 && (
             <Button variant="ghost" size="sm" onClick={() => setWeekOffset(0)}>
-              Heute
+              Diese Woche
             </Button>
           )}
           <Button
@@ -127,7 +128,7 @@ export function WeekPage() {
             size="sm"
             onClick={() => setWeekOffset((o) => o + 1)}
             aria-label="Nächste Woche"
-            icon={<ChevronsRight size={14} />}
+            icon={<ChevronRight size={14} />}
           />
         </div>
       </header>

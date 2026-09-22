@@ -21,6 +21,7 @@ import { type CommandItem, CommandPalette } from "../../components/ui/CommandPal
 import { useToast } from "../../components/ui/Toast";
 import { getRunningEntry, startTimer, stopTimer } from "../../lib/db/timeEntries";
 import { formatDuration } from "../../lib/format";
+import { useBreaksForEntry } from "../../lib/hooks/useBreaks";
 import { useFeatures } from "../../lib/hooks/useFeature";
 import { useRunningEntry } from "../../lib/hooks/useRunningEntry";
 import { useTheme } from "../../lib/hooks/useTheme";
@@ -61,7 +62,9 @@ export function AppShellContainer() {
   const features = useFeatures();
   const location = useLocation();
   const navigate = useNavigate();
-  const { entry, liveDurationSec } = useRunningEntry();
+  const { entry, liveDurationSec: grossSec } = useRunningEntry();
+  const { totalSec: breakSec } = useBreaksForEntry(entry?.id);
+  const liveDurationSec = Math.max(0, grossSec - breakSec);
   const { theme, setTheme } = useTheme();
   const toast = useToast();
   const [commandOpen, setCommandOpen] = useState(false);
@@ -94,7 +97,7 @@ export function AppShellContainer() {
         label: entry ? "Timer stoppen" : "Timer starten",
         description: entry ? "Aktiven Timer beenden" : "Neuen Timer beginnen",
         icon: <Clock size={14} />,
-        kbd: "Space",
+        kbd: "Leertaste",
         keywords: ["start", "stop", "timer", "play"],
         onSelect: async () => {
           try {
@@ -189,6 +192,7 @@ export function AppShellContainer() {
       {entry && location.pathname !== ROUTES.home ? (
         <Link
           to={ROUTES.home}
+          aria-label={`Timer läuft, ${formatDuration(liveDurationSec, "long")} – zu Heute`}
           className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-600 px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-700 no-min-tap"
         >
           <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 rounded-full bg-white" />

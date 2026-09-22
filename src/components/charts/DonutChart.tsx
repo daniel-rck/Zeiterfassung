@@ -41,11 +41,18 @@ export function DonutChart({
   const cx = radius;
   const cy = radius;
 
+  // Cumulative start of each slice, computed up front so the map below stays
+  // free of mutation.
+  const starts: number[] = [];
   let acc = 0;
-  const arcs = slices.map((s) => {
-    const startA = (acc / total) * Math.PI * 2 - Math.PI / 2;
+  for (const s of slices) {
+    starts.push(acc);
     acc += s.value;
-    const endA = (acc / total) * Math.PI * 2 - Math.PI / 2;
+  }
+  const arcs = slices.map((s, i) => {
+    const from = starts[i] ?? 0;
+    const startA = (from / total) * Math.PI * 2 - Math.PI / 2;
+    const endA = ((from + s.value) / total) * Math.PI * 2 - Math.PI / 2;
     const large = endA - startA > Math.PI ? 1 : 0;
     const x1 = cx + Math.cos(startA) * radius;
     const y1 = cy + Math.sin(startA) * radius;
@@ -73,7 +80,6 @@ export function DonutChart({
             const isHover = hovered === slice.key;
             const isOther = hovered && !isHover;
             return (
-              // biome-ignore lint/a11y/noStaticElementInteractions: SVG hover hit-area for tooltip, data is in the accessible img label
               <path
                 key={slice.key}
                 d={path}
@@ -107,6 +113,7 @@ export function DonutChart({
           const pct = total > 0 ? Math.round((s.value / total) * 100) : 0;
           const isHover = hovered === s.key;
           return (
+            // oxlint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- legend hover mirrors the SVG highlight; the data is in the accessible figure label
             <li
               key={s.key}
               onMouseEnter={() => setHovered(s.key)}

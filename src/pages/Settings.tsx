@@ -25,7 +25,7 @@ import { labelFor, OnboardingSheet } from "../components/Onboarding/OnboardingSh
 import { Button } from "../components/ui/Button";
 import { Card, CardHeader } from "../components/ui/Card";
 import { useConfirm } from "../components/ui/Confirm";
-import { Field, Input, Select, Textarea } from "../components/ui/Input";
+import { DecimalInput, Field, Input, Select, Textarea } from "../components/ui/Input";
 import { Kbd } from "../components/ui/Kbd";
 import { type TabItem, Tabs } from "../components/ui/Tabs";
 import { useToast } from "../components/ui/Toast";
@@ -160,7 +160,7 @@ export function SettingsPage() {
 
   const updateInvoiceProfile = (patch: Partial<InvoiceProfile>) => {
     patchSettings({
-      invoiceProfile: { ...(settings.invoiceProfile ?? {}), ...patch },
+      invoiceProfile: { ...settings.invoiceProfile, ...patch },
     });
   };
 
@@ -305,18 +305,11 @@ export function SettingsPage() {
                     description="Wöchentliches Soll für die Ist/Soll-Anzeige."
                   />
                   <Field label="Wochen-Soll (Stunden)" hint="z. B. 40">
-                    <Input
-                      type="text"
-                      inputMode="decimal"
-                      value={settings.targetHoursPerWeek?.toString() ?? ""}
-                      onChange={(e) => {
-                        const v = e.target.value.replace(",", ".");
-                        const n = v === "" ? undefined : Number(v);
-                        updateField(
-                          "targetHoursPerWeek",
-                          n != null && Number.isFinite(n) ? n : undefined,
-                        );
-                      }}
+                    <DecimalInput
+                      value={settings.targetHoursPerWeek}
+                      locale={settings.locale}
+                      min={0}
+                      onCommit={(n) => updateField("targetHoursPerWeek", n)}
                     />
                   </Field>
                 </Card>
@@ -437,18 +430,11 @@ export function SettingsPage() {
                     />
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <Field label="Standard-Stundensatz">
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          value={settings.defaultHourlyRate?.toString() ?? ""}
-                          onChange={(e) => {
-                            const v = e.target.value.replace(",", ".");
-                            const n = v === "" ? undefined : Number(v);
-                            updateField(
-                              "defaultHourlyRate",
-                              n != null && Number.isFinite(n) ? n : undefined,
-                            );
-                          }}
+                        <DecimalInput
+                          value={settings.defaultHourlyRate}
+                          locale={settings.locale}
+                          min={0}
+                          onCommit={(n) => updateField("defaultHourlyRate", n)}
                         />
                       </Field>
                       <Field label="Standard-Währung">
@@ -495,17 +481,11 @@ export function SettingsPage() {
                       />
                     </Field>
                     <Field label="Steuersatz (%)">
-                      <Input
-                        type="text"
-                        inputMode="decimal"
-                        value={settings.invoiceProfile?.taxRate?.toString() ?? ""}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(",", ".");
-                          const n = v === "" ? undefined : Number(v);
-                          updateInvoiceProfile({
-                            taxRate: n != null && Number.isFinite(n) ? n : undefined,
-                          });
-                        }}
+                      <DecimalInput
+                        value={settings.invoiceProfile?.taxRate}
+                        locale={settings.locale}
+                        min={0}
+                        onCommit={(n) => updateInvoiceProfile({ taxRate: n })}
                       />
                     </Field>
                     <Field label="Steuer-ID">
@@ -515,14 +495,12 @@ export function SettingsPage() {
                       />
                     </Field>
                     <Field label="Nächste Rechnungsnummer">
-                      <Input
-                        type="number"
-                        value={settings.invoiceProfile?.nextInvoiceNumber ?? ""}
-                        onChange={(e) =>
-                          updateInvoiceProfile({
-                            nextInvoiceNumber: e.target.value ? Number(e.target.value) : undefined,
-                          })
-                        }
+                      <DecimalInput
+                        value={settings.invoiceProfile?.nextInvoiceNumber}
+                        locale={settings.locale}
+                        min={1}
+                        integer
+                        onCommit={(n) => updateInvoiceProfile({ nextInvoiceNumber: n })}
                       />
                     </Field>
                     <div className="sm:col-span-2">

@@ -53,22 +53,28 @@ export function composeInvoice(entries: TimeEntry[], options: ComposeOptions): C
   if (options.groupBy === "day") {
     const byDay = new Map<
       string,
-      { sec: number; rate: number | undefined; descriptions: Set<string> }
+      { day: string; sec: number; rate: number | undefined; descriptions: Set<string> }
     >();
     for (const e of billable) {
       const day = dayKey(e.startedAt);
       const rate = e.hourlyRateSnapshot ?? options.project?.hourlyRate ?? options.fallbackRate;
-      const bucket = byDay.get(day) ?? {
+      // One line per day *and* rate: entries billed at different rates on the
+      // same day must not all be priced at the first entry's rate.
+      const key = `${day}|${rate ?? ""}`;
+      const bucket = byDay.get(key) ?? {
+        day,
         sec: 0,
         rate,
         descriptions: new Set<string>(),
       };
       bucket.sec += roundDurationSec(e.durationSec, options.roundToMinutes);
       if (e.description) bucket.descriptions.add(e.description);
-      byDay.set(day, bucket);
+      byDay.set(key, bucket);
     }
-    const ordered = Array.from(byDay.entries()).sort(([a], [b]) => a.localeCompare(b));
-    for (const [day, bucket] of ordered) {
+    const ordered = Array.from(byDay.values()).sort(
+      (a, b) => a.day.localeCompare(b.day) || (a.rate ?? 0) - (b.rate ?? 0),
+    );
+    for (const bucket of ordered) {
       const hours = bucket.sec / 3600;
       const rate = bucket.rate ?? 0;
       const description =
@@ -77,7 +83,7 @@ export function composeInvoice(entries: TimeEntry[], options: ComposeOptions): C
           : "Geleistete Stunden";
       lineItems.push({
         description,
-        date: day,
+        date: bucket.day,
         hours,
         rate,
         amount: roundCents(hours * rate),

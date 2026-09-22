@@ -47,6 +47,9 @@ function validateEntry(e: unknown, i: number): void {
   ) {
     throw new Error(`Eintrag #${i + 1}: ungültiger Endzeitpunkt.`);
   }
+  if (typeof entry.endedAt === "number" && entry.endedAt < entry.startedAt) {
+    throw new Error(`Eintrag #${i + 1}: Ende liegt vor dem Start.`);
+  }
   if (!Array.isArray(entry.tagIds)) {
     throw new Error(`Eintrag #${i + 1}: tagIds fehlt.`);
   }
@@ -62,6 +65,15 @@ function validateEntry(e: unknown, i: number): void {
   }
   if (typeof entry.billable !== "boolean") {
     throw new Error(`Eintrag #${i + 1}: ungültiger abrechenbar-Wert.`);
+  }
+}
+
+// Projects and tags are rendered (and sorted by `name.localeCompare`) straight
+// from the store, so a record without a name would crash every list.
+function validateNamed(item: unknown, i: number, label: string): void {
+  const rec = item as Record<string, unknown>;
+  if (typeof rec.name !== "string" || !rec.name.trim() || typeof rec.color !== "string") {
+    throw new Error(`${label} #${i + 1}: Name oder Farbe fehlt.`);
   }
 }
 
@@ -110,13 +122,27 @@ export async function importSnapshot(json: string): Promise<ImportResult> {
   findDuplicateIds(parsed.projects, "Projekte");
   findDuplicateIds(parsed.tags, "Tags");
   findDuplicateIds(parsed.timeEntries, "Einträge");
+  parsed.projects.forEach((p, i) => {
+    validateNamed(p, i, "Projekt");
+  });
+  parsed.tags.forEach((t, i) => {
+    validateNamed(t, i, "Tag");
+  });
   parsed.timeEntries.forEach(validateEntry);
+  // Only one timer may run; `startTimer` refuses while any entry is open.
+  if (parsed.timeEntries.filter((e) => e.endedAt == null).length > 1) {
+    throw new Error("Backup enthält mehrere laufende Timer.");
+  }
   const invoiceList = parsed.invoices ?? [];
   findDuplicateIds(invoiceList, "Rechnungen");
   // Older backups (pre breaks) have no `breaks` field — import them as empty.
-  const breakList = parsed.breaks ?? [];
-  findDuplicateIds(breakList, "Pausen");
-  breakList.forEach(validateBreak);
+  const rawBreaks = parsed.breaks ?? [];
+  findDuplicateIds(rawBreaks, "Pausen");
+  rawBreaks.forEach(validateBreak);
+  // Breaks of entries that aren't in the backup can never be shown or counted —
+  // drop them instead of storing orphans.
+  const entryIds = new Set(parsed.timeEntries.map((e) => e.id));
+  const breakList = rawBreaks.filter((b) => entryIds.has(b.entryId));
 
   const db = await getDB();
   const tx = db.transaction(

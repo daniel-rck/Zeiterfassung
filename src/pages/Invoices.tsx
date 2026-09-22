@@ -122,7 +122,7 @@ export function InvoicesPage() {
                 <button
                   type="button"
                   onClick={() => void handleDelete(record)}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] no-min-tap"
                   aria-label="Entfernen"
                 >
                   <Trash2 size={12} />

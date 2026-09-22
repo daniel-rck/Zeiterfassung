@@ -4,6 +4,7 @@ import { Button } from "../components/ui/Button";
 import { useConfirm } from "../components/ui/Confirm";
 import { Field, Input } from "../components/ui/Input";
 import { Sheet } from "../components/ui/Sheet";
+import { Skeleton } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/Toast";
 import { CATEGORY_COLORS, DEFAULT_TAG_COLOR } from "../lib/categoryColors";
 import {
@@ -18,7 +19,7 @@ import { useTags } from "../lib/hooks/useTags";
 import type { Tag } from "../lib/types";
 
 export function TagsPage() {
-  const { tags } = useTags({ includeArchived: true });
+  const { tags, loading } = useTags({ includeArchived: true });
   const toast = useToast();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<Tag | null>(null);
@@ -54,6 +55,13 @@ export function TagsPage() {
       toast.success("Tag angelegt");
     }
     setOpen(false);
+  };
+
+  const handleArchive = async (tag: Tag) => {
+    await archiveTag(tag.id);
+    toast.success(`Tag „${tag.name}“ archiviert`, {
+      action: { label: "Rückgängig", onClick: () => void restoreTag(tag.id) },
+    });
   };
 
   const handleDelete = async (tag: Tag) => {
@@ -96,7 +104,13 @@ export function TagsPage() {
         </Button>
       </div>
 
-      {active.length === 0 ? (
+      {loading && tags.length === 0 ? (
+        <div className="flex gap-2" aria-busy="true">
+          <Skeleton h={32} w={96} />
+          <Skeleton h={32} w={80} />
+          <Skeleton h={32} w={112} />
+        </div>
+      ) : active.length === 0 ? (
         <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           Noch keine Tags.
         </div>
@@ -120,8 +134,8 @@ export function TagsPage() {
                 <div className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => void archiveTag(tag.id)}
-                    className="inline-flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                    onClick={() => void handleArchive(tag)}
+                    className="inline-flex h-7 w-7 items-center justify-center rounded text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] no-min-tap"
                     aria-label="Archivieren"
                   >
                     <Archive size={12} />
@@ -129,7 +143,7 @@ export function TagsPage() {
                   <button
                     type="button"
                     onClick={() => void handleDelete(tag)}
-                    className="inline-flex h-6 w-6 items-center justify-center rounded text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                    className="inline-flex h-7 w-7 items-center justify-center rounded text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] no-min-tap"
                     aria-label="Löschen"
                   >
                     <Trash2 size={12} />
@@ -179,16 +193,17 @@ export function TagsPage() {
       >
         <div className="space-y-4">
           <Field label="Name">
-            <Input autoFocus value={name} onChange={(e) => setName(e.target.value)} />
+            <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
-          <Field label="Farbe">
+          <Field label="Farbe" group>
             <div className="flex flex-wrap gap-2">
               {CATEGORY_COLORS.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   onClick={() => setColor(c.value)}
-                  className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
+                  aria-pressed={color === c.value}
+                  className={`h-8 w-8 rounded-md ring-2 transition-all no-min-tap ${
                     color === c.value ? "ring-[color:var(--color-text-1)]" : "ring-transparent"
                   }`}
                   style={{ backgroundColor: c.value }}

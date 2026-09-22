@@ -18,7 +18,7 @@ und Rechnungen, ohne Account, alles im Browser.
 Vor jedem Commit grün halten:
 
 ```bash
-bun run lint        # Biome (check)
+bun run lint        # oxlint + oxfmt --check
 bun run typecheck   # tsc (App + SW + Worker)
 bun run test        # Vitest
 bun run build       # SPA + PWA
@@ -27,8 +27,11 @@ bun run build       # SPA + PWA
 ## Konventionen (gemäß web-base)
 
 - **Bun** als Runtime & Package-Manager (kein npm/yarn-Lockfile).
-- **Biome** für Lint + Format. Geteilte Regeln in `biome.base.json` (zentral
-  verwaltet, nicht anfassen), App-Ausnahmen in `biome.json` → `overrides`.
+- **oxlint + oxfmt** für Lint + Format. Geteilte Regeln in `oxlint.base.json`
+  und `.oxfmtrc.json` (zentral verwaltet, `web-base update` überschreibt sie —
+  nicht anfassen), App-Ausnahmen in `.oxlintrc.json` → `overrides`,
+  Formatter-Ausnahmen in `.prettierignore`. Einzelne Stellen mit
+  `// oxlint-disable-next-line <regel> -- <grund>` begründen.
 - **TypeScript 7 strict** inkl. `noUncheckedIndexedAccess`;
   `verbatimModuleSyntax` (→ `import type`); `type` statt `interface`.
 - **Deutsche UI + README, englischer Quellcode** (Bezeichner, Kommentare,

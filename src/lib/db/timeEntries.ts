@@ -1,5 +1,5 @@
 import { newId } from "../ids";
-import type { TimeEntry } from "../types";
+import type { Break, TimeEntry } from "../types";
 import { endRunningBreakFor } from "./breaks";
 import { dayKey, getDB, notifyMutation, type StoredTimeEntry } from "./db";
 import { getProject } from "./projects";
@@ -27,6 +27,12 @@ function fromStored(stored: StoredTimeEntry): TimeEntry {
 function calcDuration(startedAt: number, endedAt?: number, fallback = 0): number {
   if (endedAt == null) return fallback;
   return Math.max(0, Math.round((endedAt - startedAt) / 1000));
+}
+
+// Gross span minus finished breaks.
+function netDuration(startedAt: number, endedAt: number, breaks: Break[]): number {
+  const breakSec = breaks.reduce((s, b) => s + (b.endedAt ? b.durationSec : 0), 0);
+  return Math.max(0, calcDuration(startedAt, endedAt) - breakSec);
 }
 
 export interface StartTimerInput {
@@ -88,18 +94,26 @@ export async function stopTimer(): Promise<TimeEntry | null> {
   // time would count as work — every stop path (hero button, Space shortcut,
   // command palette) must settle it first.
   await endRunningBreakFor(running.id);
-  const now = Date.now();
   const db = await getDB();
-  const breaks = await db.getAllFromIndex("breaks", "byEntryId", running.id);
-  const breakSec = breaks.reduce((s, b) => s + (b.endedAt ? b.durationSec : 0), 0);
-  const grossSec = calcDuration(running.startedAt, now);
+  // Re-read inside one readwrite transaction so a concurrent edit (description
+  // blur, another tab) between the lookup above and this write isn't lost, and
+  // a stop that already happened elsewhere isn't applied twice.
+  const tx = db.transaction(["time_entries", "breaks"], "readwrite");
+  const current = await tx.objectStore("time_entries").get(running.id);
+  if (!current || current.endedAt != null) {
+    await tx.done;
+    return current ? fromStored(current) : null;
+  }
+  const breaks = await tx.objectStore("breaks").index("byEntryId").getAll(running.id);
+  const now = Date.now();
   const updated: TimeEntry = {
-    ...running,
+    ...fromStored(current),
     endedAt: now,
-    durationSec: Math.max(0, grossSec - breakSec),
+    durationSec: netDuration(current.startedAt, now, breaks),
     updatedAt: now,
   };
-  await db.put("time_entries", toStored(updated));
+  await tx.objectStore("time_entries").put(toStored(updated));
+  await tx.done;
   notifyMutation("time_entries");
   return updated;
 }
@@ -131,20 +145,47 @@ export async function updateEntry(
   patch: Partial<Omit<TimeEntry, "id" | "createdAt">>,
 ): Promise<TimeEntry> {
   const db = await getDB();
-  const existing = await db.get("time_entries", id);
-  if (!existing) throw new Error(`Eintrag ${id} nicht gefunden`);
+  // Resolve the project outside the transaction: awaiting unrelated work
+  // inside it would let IndexedDB auto-commit the transaction.
+  const project =
+    "projectId" in patch && patch.projectId ? await getProject(patch.projectId) : undefined;
+  // Read-merge-write in one readwrite transaction. A split get/put lets a
+  // stale snapshot (e.g. a description saved while another tab stops the
+  // timer) overwrite the newer record and silently undo the stop.
+  const tx = db.transaction(["time_entries", "breaks"], "readwrite");
+  const store = tx.objectStore("time_entries");
+  const existing = await store.get(id);
+  if (!existing) {
+    await tx.done;
+    throw new Error(`Eintrag ${id} nicht gefunden`);
+  }
+  const base = fromStored(existing);
   const merged: TimeEntry = {
-    ...fromStored(existing),
+    ...base,
     ...patch,
     id: existing.id,
     createdAt: existing.createdAt,
     updatedAt: Date.now(),
   };
-  if (patch.startedAt != null || patch.endedAt !== undefined || patch.durationSec == null) {
-    merged.durationSec =
-      patch.durationSec ?? calcDuration(merged.startedAt, merged.endedAt, merged.durationSec);
+  // Only an explicit `endedAt` key may change the end; a patch that merely
+  // omits it keeps whatever is stored now (including a concurrent stop).
+  if (!("endedAt" in patch)) merged.endedAt = base.endedAt;
+  if ("projectId" in patch && patch.projectId !== base.projectId) {
+    merged.hourlyRateSnapshot = project?.hourlyRate;
+    merged.currencySnapshot = project?.currency;
   }
-  await db.put("time_entries", toStored(merged));
+  if (patch.durationSec != null) {
+    merged.durationSec = patch.durationSec;
+  } else if ("startedAt" in patch || "endedAt" in patch) {
+    if (merged.endedAt == null) {
+      merged.durationSec = 0;
+    } else {
+      const breaks = await tx.objectStore("breaks").index("byEntryId").getAll(id);
+      merged.durationSec = netDuration(merged.startedAt, merged.endedAt, breaks);
+    }
+  }
+  await store.put(toStored(merged));
+  await tx.done;
   notifyMutation("time_entries");
   return merged;
 }
@@ -168,12 +209,14 @@ export async function listEntries(filter: ListEntriesFilter = {}): Promise<TimeE
   const db = await getDB();
   const all = await db.getAll("time_entries");
   let result = all.map(fromStored);
-  // Range filter: include entries whose interval overlaps [from, to].
-  // For running entries (endedAt == null), treat "ended" as +Infinity so they
-  // are kept as long as they started before `to`.
+  // Range filter: a finished entry belongs to the range it *starts* in — the
+  // same rule `groupByDay` uses (`dayKey(startedAt)`). Filtering finished
+  // entries by overlap counted one spanning midnight (or a week boundary) in
+  // both ranges. A running entry stays visible in every range it overlaps
+  // (its durationSec is 0, so it can't be double-counted).
   const { from, to } = filter;
   if (from != null) {
-    result = result.filter((e) => (e.endedAt ?? Number.POSITIVE_INFINITY) >= from);
+    result = result.filter((e) => (e.endedAt == null ? true : e.startedAt >= from));
   }
   if (to != null) {
     result = result.filter((e) => e.startedAt <= to);

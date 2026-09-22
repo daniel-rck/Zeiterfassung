@@ -66,8 +66,9 @@ describe("entriesToCsv", () => {
       [project],
       [],
     );
-    // hours column "1.00" must not become "'1.00"
-    expect(csv).toMatch(/;1\.00;/);
+    // hours column "1,00" must not become "'1,00" nor be quoted
+    expect(csv).toMatch(/;1,00;/);
+    expect(csv).toMatch(/;50,00;/);
   });
 
   it("escapes quotes and separators correctly", () => {
@@ -85,5 +86,10 @@ describe("entriesToCsv", () => {
       [tag],
     );
     expect(csv).toContain(`"has ; semicolon and ""quote"""`);
+  });
+
+  it("quotes cells containing a carriage return", () => {
+    const csv = entriesToCsv([makeEntry({ description: "a\rb" })], [], []);
+    expect(csv).toContain('"a\rb"');
   });
 });

@@ -15,7 +15,7 @@ function open() {
 
 describe("Combobox", () => {
   it("selects the highlighted match with Enter after filtering", () => {
-    const onChange = vi.fn();
+    const onChange = vi.fn<(value: string | undefined) => void>();
     render(
       <Combobox options={options} value={undefined} onChange={onChange} ariaLabel="Auswählen" />,
     );
@@ -30,7 +30,7 @@ describe("Combobox", () => {
   });
 
   it("resets the highlight to the first match when the query changes", () => {
-    const onChange = vi.fn();
+    const onChange = vi.fn<(value: string | undefined) => void>();
     render(
       <Combobox options={options} value={undefined} onChange={onChange} ariaLabel="Auswählen" />,
     );
