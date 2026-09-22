@@ -21,6 +21,7 @@ import { type CommandItem, CommandPalette } from "../../components/ui/CommandPal
 import { useToast } from "../../components/ui/Toast";
 import { getRunningEntry, startTimer, stopTimer } from "../../lib/db/timeEntries";
 import { formatDuration } from "../../lib/format";
+import { useBreaksForEntry } from "../../lib/hooks/useBreaks";
 import { useFeatures } from "../../lib/hooks/useFeature";
 import { useRunningEntry } from "../../lib/hooks/useRunningEntry";
 import { useTheme } from "../../lib/hooks/useTheme";
@@ -61,7 +62,9 @@ export function AppShellContainer() {
   const features = useFeatures();
   const location = useLocation();
   const navigate = useNavigate();
-  const { entry, liveDurationSec } = useRunningEntry();
+  const { entry, liveDurationSec: grossSec } = useRunningEntry();
+  const { totalSec: breakSec } = useBreaksForEntry(entry?.id);
+  const liveDurationSec = Math.max(0, grossSec - breakSec);
   const { theme, setTheme } = useTheme();
   const toast = useToast();
   const [commandOpen, setCommandOpen] = useState(false);

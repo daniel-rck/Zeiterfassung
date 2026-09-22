@@ -37,6 +37,15 @@ export function formatDecimalHours(
   }
 }
 
+// Tax rates like 7,7 % must not be rounded to "8 %".
+export function formatPercent(value: number, locale: string): string {
+  try {
+    return `${new Intl.NumberFormat(locale, { maximumFractionDigits: 2 }).format(value)} %`;
+  } catch {
+    return `${value} %`;
+  }
+}
+
 export function formatMoney(amount: number, currency: string, locale: string): string {
   try {
     return new Intl.NumberFormat(locale, {

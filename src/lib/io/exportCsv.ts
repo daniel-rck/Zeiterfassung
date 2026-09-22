@@ -7,13 +7,21 @@ import type { Project, Tag, TimeEntry } from "../types";
 // values are left untouched.
 const FORMULA_TRIGGERS = /^[=+\-@\t\r]/;
 
+// The `;` separator is what German Excel expects, and it also expects a
+// decimal comma — with a dot "1.50" is read as a date or text.
+function decimal(value: number): string {
+  return value.toFixed(2).replace(".", ",");
+}
+
 function escapeCsv(value: string | number | undefined): string {
   if (value == null) return "";
   let str = String(value);
   if (typeof value === "string" && FORMULA_TRIGGERS.test(str)) {
     str = `'${str}`;
   }
-  if (/[",\n;]/.test(str)) {
+  // Only the `;` separator, quotes and line breaks need quoting — a comma is
+  // ordinary content here (decimal comma, tag lists).
+  if (/["\r\n;]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }
   return str;
@@ -53,14 +61,14 @@ export function entriesToCsv(entries: TimeEntry[], projects: Project[], tags: Ta
       dayKey(e.startedAt),
       formatTime(startDate),
       endDate ? formatTime(endDate) : "",
-      hours.toFixed(2),
+      decimal(hours),
       e.description,
       project?.name ?? "",
       project?.client ?? "",
       tagNames,
       e.billable ? "ja" : "nein",
-      rate != null ? rate.toFixed(2) : "",
-      amount === "" ? "" : amount.toFixed(2),
+      rate != null ? decimal(rate) : "",
+      amount === "" ? "" : decimal(amount),
       e.currencySnapshot ?? project?.currency ?? "",
     ].map(escapeCsv);
   });

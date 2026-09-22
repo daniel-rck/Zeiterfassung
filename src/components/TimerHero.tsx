@@ -14,12 +14,14 @@ import { Combobox, type ComboOption } from "./ui/Combobox";
 import { useToast } from "./ui/Toast";
 
 export function TimerHero() {
-  const { entry, liveDurationSec } = useRunningEntry();
+  const { entry, liveDurationSec: grossSec } = useRunningEntry();
   const { projects } = useProjects();
   const { settings } = useSettings();
   const toast = useToast();
   const breaksOn = useFeature("breaks");
   const { runningBreak, totalSec: breakTotalSec, liveBreakSec } = useBreaksForEntry(entry?.id);
+  // Show worked time, not wall-clock time — the same number `stopTimer` saves.
+  const liveDurationSec = Math.max(0, grossSec - breakTotalSec);
   const [description, setDescription] = useState("");
   const [projectId, setProjectId] = useState<string | undefined>(undefined);
   const [savedFlash, setSavedFlash] = useState(false);
