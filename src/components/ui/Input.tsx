@@ -1,8 +1,11 @@
-import type {
-  InputHTMLAttributes,
-  ReactNode,
-  SelectHTMLAttributes,
-  TextareaHTMLAttributes,
+import {
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
 
 const FIELD_BASE =
@@ -21,6 +24,7 @@ export function Field({
   children,
   htmlFor,
   required,
+  group = false,
 }: {
   label?: string;
   hint?: string;
@@ -28,16 +32,21 @@ export function Field({
   children: ReactNode;
   htmlFor?: string;
   required?: boolean;
+  /** For button groups (swatches, chips): a `<label>` would forward every click
+   *  on its caption or gaps to the first button inside, so render a
+   *  `<fieldset>` with a `<legend>` instead. */
+  group?: boolean;
 }) {
-  return (
-    <label className="block" htmlFor={htmlFor}>
-      {label && (
-        <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-2)]">
-          {label}
-          {required && <span className="ml-0.5 text-[color:var(--color-danger-500)]">*</span>}
-        </span>
-      )}
-      {children}
+  const captionContent = label && (
+    <>
+      {label}
+      {required && <span className="ml-0.5 text-[color:var(--color-danger-500)]">*</span>}
+    </>
+  );
+  const captionClass =
+    "mb-1.5 block text-xs font-medium uppercase tracking-wide text-[color:var(--color-text-2)]";
+  const footer = (
+    <>
       {hint && !error && (
         <span className="mt-1.5 block text-xs text-[color:var(--color-text-3)]">{hint}</span>
       )}
@@ -46,6 +55,22 @@ export function Field({
           {error}
         </span>
       )}
+    </>
+  );
+  if (group) {
+    return (
+      <fieldset className="m-0 block min-w-0 border-0 p-0">
+        {label && <legend className={`p-0 ${captionClass}`}>{captionContent}</legend>}
+        {children}
+        {footer}
+      </fieldset>
+    );
+  }
+  return (
+    <label className="block" htmlFor={htmlFor}>
+      {label && <span className={captionClass}>{captionContent}</span>}
+      {children}
+      {footer}
     </label>
   );
 }
@@ -89,6 +114,108 @@ export function Input({
         </span>
       )}
     </span>
+  );
+}
+
+function formatDecimal(value: number | undefined, locale: string): string {
+  if (value == null) return "";
+  try {
+    return new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 4 }).format(
+      value,
+    );
+  } catch {
+    return String(value);
+  }
+}
+
+export function parseDecimal(raw: string): number | undefined | null {
+  const trimmed = raw.trim();
+  if (trimmed === "") return undefined;
+  // Accept both "37,5" and "37.5"; reject anything else (units, letters).
+  if (!/^-?\d+(?:[.,]\d+)?$/.test(trimmed)) return null;
+  return Number(trimmed.replace(",", "."));
+}
+
+/**
+ * Numeric text input that keeps what the user types until blur. Parsing on
+ * every keystroke turned "37," into 37 and then "375", and silently cleared
+ * the field on a stray letter. Invalid input is flagged instead of dropped.
+ */
+export function DecimalInput({
+  value,
+  onCommit,
+  locale,
+  min,
+  integer = false,
+  className,
+  ...props
+}: Omit<InputBaseProps, "value" | "onChange" | "type" | "inputMode" | "min"> & {
+  value: number | undefined;
+  onCommit: (next: number | undefined) => void;
+  locale: string;
+  min?: number;
+  integer?: boolean;
+}) {
+  const [text, setText] = useState(() => formatDecimal(value, locale));
+  const focused = useRef(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Follow external changes (other tab, import) while the user isn't editing.
+  // Keyed on the value only: re-running on blur would briefly write the stale
+  // value back before the committed one arrives.
+  useEffect(() => {
+    if (!focused.current) setText(formatDecimal(value, locale));
+  }, [value, locale]);
+
+  const commit = () => {
+    const parsed = parseDecimal(text);
+    if (parsed === null) {
+      setError("Bitte eine Zahl eingeben.");
+      return;
+    }
+    if (parsed != null && integer && !Number.isInteger(parsed)) {
+      setError("Bitte eine ganze Zahl eingeben.");
+      return;
+    }
+    if (parsed != null && min != null && parsed < min) {
+      setError(`Mindestens ${formatDecimal(min, locale)}.`);
+      return;
+    }
+    setError(null);
+    if (parsed !== value) onCommit(parsed);
+    setText(formatDecimal(parsed, locale));
+  };
+
+  return (
+    <>
+      <Input
+        {...props}
+        type="text"
+        inputMode={integer ? "numeric" : "decimal"}
+        value={text}
+        error={error != null}
+        className={className}
+        onFocus={() => {
+          focused.current = true;
+        }}
+        onChange={(e) => {
+          setText(e.target.value);
+          if (error) setError(null);
+        }}
+        onBlur={() => {
+          focused.current = false;
+          commit();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit();
+        }}
+      />
+      {error && (
+        <span role="alert" className="mt-1.5 block text-xs text-[color:var(--color-danger-500)]">
+          {error}
+        </span>
+      )}
+    </>
   );
 }
 

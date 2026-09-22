@@ -71,6 +71,9 @@ export function Combobox({
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Escape") {
+      if (!open) return;
+      // Close only the popup, not a Sheet that hosts the combobox.
+      e.preventDefault();
       setOpen(false);
       return;
     }

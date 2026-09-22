@@ -3,8 +3,9 @@ import { useState } from "react";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { useConfirm } from "../components/ui/Confirm";
-import { Checkbox, Field, Input } from "../components/ui/Input";
+import { Checkbox, Field, Input, parseDecimal } from "../components/ui/Input";
 import { Sheet } from "../components/ui/Sheet";
+import { Skeleton } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/Toast";
 import { CATEGORY_COLORS, DEFAULT_PROJECT_COLOR } from "../lib/categoryColors";
 import {
@@ -42,17 +43,19 @@ function emptyDraft(defaultBillable: boolean): ProjectDraft {
 export function ProjectsPage() {
   const { settings } = useSettings();
   const billingOn = useFeature("billing");
-  const { projects } = useProjects({ includeArchived: true });
+  const { projects, loading } = useProjects({ includeArchived: true });
   const toast = useToast();
   const confirm = useConfirm();
 
   const [editing, setEditing] = useState<Project | null>(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ProjectDraft>(() => emptyDraft(settings.defaultBillable));
+  const [rateError, setRateError] = useState<string | null>(null);
 
   const startNew = () => {
     setEditing(null);
     setDraft(emptyDraft(settings.defaultBillable));
+    setRateError(null);
     setOpen(true);
   };
 
@@ -62,9 +65,10 @@ export function ProjectsPage() {
       name: project.name,
       client: project.client ?? "",
       color: project.color,
-      hourlyRate: project.hourlyRate != null ? String(project.hourlyRate) : "",
+      hourlyRate: project.hourlyRate != null ? String(project.hourlyRate).replace(".", ",") : "",
       billableDefault: project.billableDefault,
     });
+    setRateError(null);
     setOpen(true);
   };
 
@@ -73,14 +77,20 @@ export function ProjectsPage() {
       toast.error("Bitte einen Namen eingeben.");
       return;
     }
-    const rateNum = draft.hourlyRate ? Number(draft.hourlyRate.replace(",", ".")) : undefined;
-    const rate = rateNum != null && Number.isFinite(rateNum) ? rateNum : undefined;
+    // An unparseable rate ("90 €") used to be dropped silently.
+    const rate = parseDecimal(draft.hourlyRate);
+    if (rate === null || (rate != null && rate < 0)) {
+      setRateError("Bitte einen Betrag ≥ 0 eingeben, z. B. 90 oder 92,50.");
+      return;
+    }
+    setRateError(null);
     const payload = {
       name: draft.name.trim(),
       client: draft.client.trim() || undefined,
       color: draft.color,
       hourlyRate: rate,
-      currency: rate != null ? settings.currency : undefined,
+      // Keep an existing project's currency; a rate change must not re-denominate it.
+      currency: rate != null ? (editing?.currency ?? settings.currency) : undefined,
       billableDefault: draft.billableDefault,
     };
     if (editing) {
@@ -91,6 +101,13 @@ export function ProjectsPage() {
       toast.success("Projekt angelegt");
     }
     setOpen(false);
+  };
+
+  const handleArchive = async (project: Project) => {
+    await archiveProject(project.id);
+    toast.success(`„${project.name}“ archiviert`, {
+      action: { label: "Rückgängig", onClick: () => void restoreProject(project.id) },
+    });
   };
 
   const handleDelete = async (project: Project) => {
@@ -133,7 +150,13 @@ export function ProjectsPage() {
         </Button>
       </div>
 
-      {active.length === 0 ? (
+      {loading && projects.length === 0 ? (
+        <div className="space-y-1.5" aria-busy="true">
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+        </div>
+      ) : active.length === 0 ? (
         <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           Noch keine Projekte. Lege eins an, um Stunden zuzuordnen.
         </div>
@@ -185,15 +208,15 @@ export function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => startEdit(project)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] no-min-tap"
                   aria-label="Bearbeiten"
                 >
                   <Pencil size={14} />
                 </button>
                 <button
                   type="button"
-                  onClick={() => void archiveProject(project.id)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] group-hover:opacity-100 no-min-tap"
+                  onClick={() => void handleArchive(project)}
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-surface-3)] hover:text-[color:var(--color-text-1)] no-min-tap"
                   aria-label="Archivieren"
                   title="Archivieren"
                 >
@@ -202,7 +225,7 @@ export function ProjectsPage() {
                 <button
                   type="button"
                   onClick={() => void handleDelete(project)}
-                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] opacity-0 transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] group-hover:opacity-100 no-min-tap"
+                  className="inline-flex h-8 w-8 items-center justify-center rounded-md text-[color:var(--color-text-3)] row-action transition hover:bg-[color:var(--color-danger-500)]/10 hover:text-[color:var(--color-danger-500)] no-min-tap"
                   aria-label="Löschen"
                   title="Löschen"
                 >
@@ -264,14 +287,15 @@ export function ProjectsPage() {
               onChange={(e) => setDraft({ ...draft, client: e.target.value })}
             />
           </Field>
-          <Field label="Farbe">
+          <Field label="Farbe" group>
             <div className="flex flex-wrap gap-2">
               {CATEGORY_COLORS.map((c) => (
                 <button
                   key={c.value}
                   type="button"
                   onClick={() => setDraft({ ...draft, color: c.value })}
-                  className={`h-7 w-7 rounded-md ring-2 transition-all no-min-tap ${
+                  aria-pressed={draft.color === c.value}
+                  className={`h-8 w-8 rounded-md ring-2 transition-all no-min-tap ${
                     draft.color === c.value
                       ? "ring-[color:var(--color-text-1)]"
                       : "ring-transparent"
@@ -286,14 +310,19 @@ export function ProjectsPage() {
           {billingOn && (
             <>
               <Field
-                label={`Stundensatz (${settings.currency})`}
+                label={`Stundensatz (${editing?.currency ?? settings.currency})`}
                 hint="Optional, gilt nur für neue Einträge."
+                error={rateError}
               >
                 <Input
                   type="text"
                   inputMode="decimal"
                   value={draft.hourlyRate}
-                  onChange={(e) => setDraft({ ...draft, hourlyRate: e.target.value })}
+                  error={rateError != null}
+                  onChange={(e) => {
+                    setDraft({ ...draft, hourlyRate: e.target.value });
+                    if (rateError) setRateError(null);
+                  }}
                   placeholder="z. B. 90"
                 />
               </Field>

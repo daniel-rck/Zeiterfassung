@@ -1,6 +1,6 @@
 import { Search, X } from "lucide-react";
 import type { ReactNode } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Kbd } from "./Kbd";
 
 export interface CommandItem {
@@ -44,6 +44,7 @@ export function CommandPalette({
   const [highlight, setHighlight] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const listId = useId();
 
   useEffect(() => {
     if (!open) {
@@ -51,10 +52,13 @@ export function CommandPalette({
       setHighlight(0);
       return;
     }
+    const previouslyFocused = document.activeElement as HTMLElement | null;
     inputRef.current?.focus();
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "";
+      // Hand focus back to whatever opened the palette.
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
     };
   }, [open]);
 
@@ -106,7 +110,16 @@ export function CommandPalette({
       className="fixed inset-0 z-[70] flex items-start justify-center px-4 pt-[15vh]"
       onKeyDown={(e) => {
         if (e.key === "Escape") {
+          // Mark as handled so a Sheet underneath doesn't close too.
+          e.preventDefault();
+          e.stopPropagation();
           onClose();
+          return;
+        }
+        if (e.key === "Tab") {
+          // Keep focus inside the modal; the list is driven by the arrow keys.
+          e.preventDefault();
+          inputRef.current?.focus();
           return;
         }
         if (e.key === "ArrowDown") {
@@ -140,18 +153,30 @@ export function CommandPalette({
               setHighlight(0);
             }}
             placeholder="Befehl suchen oder eintippen…"
+            role="combobox"
+            aria-label="Befehl suchen"
+            aria-expanded="true"
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={flat[highlight] ? `${listId}-${highlight}` : undefined}
             className="h-12 flex-1 bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"
           />
           <button
             type="button"
             onClick={onClose}
             aria-label="Schließen"
-            className="rounded p-1 text-[color:var(--color-text-3)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
+            className="-mr-2 inline-flex h-10 w-10 items-center justify-center rounded text-[color:var(--color-text-3)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)] no-min-tap"
           >
             <X size={14} />
           </button>
         </div>
-        <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-1">
+        <div
+          ref={listRef}
+          id={listId}
+          role="listbox"
+          aria-label="Befehle"
+          className="max-h-[50vh] overflow-y-auto py-1"
+        >
           {flat.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-[color:var(--color-text-3)]">
               Kein Befehl gefunden für „{query}“
@@ -159,7 +184,10 @@ export function CommandPalette({
           ) : (
             sections.map(([section, items]) => (
               <div key={section} className="py-1">
-                <div className="px-3 pb-1 pt-2 text-2xs font-semibold uppercase tracking-wide text-[color:var(--color-text-3)]">
+                <div
+                  aria-hidden="true"
+                  className="px-3 pb-1 pt-2 text-2xs font-semibold uppercase tracking-wide text-[color:var(--color-text-3)]"
+                >
                   {section}
                 </div>
                 {items.map((cmd) => {
@@ -169,6 +197,10 @@ export function CommandPalette({
                     <button
                       key={cmd.id}
                       type="button"
+                      id={`${listId}-${idx}`}
+                      role="option"
+                      aria-selected={active}
+                      tabIndex={-1}
                       data-cmd-index={idx}
                       onMouseEnter={() => setHighlight(idx)}
                       onClick={() => select(cmd)}

@@ -7,7 +7,7 @@ import { useToast } from "../components/ui/Toast";
 import { at } from "../lib/at.ts";
 import { saveInvoice } from "../lib/db/invoices";
 import { bumpInvoiceNumberTo } from "../lib/db/settings";
-import { formatDate, formatMoney } from "../lib/format";
+import { formatDate, formatDecimalHours, formatMoney, formatPercent } from "../lib/format";
 import { useEntries } from "../lib/hooks/useEntries";
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
@@ -93,6 +93,15 @@ export function InvoicePage() {
   const handlePdf = async () => {
     if (!invoice) {
       toast.error("Bitte Empfänger und Zeitraum ausfüllen.");
+      return;
+    }
+    // Don't archive an empty invoice and burn an invoice number on it.
+    if (range && range.from > range.to) {
+      toast.error("Der Zeitraum endet vor seinem Beginn.");
+      return;
+    }
+    if (invoice.lineItems.length === 0) {
+      toast.error("Im Zeitraum gibt es keine abrechenbaren Einträge.");
       return;
     }
     const filename = invoice.number
@@ -268,7 +277,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
             <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
               <div>
                 <dt className="text-[color:var(--color-text-3)]">Stunden</dt>
-                <dd className="tnum font-mono">{item.hours.toFixed(2)}</dd>
+                <dd className="tnum font-mono">{formatDecimalHours(item.hours * 3600, locale)}</dd>
               </div>
               <div>
                 <dt className="text-[color:var(--color-text-3)]">Satz</dt>
@@ -297,7 +306,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
         {invoice.taxRate != null && invoice.taxRate > 0 && (
           <div className="flex justify-between">
             <dt className="text-[color:var(--color-text-2)]">
-              USt. {invoice.taxRate.toFixed(0)} %
+              USt. {formatPercent(invoice.taxRate, locale)}
             </dt>
             <dd className="tnum font-mono">
               {formatMoney(invoice.taxAmount, invoice.currency, locale)}
@@ -333,7 +342,9 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
                 )}
                 {item.description}
               </td>
-              <td className="tnum py-2 text-right font-mono">{item.hours.toFixed(2)}</td>
+              <td className="tnum py-2 text-right font-mono">
+                {formatDecimalHours(item.hours * 3600, locale)}
+              </td>
               <td className="tnum py-2 text-right font-mono">
                 {formatMoney(item.rate, invoice.currency, locale)}
               </td>
@@ -361,7 +372,7 @@ function InvoicePreview({ invoice, locale }: { invoice: ComposedInvoice; locale:
                 colSpan={3}
                 className="text-right text-sm text-[color:var(--color-text-2)] print:text-black"
               >
-                USt. {invoice.taxRate.toFixed(0)} %
+                USt. {formatPercent(invoice.taxRate, locale)}
               </td>
               <td className="tnum text-right font-mono">
                 {formatMoney(invoice.taxAmount, invoice.currency, locale)}

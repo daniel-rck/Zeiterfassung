@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { formatRelativeDay } from "../lib/format";
+import { formatDecimalHours, formatRelativeDay } from "../lib/format";
 
 export function DayGroup({
   dayTimestamp,
@@ -16,7 +16,7 @@ export function DayGroup({
   locale: string;
   children: ReactNode;
 }) {
-  const hours = (totalSec / 3600).toFixed(2);
+  const hours = formatDecimalHours(totalSec, locale);
   return (
     <section className="space-y-2">
       <header className="flex items-baseline justify-between border-b border-[color:var(--color-border-subtle)] pb-1.5">

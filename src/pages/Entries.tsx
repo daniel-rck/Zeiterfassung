@@ -6,6 +6,7 @@ import { EntryRow } from "../components/EntryRow";
 import { Button } from "../components/ui/Button";
 import { useConfirm } from "../components/ui/Confirm";
 import { Input } from "../components/ui/Input";
+import { Skeleton } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/Toast";
 import { dayKey } from "../lib/db";
 import { deleteEntry, restoreEntry } from "../lib/db/timeEntries";
@@ -16,7 +17,7 @@ import { useSettings } from "../lib/hooks/useSettings";
 import { useTags } from "../lib/hooks/useTags";
 
 export function EntriesPage() {
-  const { entries } = useEntries({ includeRunning: true });
+  const { entries, loading } = useEntries({ includeRunning: true });
   const { projects } = useProjects({ includeArchived: true });
   const { tags } = useTags({ includeArchived: true });
   const { settings } = useSettings();
@@ -99,7 +100,7 @@ export function EntriesPage() {
             Alle Einträge
           </h1>
           <p className="mt-0.5 text-sm text-[color:var(--color-text-3)]">
-            {entries.length} Eintrag{entries.length === 1 ? "" : "e"} insgesamt
+            {entries.length} {entries.length === 1 ? "Eintrag" : "Einträge"} insgesamt
           </p>
         </div>
         <Link to="/entry/new">
@@ -124,16 +125,22 @@ export function EntriesPage() {
                 type="button"
                 onClick={() => setQuery("")}
                 aria-label="Suche leeren"
-                className="rounded p-0.5 hover:bg-[color:var(--color-surface-2)] no-min-tap"
+                className="-mr-1.5 inline-flex h-7 w-7 items-center justify-center rounded hover:bg-[color:var(--color-surface-2)] no-min-tap"
               >
-                <X size={12} />
+                <X size={14} />
               </button>
             ) : undefined
           }
         />
       )}
 
-      {groups.length === 0 ? (
+      {loading && entries.length === 0 ? (
+        <div className="space-y-1.5" aria-busy="true">
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+          <Skeleton h={56} w="100%" />
+        </div>
+      ) : groups.length === 0 ? (
         <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center text-sm text-[color:var(--color-text-3)]">
           {entries.length === 0 ? "Noch keine Einträge." : "Kein Eintrag passt zur Suche."}
         </div>

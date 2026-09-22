@@ -48,7 +48,7 @@ export function ReportFilters({
               ? "30 Tage"
               : preset === "thisYear"
                 ? "Jahr"
-                : "Custom",
+                : "Zeitraum",
   }));
 
   const projectOptions: ComboOption[] = [

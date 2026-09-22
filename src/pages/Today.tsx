@@ -7,6 +7,7 @@ import { TimerHero } from "../components/TimerHero";
 import { Button } from "../components/ui/Button";
 import { useConfirm } from "../components/ui/Confirm";
 import { MetricCard } from "../components/ui/MetricCard";
+import { Skeleton } from "../components/ui/Skeleton";
 import { useToast } from "../components/ui/Toast";
 import { dayKey } from "../lib/db";
 import { patchSettings } from "../lib/db/settings";
@@ -25,7 +26,7 @@ const BACKUP_DISMISS_KEY = "zeiterfassung:backup-banner-dismissed";
 
 export function TodayPage() {
   const { settings } = useSettings();
-  const { entries } = useEntries({ includeRunning: true });
+  const { entries, loading } = useEntries({ includeRunning: true });
   const { projects } = useProjects();
   const { tags } = useTags();
   const billingOn = useFeature("billing");
@@ -160,7 +161,7 @@ export function TodayPage() {
     const snapshot = entries.find((e) => e.id === id);
     const ok = await confirm.confirm({
       title: "Eintrag löschen?",
-      description: "Dieser Eintrag wird endgültig entfernt.",
+      description: "Du kannst das Löschen direkt danach rückgängig machen.",
       tone: "danger",
       confirmLabel: "Löschen",
     });
@@ -285,7 +286,12 @@ export function TodayPage() {
             </span>
           )}
         </div>
-        {todays.length === 0 ? (
+        {loading && entries.length === 0 ? (
+          <div className="space-y-1.5" aria-busy="true">
+            <Skeleton h={56} w="100%" />
+            <Skeleton h={56} w="100%" />
+          </div>
+        ) : todays.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[color:var(--color-border-strong)] bg-[color:var(--color-surface-1)] p-8 text-center">
             <p className="text-sm text-[color:var(--color-text-2)]">Noch keine Einträge heute.</p>
             <p className="mt-1 text-xs text-[color:var(--color-text-3)]">

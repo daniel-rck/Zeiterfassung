@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button } from "./Button";
@@ -44,15 +45,48 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
     [pending],
   );
 
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Remember the opener once per dialog, not per `close` identity change.
+  const isOpen = pending != null;
+  useEffect(() => {
+    if (!isOpen) return;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    return () => {
+      if (previouslyFocused?.isConnected) previouslyFocused.focus();
+    };
+  }, [isOpen]);
+
   useEffect(() => {
     if (!pending) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") close(false);
+      if (e.key === "Escape") {
+        // Capture phase + preventDefault: a Sheet behind the dialog checks
+        // `defaultPrevented` and stays open.
+        e.preventDefault();
+        close(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const items = Array.from(panelRef.current?.querySelectorAll<HTMLElement>("button") ?? []);
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      } else if (!panelRef.current?.contains(document.activeElement)) {
+        e.preventDefault();
+        first.focus();
+      }
     };
-    window.addEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, true);
     document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("keydown", onKey, true);
       document.body.style.overflow = "";
     };
   }, [pending, close]);
@@ -74,7 +108,10 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             onClick={() => close(false)}
             aria-hidden="true"
           />
-          <div className="page-fade relative z-10 w-full max-w-md rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-5 shadow-md">
+          <div
+            ref={panelRef}
+            className="page-fade relative z-10 w-full max-w-md rounded-lg border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] p-5 shadow-md"
+          >
             <div className="flex items-start gap-3">
               {pending.options.tone === "danger" && (
                 <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-[color:var(--color-danger-500)]/10 text-[color:var(--color-danger-500)]">
@@ -96,11 +133,17 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               </div>
             </div>
             <div className="mt-5 flex justify-end gap-2">
-              <Button variant="ghost" onClick={() => close(false)}>
+              {/* Destructive dialogs start on "Abbrechen" so a reflexive Enter
+                  doesn't delete anything. */}
+              <Button
+                autoFocus={pending.options.tone === "danger"}
+                variant="ghost"
+                onClick={() => close(false)}
+              >
                 {pending.options.cancelLabel ?? "Abbrechen"}
               </Button>
               <Button
-                autoFocus
+                autoFocus={pending.options.tone !== "danger"}
                 variant={pending.options.tone === "danger" ? "danger" : "primary"}
                 onClick={() => close(true)}
               >

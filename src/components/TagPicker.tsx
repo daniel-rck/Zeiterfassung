@@ -48,7 +48,7 @@ export function TagPicker({
   };
 
   return (
-    <Field label={label}>
+    <Field label={label} group>
       <div className="flex flex-wrap gap-1.5">
         {tags.map((tag) => {
           const isSelected = selected.has(tag.id);
@@ -57,6 +57,7 @@ export function TagPicker({
               key={tag.id}
               type="button"
               onClick={() => toggle(tag.id)}
+              aria-pressed={isSelected}
               className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors duration-150 no-min-tap ${
                 isSelected
                   ? "border-brand-500 bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
