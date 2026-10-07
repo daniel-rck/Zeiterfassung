@@ -32,7 +32,7 @@ import type { FeatureName } from "../../lib/types";
 import { AppShell, type NavItem } from "../../lib/ui";
 
 const LogoMark = (
-  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent-600 text-white">
+  <span className="flex h-6 w-6 items-center justify-center rounded-md bg-accent-600 text-fg-on-accent">
     <Clock size={14} aria-hidden="true" />
   </span>
 );
@@ -193,9 +193,9 @@ export function AppShellContainer() {
         <Link
           to={ROUTES.home}
           aria-label={`Timer läuft, ${formatDuration(liveDurationSec, "long")} – zu Heute`}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-600 px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-700 no-min-tap"
+          className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-600 px-2.5 text-xs font-medium text-fg-on-accent transition-colors hover:bg-accent-700 no-min-tap"
         >
-          <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 rounded-full bg-white" />
+          <span aria-hidden="true" className="pulse-dot h-1.5 w-1.5 rounded-full bg-fg-on-accent" />
           <span className="tnum font-mono">{formatDuration(liveDurationSec, "short")}</span>
         </Link>
       ) : null}
@@ -221,7 +221,7 @@ export function AppShellContainer() {
         navItems={navItems}
         headerActions={headerActions}
       >
-        <div id="main" key={location.pathname} className="page-fade">
+        <div key={location.pathname} className="page-fade">
           <Outlet />
         </div>
       </AppShell>
@@ -230,7 +230,7 @@ export function AppShellContainer() {
         <Link
           to={ROUTES.entryNew}
           aria-label="Neuen Eintrag erfassen"
-          className="fixed bottom-20 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent-600 text-white shadow-lg transition-colors hover:bg-accent-700 md:bottom-6 md:right-6"
+          className="fixed bottom-20 right-4 z-30 inline-flex h-12 w-12 items-center justify-center rounded-full bg-accent-600 text-fg-on-accent shadow-lg transition-colors hover:bg-accent-700 md:bottom-6 md:right-6"
         >
           <Plus size={22} aria-hidden="true" />
         </Link>

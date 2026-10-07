@@ -2,8 +2,8 @@
  * Apply the persisted theme before first paint, so a forced light/dark choice
  * doesn't flash the wrong colors on load.
  *
- * External file rather than an inline <script>: the worker CSP would otherwise
- * have to pin a sha256 hash of this snippet, and that hash breaks the theme
+ * External file rather than an inline <script>: the CSP (public/_headers) would
+ * otherwise have to pin a sha256 hash of this snippet, and that hash breaks the theme
  * silently the moment the snippet changes.
  */
 (() => {
