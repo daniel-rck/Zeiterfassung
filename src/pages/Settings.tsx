@@ -38,6 +38,7 @@ import { useSettings } from "../lib/hooks/useSettings";
 import { useTheme } from "../lib/hooks/useTheme";
 import { downloadSnapshot } from "../lib/io/exportJson";
 import { pickAndImport } from "../lib/io/importJson";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 import type {
   DetailLevel,
   FeatureFlags,
@@ -113,6 +114,7 @@ const ADVANCED_FEATURES: FeatureMeta[] = [
 type Tab = "general" | "appearance" | "features" | "billing" | "data" | "about";
 
 export function SettingsPage() {
+  useDocumentTitle("Einstellungen");
   const { settings } = useSettings();
   const { level } = useDetailLevel();
   const toast = useToast();

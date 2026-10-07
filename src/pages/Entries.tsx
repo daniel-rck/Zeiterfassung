@@ -15,8 +15,10 @@ import { useFeature } from "../lib/hooks/useFeature";
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
 import { useTags } from "../lib/hooks/useTags";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 export function EntriesPage() {
+  useDocumentTitle("Einträge");
   const { entries, loading } = useEntries({ includeRunning: true });
   const { projects } = useProjects({ includeArchived: true });
   const { tags } = useTags({ includeArchived: true });

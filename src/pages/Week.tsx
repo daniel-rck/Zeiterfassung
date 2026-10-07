@@ -14,6 +14,7 @@ import { useEntries } from "../lib/hooks/useEntries";
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
 import { useTags } from "../lib/hooks/useTags";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 function startOfWeek(d: Date, weekStart: 0 | 1): Date {
   const out = new Date(d);
@@ -25,6 +26,7 @@ function startOfWeek(d: Date, weekStart: 0 | 1): Date {
 }
 
 export function WeekPage() {
+  useDocumentTitle("Woche");
   const { settings } = useSettings();
   const { entries } = useEntries({ includeRunning: true });
   const { projects } = useProjects();

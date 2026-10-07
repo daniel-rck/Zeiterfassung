@@ -15,6 +15,7 @@ import { createEntry, deleteEntry, getEntry, updateEntry } from "../lib/db/timeE
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
 import { modKey } from "../lib/platform";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 interface FormState {
   description: string;
@@ -51,6 +52,7 @@ function combineDateTime(date: string, time: string): number {
 export function EntryEditPage() {
   const { id } = useParams<{ id: string }>();
   const isNew = !id || id === "new";
+  useDocumentTitle(isNew ? "Neuer Eintrag" : "Eintrag bearbeiten");
   const navigate = useNavigate();
   const toast = useToast();
   const confirm = useConfirm();

@@ -20,11 +20,13 @@ import { useSettings } from "../lib/hooks/useSettings";
 import { useTags } from "../lib/hooks/useTags";
 import { downloadSnapshot } from "../lib/io/exportJson";
 import { getRange } from "../lib/reports/range";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 const BACKUP_REMINDER_DAYS = 14;
 const BACKUP_DISMISS_KEY = "zeiterfassung:backup-banner-dismissed";
 
 export function TodayPage() {
+  useDocumentTitle("Heute");
   const { settings } = useSettings();
   const { entries, loading } = useEntries({ includeRunning: true });
   const { projects } = useProjects();

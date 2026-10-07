@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "../components/ui/Button";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 /** GitHub brand mark — lucide-react dropped brand icons in v1. */
 function Github({ size = 16 }: { size?: number }) {
@@ -79,6 +80,7 @@ const LEVELS = [
 ];
 
 export function WelcomePage() {
+  useDocumentTitle("Willkommen");
   return (
     <div className="min-h-screen w-full bg-[color:var(--color-surface-0)] text-[color:var(--color-text-1)]">
       {/* Top nav */}

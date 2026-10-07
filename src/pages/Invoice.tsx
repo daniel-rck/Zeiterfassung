@@ -13,8 +13,10 @@ import { useSettings } from "../lib/hooks/useSettings";
 import { type ComposedInvoice, composeInvoice } from "../lib/invoice/compose";
 import { downloadInvoicePdf } from "../lib/invoice/pdf";
 import { getRange } from "../lib/reports/range";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 export function InvoicePage() {
+  useDocumentTitle("Rechnung");
   const { settings } = useSettings();
   const { projects } = useProjects();
   const toast = useToast();
