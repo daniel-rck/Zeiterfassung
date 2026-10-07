@@ -67,7 +67,7 @@ Nach dem Deploy:
 
 **Routen geben 404 nach Reload.** Prüfe, dass `not_found_handling = "single-page-application"` in `wrangler.toml` steht. Beim ersten Deploy nach Änderung kann es 1–2 Minuten dauern, bis die Edge-Cache invalidiert ist.
 
-**Service Worker aktualisiert nicht.** `vite-plugin-pwa` läuft mit `registerType: 'autoUpdate'`. Wenn der SW hängt: DevTools → Application → Service Workers → **Unregister** → Hard-Reload. In Production updated der SW beim nächsten Tab-Refresh nach Deploy.
+**Service Worker aktualisiert nicht.** `vite-plugin-pwa` läuft mit `registerType: 'prompt'`: eine neue Version wartet, bis man im Hinweis „Update verfügbar“ auf **Neu laden** tippt (offene Tabs prüfen stündlich). Wenn der SW hängt: DevTools → Application → Service Workers → **Unregister** → Hard-Reload.
 
 **Daten weg nach Browser-Wechsel.** IndexedDB ist pro Browser-Profil. Für Geräte-Umzug: **Einstellungen → Backup herunterladen** auf altem Gerät, dann **Backup importieren** auf neuem.
 

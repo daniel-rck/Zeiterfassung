@@ -12,9 +12,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) · Versionssche
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` und `CHANGELOG.md`.
 - Issue- und Pull-Request-Templates unter `.github/`.
 - Badges (CI-Status, Lizenz, Tech-Stack, PWA, Cloudflare) im README.
+- Hinweis „Update verfügbar – neu laden“, sobald eine neue Version bereitliegt; offene Tabs prüfen stündlich auf Updates.
+- Offline-Hinweis im Header, solange keine Verbindung besteht.
+- Skip-Link „Zum Inhalt springen“ als erstes Tab-Ziel.
+- Deutsche Fehlerseite mit „Neu laden“ (auch wenn nach einem Update ein Teil der App fehlt) und eine 404-Seite, die den aufgerufenen Pfad nennt.
+- Jede Seite setzt ihren Titel im Browser-Tab („Reports · Zeiterfassung“).
 
 ### Geändert
 
+- Auf web-base 0.6.0 aktualisiert: Design-Tokens, Service Worker, Router, Worker und Datenbank-Anbindung kommen jetzt aus den gemeinsamen Bausteinen.
+- Neue Akzentfarbe Blau (Hue 255 statt 230, Theme-Farbe `#005cc2`), klar unterscheidbar von der Info-Farbe; Primär- und Lösch-Buttons sind dunkler und erreichen WCAG-AA-Kontrast.
+- Updates werden nicht mehr automatisch aktiviert, sondern erst nach Bestätigung — offene Tabs brechen nach einem Deploy nicht mehr ab.
+- Tastatur-Fokus in der Navigation wird als echter Rahmen gezeigt (auch im Windows-Kontrastmodus).
+- Sicherheits-Header (CSP u. a.) kommen aus `public/_headers` und gelten jetzt auch für die ausgelieferte Seite selbst.
 - Lint/Format von Biome auf oxlint + oxfmt umgestellt (web-base 0.5.0, Template `oxc`).
 - README neu strukturiert: klare Trennung zwischen User-Pitch und Entwickler-Setup, kompakter.
 - CSV-Export mit Dezimalkomma (passend zum `;`-Trenner für deutsches Excel).
@@ -37,6 +47,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/de/1.1.0/) · Versionssche
 - Tastenkürzel feuerten bei offenen Dialogen oder auf fokussierten Buttons.
 - Aktionen in Listen waren auf Touch-Geräten unsichtbar.
 - Ungültige Dauer oder leeres Datum wurden beim Speichern eines Eintrags ignoriert.
+- Der App-Name im Header war auf jeder Seite eine zweite `<h1>`-Überschrift.
+- Schlug das Öffnen der Datenbank einmal fehl (z. B. Speicher voll), blieb die App bis zum Neuladen ohne Daten; jetzt wird beim nächsten Zugriff erneut versucht.
 
 ## [0.1.0] — 2026-05-18
 
