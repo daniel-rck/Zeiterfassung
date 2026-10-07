@@ -64,7 +64,7 @@ export function Combobox({
 
   const triggerHeight = size === "sm" ? "h-8" : "h-9";
   const triggerBase =
-    "group inline-flex w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-150 focus-visible:outline-none";
+    "group inline-flex w-full items-center gap-2 rounded-md px-3 text-left text-sm transition-colors duration-150";
   const triggerVariant =
     variant === "ghost"
       ? "bg-transparent text-[color:var(--color-text-1)] hover:bg-[color:var(--color-surface-2)]"
@@ -147,7 +147,7 @@ export function Combobox({
               }}
               onKeyDown={onKeyDown}
               placeholder="Suchen…"
-              className="w-full bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"
+              className="w-full bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)]"
             />
           </div>
           <ul className="max-h-64 overflow-y-auto py-1">

@@ -9,7 +9,7 @@ import {
 } from "react";
 
 const FIELD_BASE =
-  "w-full rounded-md border bg-[color:var(--color-surface-1)] px-3 py-2 text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] outline-none transition-colors duration-150 ease-out disabled:opacity-60 disabled:cursor-not-allowed";
+  "w-full rounded-md border bg-[color:var(--color-surface-1)] px-3 py-2 text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] transition-colors duration-150 ease-out disabled:opacity-60 disabled:cursor-not-allowed";
 
 const FIELD_DEFAULT =
   "border-[color:var(--color-border-strong)] hover:border-[color:var(--color-text-3)] focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25";
