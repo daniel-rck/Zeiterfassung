@@ -1,0 +1,18 @@
+# Bumps the pinned reusable-workflow refs (daniel-rck/web-base/...@vX.Y.Z) in
+# .github/workflows/ as reviewable PRs. One grouped PR a week, only for
+# releases at least seven days old. See web-base docs/specs/06-workflows.md.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: chore
+      include: scope
