@@ -97,7 +97,7 @@ export function TagPicker({
               }
             }}
             placeholder="Tag-Name"
-            className="rounded-md border border-brand-500 bg-[color:var(--color-surface-1)] px-2 py-1 text-xs text-[color:var(--color-text-1)] focus:outline-none"
+            className="rounded-md border border-brand-500 bg-[color:var(--color-surface-1)] px-2 py-1 text-xs text-[color:var(--color-text-1)]"
           />
         ) : (
           <button

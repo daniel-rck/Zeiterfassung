@@ -9,30 +9,31 @@
     "Geist Mono Variable", ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
     "Liberation Mono", monospace;
 
-  /* === Brand (Vercel-Blue, Hue 230° OKLCH) === */
-  --color-brand-50: oklch(97% 0.015 230);
-  --color-brand-100: oklch(93% 0.035 230);
-  --color-brand-200: oklch(86% 0.075 230);
-  --color-brand-300: oklch(76% 0.13 230);
-  --color-brand-400: oklch(66% 0.17 230);
-  --color-brand-500: oklch(58% 0.19 230);
-  --color-brand-600: oklch(50% 0.2 230);
-  --color-brand-700: oklch(43% 0.17 230);
-  --color-brand-800: oklch(35% 0.13 230);
-  --color-brand-900: oklch(27% 0.09 230);
-  --color-brand-950: oklch(18% 0.06 230);
+  /* === Brand (blue). Every hue below follows `--accent-h` (theme.css), so the
+   brand scale and the tinted neutrals stay on the app's accent slot. === */
+  --color-brand-50: oklch(97% 0.015 var(--accent-h));
+  --color-brand-100: oklch(93% 0.035 var(--accent-h));
+  --color-brand-200: oklch(86% 0.075 var(--accent-h));
+  --color-brand-300: oklch(76% 0.13 var(--accent-h));
+  --color-brand-400: oklch(66% 0.17 var(--accent-h));
+  --color-brand-500: oklch(58% 0.19 var(--accent-h));
+  --color-brand-600: oklch(50% 0.2 var(--accent-h));
+  --color-brand-700: oklch(43% 0.17 var(--accent-h));
+  --color-brand-800: oklch(35% 0.13 var(--accent-h));
+  --color-brand-900: oklch(27% 0.09 var(--accent-h));
+  --color-brand-950: oklch(18% 0.06 var(--accent-h));
 
   /* === Semantic Surfaces (Light defaults) === */
-  --color-surface-0: oklch(99% 0.002 230);
+  --color-surface-0: oklch(99% 0.002 var(--accent-h));
   --color-surface-1: oklch(100% 0 0);
-  --color-surface-2: oklch(97% 0.003 230);
-  --color-surface-3: oklch(94% 0.005 230);
-  --color-border-subtle: oklch(92% 0.004 230);
-  --color-border-strong: oklch(85% 0.007 230);
-  --color-text-1: oklch(20% 0.01 230);
-  --color-text-2: oklch(42% 0.01 230);
+  --color-surface-2: oklch(97% 0.003 var(--accent-h));
+  --color-surface-3: oklch(94% 0.005 var(--accent-h));
+  --color-border-subtle: oklch(92% 0.004 var(--accent-h));
+  --color-border-strong: oklch(85% 0.007 var(--accent-h));
+  --color-text-1: oklch(20% 0.01 var(--accent-h));
+  --color-text-2: oklch(42% 0.01 var(--accent-h));
   /* 52 % keeps xs hints at WCAG AA (≥ 4.5:1) on surface-0/1. */
-  --color-text-3: oklch(52% 0.01 230);
+  --color-text-3: oklch(52% 0.01 var(--accent-h));
 
   /* === Status === */
   --color-success-500: oklch(64% 0.15 155);
@@ -54,10 +55,13 @@
   --radius-2xl: 16px;
 
   /* === Shadows === */
-  --shadow-xs: 0 1px 1px 0 oklch(20% 0.01 230 / 0.04);
-  --shadow-sm: 0 1px 2px 0 oklch(20% 0.01 230 / 0.06), 0 1px 1px 0 oklch(20% 0.01 230 / 0.04);
+  --shadow-xs: 0 1px 1px 0 oklch(20% 0.01 var(--accent-h) / 0.04);
+  --shadow-sm:
+    0 1px 2px 0 oklch(20% 0.01 var(--accent-h) / 0.06),
+    0 1px 1px 0 oklch(20% 0.01 var(--accent-h) / 0.04);
   --shadow-md:
-    0 4px 12px -2px oklch(20% 0.01 230 / 0.08), 0 2px 4px -1px oklch(20% 0.01 230 / 0.06);
+    0 4px 12px -2px oklch(20% 0.01 var(--accent-h) / 0.08),
+    0 2px 4px -1px oklch(20% 0.01 var(--accent-h) / 0.06);
 
   /* === Motion === */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -72,16 +76,16 @@
  * [data-theme="dark"] branch stay in sync by construction. */
 :root {
   @variant dark {
-    --color-surface-0: oklch(13% 0.005 230);
-    --color-surface-1: oklch(17% 0.006 230);
-    --color-surface-2: oklch(21% 0.008 230);
-    --color-surface-3: oklch(25% 0.01 230);
-    --color-border-subtle: oklch(25% 0.01 230);
-    --color-border-strong: oklch(32% 0.012 230);
-    --color-text-1: oklch(96% 0.005 230);
-    --color-text-2: oklch(75% 0.008 230);
+    --color-surface-0: oklch(13% 0.005 var(--accent-h));
+    --color-surface-1: oklch(17% 0.006 var(--accent-h));
+    --color-surface-2: oklch(21% 0.008 var(--accent-h));
+    --color-surface-3: oklch(25% 0.01 var(--accent-h));
+    --color-border-subtle: oklch(25% 0.01 var(--accent-h));
+    --color-border-strong: oklch(32% 0.012 var(--accent-h));
+    --color-text-1: oklch(96% 0.005 var(--accent-h));
+    --color-text-2: oklch(75% 0.008 var(--accent-h));
     /* 58 % was ~3.3:1 on surface-1; 66 % clears AA and stays below text-2. */
-    --color-text-3: oklch(66% 0.01 230);
+    --color-text-3: oklch(66% 0.01 var(--accent-h));
   }
 }
 
@@ -115,15 +119,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    transition-duration: 0.001ms !important;
-  }
-}
-
 :where(button, a, [role="button"], [role="menuitem"], input, select, textarea):focus-visible {
   outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
@@ -134,35 +129,6 @@ body {
   @variant dark {
     outline-color: var(--color-brand-400);
   }
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-.skip-link {
-  position: absolute;
-  left: -9999px;
-  top: 0;
-  z-index: 100;
-}
-
-.skip-link:focus {
-  left: 1rem;
-  top: 1rem;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-md);
-  background-color: var(--color-surface-1);
-  color: var(--color-text-1);
-  border: 2px solid var(--color-brand-500);
 }
 
 @media (pointer: coarse) {
@@ -230,8 +196,9 @@ body {
   animation: hero-glow 4s ease-in-out infinite;
 }
 
-/* Subtle page-fade for route transitions */
-@keyframes fade-in {
+/* Subtle page-fade for route transitions. Not named `fade-in`: tokens.css owns
+   that keyframe (for `animate-fade-in`), and the later definition would win. */
+@keyframes page-fade-in {
   from {
     opacity: 0;
     transform: translateY(2px);
@@ -243,7 +210,7 @@ body {
 }
 
 .page-fade {
-  animation: fade-in 160ms var(--ease-out);
+  animation: page-fade-in 160ms var(--ease-out);
 }
 
 /* Skeleton shimmer */

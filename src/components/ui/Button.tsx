@@ -6,7 +6,7 @@ type Size = "xs" | "sm" | "md" | "lg";
 
 const VARIANT_CLASSES: Record<Variant, string> = {
   primary:
-    "bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 shadow-xs ring-1 ring-inset ring-brand-600/30 disabled:bg-brand-400 disabled:ring-brand-400/30",
+    "bg-brand-600 text-fg-on-accent hover:bg-brand-700 active:bg-brand-800 shadow-xs ring-1 ring-inset ring-brand-700/30 disabled:bg-brand-400 disabled:ring-brand-400/30",
   secondary:
     "bg-[color:var(--color-surface-2)] text-[color:var(--color-text-1)] hover:bg-[color:var(--color-surface-3)] ring-1 ring-inset ring-[color:var(--color-border-subtle)]",
   outline:
@@ -14,7 +14,7 @@ const VARIANT_CLASSES: Record<Variant, string> = {
   ghost:
     "bg-transparent text-[color:var(--color-text-2)] hover:bg-[color:var(--color-surface-2)] hover:text-[color:var(--color-text-1)]",
   danger:
-    "bg-[color:var(--color-danger-500)] text-white hover:bg-[color:var(--color-danger-600)] shadow-xs ring-1 ring-inset ring-[color:var(--color-danger-600)]/40 disabled:opacity-60",
+    "bg-[color:var(--color-danger-600)] text-fg-on-accent hover:bg-danger-strong shadow-xs ring-1 ring-inset ring-[color:var(--color-danger-600)]/40 disabled:opacity-60",
 };
 
 const SIZE_CLASSES: Record<Size, string> = {
@@ -68,7 +68,7 @@ export function Button({
     <Tag
       {...tagProps}
       {...props}
-      className={`relative inline-flex items-center justify-center font-medium transition-colors duration-150 ease-out disabled:cursor-not-allowed focus-visible:outline-none ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${block ? "w-full" : ""} ${className}`}
+      className={`relative inline-flex items-center justify-center font-medium transition-colors duration-150 ease-out disabled:cursor-not-allowed ${VARIANT_CLASSES[variant]} ${SIZE_CLASSES[size]} ${block ? "w-full" : ""} ${className}`}
     >
       {loading ? (
         <Loader2 className="animate-spin" size={size === "lg" ? 16 : size === "xs" ? 12 : 14} />

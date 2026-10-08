@@ -113,7 +113,7 @@ export function Sheet({
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className={`relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md outline-none sm:max-h-[85vh] sm:rounded-lg ${sizeClass}`}
+        className={`relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-xl border border-[color:var(--color-border-subtle)] bg-[color:var(--color-surface-1)] shadow-md focus:outline-hidden sm:max-h-[85vh] sm:rounded-lg ${sizeClass}`}
       >
         {(title || closeable) && (
           <div className="flex items-center justify-between border-b border-[color:var(--color-border-subtle)] px-5 py-1.5">

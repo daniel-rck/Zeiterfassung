@@ -165,7 +165,7 @@ export function CommandPalette({
             aria-controls={listId}
             aria-autocomplete="list"
             aria-activedescendant={flat[highlight] ? `${listId}-${highlight}` : undefined}
-            className="h-12 flex-1 bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] focus:outline-none"
+            className="h-12 flex-1 bg-transparent text-sm text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)]"
           />
           <button
             ref={closeRef}

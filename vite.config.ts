@@ -1,8 +1,9 @@
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { defineConfig } from "vitest/config";
 
+// A plain object, not the function form: vitest.config.ts merges it.
 export default defineConfig({
   plugins: [
     react(),
@@ -11,7 +12,8 @@ export default defineConfig({
       strategies: "injectManifest",
       srcDir: "src/sw",
       filename: "index.ts",
-      registerType: "autoUpdate",
+      // A new version waits for the user's go (UpdatePrompt); see src/sw/base.ts.
+      registerType: "prompt",
       injectRegister: "auto",
       injectManifest: {
         globPatterns: ["**/*.{js,css,html,svg,png,webmanifest,woff2}"],
@@ -21,7 +23,8 @@ export default defineConfig({
         short_name: "Zeiterfassung",
         description:
           "Zeiterfassung — Timer, Projekte, Tags und Reports. Ohne Account, alles lokal im Browser.",
-        theme_color: "#2563eb",
+        // accent-600 of hue 255 as hex (04-layout-system.md)
+        theme_color: "#005cc2",
         background_color: "#0a0e14",
         display: "standalone",
         start_url: "/",
@@ -67,10 +70,4 @@ export default defineConfig({
       },
     }),
   ],
-  test: {
-    environment: "jsdom",
-    globals: true,
-    setupFiles: ["./src/test/setup.ts"],
-    css: true,
-  },
 });

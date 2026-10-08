@@ -20,6 +20,7 @@ import { formatMoney } from "../lib/format";
 import { useFeature } from "../lib/hooks/useFeature";
 import { useProjects } from "../lib/hooks/useProjects";
 import { useSettings } from "../lib/hooks/useSettings";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 import type { Project } from "../lib/types";
 
 interface ProjectDraft {
@@ -41,6 +42,7 @@ function emptyDraft(defaultBillable: boolean): ProjectDraft {
 }
 
 export function ProjectsPage() {
+  useDocumentTitle("Projekte");
   const { settings } = useSettings();
   const billingOn = useFeature("billing");
   const { projects, loading } = useProjects({ includeArchived: true });

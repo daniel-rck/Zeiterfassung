@@ -57,19 +57,40 @@ bun run build       # SPA + PWA
 - **Eigene Dark-Overrides mit `@variant dark`** schreiben (siehe `src/index.css`),
   nie mit `.dark` oder einem `@theme` innerhalb `@media` — Tailwind 4 hoistet
   `@theme` aus der Media-Query heraus, die Tokens gelten dann unbedingt.
-- **Akzent ist `--accent-h: 230`.** Achtung: das ist exakt der Hue von
-  `--color-info`; die eigene `--color-brand-*`-Skala trägt die sichtbare
-  Identität. Als Follow-up in web-bases `04-layout-system.md` notiert.
+- **Akzent ist `--accent-h: 255`** (Blau, seit web-base 0.6.0; vorher 230 —
+  exakt der Hue von `--color-info`). Er steht in `src/lib/ui/theme.css`;
+  `theme_color` / `<meta name="theme-color">` ist das passende `accent-600`
+  (`#005cc2`). Die eigene `--color-brand-*`-Skala und die getönten Neutralen in
+  `src/index.css` hängen per `var(--accent-h)` am selben Hue — keinen Hue dort
+  fest eintragen. `src/lib/ui/tokens.css` gehört web-base und wird nie editiert.
 - **`[build] command = "bun run build"` in `wrangler.toml`** wird von Cloudflare
   Workers Builds konsumiert. Nicht entfernen, auch wenn es nicht im Template steht.
-- **Die CSP im Worker ist `script-src 'self'`** — ohne Inline-Hash. Kein
-  Inline-`<script>` in `index.html` einführen, sonst muss der Hash wieder
-  gepflegt werden und bricht lautlos, sobald sich das Snippet ändert.
+- **Die CSP steht in `public/_headers`** und ist `script-src 'self'` — ohne
+  Inline-Hash. Kein Inline-`<script>` in `index.html` einführen, sonst muss der
+  Hash wieder gepflegt werden und bricht lautlos, sobald sich das Snippet
+  ändert. Der Worker setzt keine eigene CSP mehr: Assets (inkl. `index.html` als
+  SPA-Fallback) liefert Cloudflare aus, ohne den Worker aufzurufen — dort greift
+  nur `_headers`. Worker-Antworten (`/api`, `/healthz`) bekommen `nosniff` und
+  `no-store` aus dem owned `worker/base.ts`.
+- **Updates warten auf den Nutzer.** Der Service Worker ist
+  `registerAppShell()` aus dem owned `src/sw/base.ts` (`registerType:
+  "prompt"`); `<UpdatePrompt />` in `src/main.tsx` bietet „Neu laden" an. Kein
+  eigenes `skipWaiting()`, kein Auto-Reload — eine offene Seite verliert so
+  beim Deploy nicht ihre Lazy-Chunks; fehlt doch einer, bietet `RouteError`
+  „Neu laden" an.
+- **Tests räumen in `src/test/app-setup.ts` auf** (Stores leeren,
+  `localStorage` leeren). `src/test/setup.ts` gehört web-base — nichts
+  App-Spezifisches hineinschreiben.
 
 ## Bewusste Abweichungen
 
 - **`CODE_OF_CONDUCT.md`** existiert hier zusätzlich zum Hygiene-Set.
 - Die App-Shell (`src/features/shell/AppShellContainer.tsx`) komponiert den
   web-base-`AppShell` mit eigenen `headerActions` (Live-Timer-Badge,
-  Befehlsmenü). Der Theme-Umschalter kommt aus web-base und wird von `AppShell`
-  selbst gemountet.
+  Befehlsmenü). Theme-Umschalter, Offline-Hinweis und Skip-Link kommen aus
+  web-base und werden von `AppShell` selbst gemountet.
+- **Router-Form**: die Root-Layout-Route ist `src/App.tsx`, aber anders als im
+  Template *ohne* `AppShell` — sie trägt nur Provider (Toast, Confirm) und
+  globale Listener (Shortcuts, Onboarding). Die Shell ist eine verschachtelte
+  Layout-Route darunter, weil `/willkommen` ohne Shell rendert. `RouteError`,
+  `RouteFallback` und `*` → `NotFound` sind wie im Template verdrahtet.

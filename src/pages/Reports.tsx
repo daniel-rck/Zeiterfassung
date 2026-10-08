@@ -24,6 +24,7 @@ import {
   totalDurationSec,
 } from "../lib/reports/aggregate";
 import { getRange } from "../lib/reports/range";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 
 const INITIAL_FILTER: ReportFilterState = {
   preset: "thisMonth",
@@ -46,6 +47,7 @@ const FALLBACK_COLORS = [
 ];
 
 export function ReportsPage() {
+  useDocumentTitle("Reports");
   const { settings } = useSettings();
   const features = useFeatures();
   const [filter, setFilter] = useFilterState<ReportFilterState>("reports", INITIAL_FILTER);

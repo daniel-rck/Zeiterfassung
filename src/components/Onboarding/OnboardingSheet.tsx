@@ -250,7 +250,7 @@ export function OnboardingSheet({
                   }`}
                 >
                   {selected && (
-                    <span className="absolute right-3 top-3 rounded-full bg-brand-600 p-1 text-white">
+                    <span className="absolute right-3 top-3 rounded-full bg-brand-600 p-1 text-fg-on-accent">
                       <Check size={12} />
                     </span>
                   )}

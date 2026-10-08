@@ -16,9 +16,11 @@ import {
   updateTag,
 } from "../lib/db/tags";
 import { useTags } from "../lib/hooks/useTags";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 import type { Tag } from "../lib/types";
 
 export function TagsPage() {
+  useDocumentTitle("Tags");
   const { tags, loading } = useTags({ includeArchived: true });
   const toast = useToast();
   const confirm = useConfirm();

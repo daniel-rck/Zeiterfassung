@@ -23,7 +23,7 @@ This app is local-first and DSGVO-konform by construction:
 In-scope vulnerabilities include:
 
 - XSS or injection vectors in the UI
-- CSP bypasses or weaknesses in the Worker's security headers
+- CSP bypasses or weaknesses in the security headers (`public/_headers`, `worker/base.ts`)
 - Data exposure via the import/export paths (JSON, CSV, PDF)
 - Service worker cache-poisoning vectors
 

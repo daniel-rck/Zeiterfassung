@@ -1,5 +1,4 @@
 export {
-  _resetDBForTests,
   type AppSchema,
   clearAll,
   DB_NAME,

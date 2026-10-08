@@ -1,41 +1,31 @@
-import "@testing-library/jest-dom/vitest";
+// Shared test setup, loaded through `setupFiles` in vitest.config.ts.
+// BroadcastChannel needs no polyfill: Node's built-in one delivers between
+// instances, so notifyMutation → useLiveQuery works as in the browser.
+// oxlint-disable-next-line import/no-unassigned-import -- installs indexedDB, IDBKeyRange & co. as globals
 import "fake-indexeddb/auto";
+// oxlint-disable-next-line import/no-unassigned-import -- registers the jest-dom matchers (and their types) on vitest's expect
+import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
-import { _resetDBForTests, getDB } from "../lib/db";
+import { afterEach } from "vitest";
 
-Object.defineProperty(window, "matchMedia", {
-  writable: true,
-  configurable: true,
-  value: vi.fn<(query: string) => MediaQueryList>().mockImplementation((query: string) => ({
+// Testing Library only unmounts after each test by itself when `afterEach` is
+// a global (vitest's `globals: true`); without this, trees leak between tests.
+afterEach(() => {
+  cleanup();
+});
+
+// jsdom has no matchMedia, which the theme and install-prompt hooks call.
+// Every query reports "no match"; override per test with
+// `vi.spyOn(window, "matchMedia").mockReturnValue(…)`.
+if (typeof window.matchMedia !== "function") {
+  window.matchMedia = (query: string): MediaQueryList => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: vi.fn<MediaQueryList["addListener"]>(),
-    removeListener: vi.fn<MediaQueryList["removeListener"]>(),
-    addEventListener: vi.fn<MediaQueryList["addEventListener"]>(),
-    removeEventListener: vi.fn<MediaQueryList["removeEventListener"]>(),
-    dispatchEvent: vi.fn<MediaQueryList["dispatchEvent"]>(),
-  })),
-});
-
-afterEach(async () => {
-  cleanup();
-  try {
-    const db = await getDB();
-    const tx = db.transaction(
-      ["projects", "tags", "time_entries", "invoices", "breaks"],
-      "readwrite",
-    );
-    await tx.objectStore("projects").clear();
-    await tx.objectStore("tags").clear();
-    await tx.objectStore("time_entries").clear();
-    await tx.objectStore("invoices").clear();
-    await tx.objectStore("breaks").clear();
-    await tx.done;
-  } catch {
-    // ignore — DB may not exist yet
-  }
-  await _resetDBForTests();
-  window.localStorage.clear();
-});
+    addEventListener() {},
+    removeEventListener() {},
+    addListener() {},
+    removeListener() {},
+    dispatchEvent: () => false,
+  });
+}

@@ -181,7 +181,7 @@ export function TimerHero() {
             }}
             placeholder={entry ? "Beschreibung…" : "Was machst du gerade?"}
             aria-label="Beschreibung"
-            className="mt-4 w-full border-b border-[color:var(--color-border-subtle)] bg-transparent py-2 text-base text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] transition-colors duration-150 focus:border-brand-500 focus:outline-none focus-visible:shadow-[0_1px_0_0_var(--color-brand-500)]"
+            className="mt-4 w-full border-b border-[color:var(--color-border-subtle)] bg-transparent py-2 text-base text-[color:var(--color-text-1)] placeholder:text-[color:var(--color-text-3)] transition-colors duration-150 focus:border-brand-500 focus-visible:shadow-[0_1px_0_0_var(--color-brand-500)]"
           />
         </div>
 

@@ -10,6 +10,7 @@ import { formatDate, formatMoney } from "../lib/format";
 import { useSettings } from "../lib/hooks/useSettings";
 import type { ComposedInvoice } from "../lib/invoice/compose";
 import { downloadInvoicePdf } from "../lib/invoice/pdf";
+import { useDocumentTitle } from "../lib/routing/useDocumentTitle.ts";
 import type { StoredInvoice } from "../lib/types";
 
 function storedToComposed(record: StoredInvoice): ComposedInvoice {
@@ -30,6 +31,7 @@ function storedToComposed(record: StoredInvoice): ComposedInvoice {
 }
 
 export function InvoicesPage() {
+  useDocumentTitle("Rechnungsarchiv");
   const { settings } = useSettings();
   const toast = useToast();
   const confirm = useConfirm();
